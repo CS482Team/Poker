@@ -1,5 +1,5 @@
-import { createDeck, shuffle } from "./cards"
-import type { Rng } from "./cards"
+import { createDeck, shuffle, SUITS } from "./cards"
+import type { Card, Rng } from "./cards"
 
 // A tiny seeded random generator, so shuffles are repeatable in tests
 function seededRng(seed: number): Rng {
@@ -9,6 +9,8 @@ function seededRng(seed: number): Rng {
     return s / 4294967296
   }
 }
+
+const key = (c: Card) => `${c.rank}-${c.suit}`
 
 // Test deck creation
 describe("createDeck", () => {
@@ -20,7 +22,7 @@ describe("createDeck", () => {
   //deck shouldn't have dups
   it("has no duplicate cards", () => {
     const deck = createDeck();
-    const unique = Set(deck.map(key))
+    const unique = new Set(deck.map(key))
     expect(unique.size).toBe(52)
   })
 
@@ -36,9 +38,9 @@ describe("createDeck", () => {
 describe("shuffle", () => {
   it("returns the same 52 cards", () => {
     const original = createDeck()
-    const shuffled = shuffle(original, seededRng)
+    const shuffled = shuffle(original, seededRng(3))
     expect(shuffled).toHaveLength(52)
-    expect(shuffled.map(key).sort()).toEqual(original.map(key)).sort())
+    expect(shuffled.map(key).sort()).toEqual(original.map(key).sort())
     // hint: same length, and every card from createDeck() is still in there
   })
 
