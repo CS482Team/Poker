@@ -1,5 +1,8 @@
 import type { Card } from "./cards"
 export type PlayerId = string // socket.id for now; Supabase user id after Heloisa's auth
+export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
+export type StartError = "too-few-players" | "too-many-players" | "wrong-phase"
+
 
 export interface TableConfig {
   ante: number
@@ -54,3 +57,4 @@ export interface GameState {
   round: BettingRound | null // null outside betting phases
   handNumber: number
 }
+
