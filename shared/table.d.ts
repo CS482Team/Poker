@@ -21,6 +21,7 @@ export interface TableDetail {
   id: string
   name: string
   maxPlayers: number
+  buyIn: number
   seats: Seat[]
 }
 

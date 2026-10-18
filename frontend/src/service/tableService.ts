@@ -2,6 +2,9 @@ import type { NewTable, Table, TableDetail } from "@shared/table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// TODO replace polling with Socket.IO 
+export const POLL_INTERVAL_MS = 3000;
+
 export async function fetchTables(): Promise<Table[]> {
   const res = await fetch(`${API_URL}/tables`);
   if (!res.ok) throw new Error(`Failed to load tables (${res.status})`);
@@ -23,4 +26,18 @@ export async function createTable(table: NewTable): Promise<string> {
   if (!res.ok) throw new Error(`Failed to create table (${res.status})`);
   const { id } = await res.json();
   return id;
+}
+
+export async function joinTable(id: string, userId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/tables/${id}/players`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }),
+  });
+  if (!res.ok) throw new Error(`Failed to join table (${res.status})`);
+}
+
+export async function leaveTable(id: string, userId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/tables/${id}/players/${userId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Failed to leave table (${res.status})`);
 }
