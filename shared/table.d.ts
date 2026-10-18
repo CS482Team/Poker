@@ -23,3 +23,11 @@ export interface TableDetail {
   maxPlayers: number
   seats: Seat[]
 }
+
+export interface NewTable {
+  name: string
+  maxPlayers: number
+  buyIn: number
+  minimumBet: number
+  ante: number
+}

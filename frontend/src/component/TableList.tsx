@@ -1,6 +1,8 @@
 "use client"
 
 import type { Table } from "@shared/table"
+import NewTableForm from "@/component/NewTableForm"
+import { getCurrentTableId } from "@/service/currentTableService"
 import { fetchTables } from "@/service/tableService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -9,15 +11,25 @@ function isTableFull(table: Table) {
   return table.players >= table.maxPlayers
 }
 
+function actionLabel(isCurrent: boolean, isFull: boolean) {
+  if (isCurrent) return "Return"
+  return isFull ? "Full" : "Join"
+}
+
 export default function TableList() {
   const router = useRouter()
   const [tables, setTables] = useState<Table[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [currentId, setCurrentId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTables()
-      .then(setTables)
+      .then((loaded) => {
+        setTables(loaded)
+        setCurrentId(getCurrentTableId())
+      })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
@@ -28,11 +40,12 @@ export default function TableList() {
         <h1 className="page-title">
           Tables <small>{tables.length} tables</small>
         </h1>
-        {/* TODO: create table form */}
-        <button type="button" className="primary-action">
+        <button type="button" onClick={() => setCreating(true)} className="primary-action">
           New table
         </button>
       </div>
+
+      {creating && <NewTableForm onCancel={() => setCreating(false)} />}
 
       <div className="panel overflow-hidden">
         <div className="hidden grid-cols-[1.5fr_1fr_.8fr_.7fr_.6fr_220px] gap-4 border-b border-black/60 bg-gradient-to-b from-[#3a3535] to-[#211d1d] px-[22px] py-[15px] text-sm leading-[19px] text-[#b5a9a9] md:grid">
@@ -46,6 +59,7 @@ export default function TableList() {
 
         {tables.map((table) => {
           const full = isTableFull(table)
+          const current = table.id === currentId
           const variant = `${table.variant}` /* TODO need to format */
           const stakes = `$${table.ante} / $${table.minimumBet}`
           const seats = `${table.players}/${table.maxPlayers}`
@@ -63,8 +77,8 @@ export default function TableList() {
               <span className="hidden text-sm text-[#b5a9a9] md:block">{seats} players</span>
               <span className="hidden text-sm md:block">${table.buyIn}</span>
               <div className="flex flex-wrap items-center gap-2 md:flex-row-reverse md:justify-start">
-                <button type="button" disabled={full} onClick={() => router.push(`/table/${table.id}`)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
-                  {full ? "Full" : "Join"}
+                <button type="button" disabled={full && !current} onClick={() => router.push(`/table/${table.id}`)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
+                  {actionLabel(current, full)}
                 </button>
               </div>
             </div>
