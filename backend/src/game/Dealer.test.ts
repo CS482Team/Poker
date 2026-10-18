@@ -1,6 +1,6 @@
-import { createGame, startHand } from "./init"
-import type { GameState, SeatInput, TableConfig } from "./types"
-import type { Card, Rng } from "./cards"
+import { createGame, startHand } from "./Dealer"
+import type { GameState, SeatInput, TableConfig } from "./GameState"
+import type { Card, Rng } from "./Card"
 
 const config: TableConfig = { ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 }
 

@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto"
-import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "./types"
-import { createDeck, shuffle } from "./cards"
-import type { Rng } from "./cards"
+import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "./GameState"
+import { createDeck, shuffle } from "./Card"
+import type { Rng } from "./Card"
 
 const HAND_SIZE = 5
 
