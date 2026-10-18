@@ -6,7 +6,7 @@ jest.mock("../controller/Demo")
 
 describe("POST /demo/deal", () => {
   it("returns the deal as JSON", async () => {
-    const deal = { matchId: "m1", pot: 4, dealerSeat: 0, players: [] }
+    const deal = { matchId: "m1", pot: 4, dealerSeat: 0, toActSeat: 1, players: [] }
     jest.mocked(dealDemo).mockResolvedValue(deal)
 
     const res = await request(app).post("/demo/deal")

@@ -125,4 +125,35 @@ describe("startHand", () => {
     const result = startHand(game, seededRng(2))
     expect(result).toEqual({ ok: false, error: "wrong-phase" })
   })
+    it("sits out a player with no chips and deals them nothing", () => {
+    const game = dealtGame([...seats, { id: "d", name: "Dan", stack: 0 }])
+    const dan = game.players.find(p => p.id === "d")!
+    expect(dan.status).toBe("sitting-out")
+    expect(dan.hand).toHaveLength(0)
+    expect(game.pot).toBe(3)
+  })
+
+  it("rejects a hand when fewer than 2 players have chips", () => {
+    const created = createGame("room-1", [{ id: "a", name: "Alice", stack: 100 }, { id: "b", name: "Bob", stack: 0 }], config)
+    if (!created.ok) throw new Error(created.error)
+    expect(startHand(created.value, seededRng(1))).toEqual({ ok: false, error: "too-few-players" })
+  })
+
+  it("moves the dealer button to the next player on the next hand", () => {
+    const first = dealtGame()
+    const next = startHand({ ...first, phase: "hand-complete" }, seededRng(2))
+    if (!next.ok) throw new Error(next.error)
+    expect(next.value.dealerIndex).toBe(1)
+    expect(next.value.handNumber).toBe(2)
+  })
+
+  it("has nobody to act when every player is all-in after the antes", () => {
+    const game = dealtGame([
+      { id: "a", name: "Alice", stack: 1 },
+      { id: "b", name: "Bob", stack: 1 },
+    ])
+    expect(game.players.every(p => p.status === "all-in")).toBe(true)
+    expect(game.toActIndex).toBeNull()
+  })
+
 })

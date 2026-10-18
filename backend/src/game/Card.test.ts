@@ -62,4 +62,9 @@ describe("shuffle", () => {
     const b = shuffle(createDeck(), seededRng(2))
     expect(a).not.toEqual(b)
   })
+  it("uses Math.random when no rng is given", () => {
+    const shuffled = shuffle(createDeck())
+    expect(shuffled).toHaveLength(52)
+  })
+
 })
