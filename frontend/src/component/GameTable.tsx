@@ -1,5 +1,6 @@
 "use client"
 
+import { setCurrentTableId } from "@/service/currentTableService"
 import { fetchTable } from "@/service/tableService"
 import type { TableDetail } from "@shared/table"
 import { useEffect, useState } from "react"
@@ -19,7 +20,10 @@ export default function GameTable({ id }: { id: string }) {
 
   useEffect(() => {
     fetchTable(id)
-      .then(setTable)
+      .then((loaded) => {
+        setTable(loaded)
+        setCurrentTableId(id)
+      })
       .catch((err: Error) => setError(err.message))
   }, [id])
 

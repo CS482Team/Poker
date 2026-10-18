@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Table, TableDetail } from "../../../shared/table"
+import type { NewTable, Table, TableDetail } from "../../../shared/table"
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!)
 
@@ -45,4 +45,22 @@ export async function getTable(id: string): Promise<TableDetail | null> {
       stack: row.stack,
     })),
   }
+}
+
+export async function createTable(input: NewTable): Promise<string> {
+  const { data, error } = await supabase
+    .from("table")
+    .insert({
+      name: input.name,
+      max_players: input.maxPlayers,
+      buy_in: input.buyIn,
+      minimum_bet: input.minimumBet,
+      ante: input.ante,
+    })
+    .select("id")
+    .single()
+
+  if (error) throw error
+
+  return data.id
 }
