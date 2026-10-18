@@ -1,12 +1,14 @@
 import { dealDemo } from "./Demo"
 import { findOrCreateDemoTable } from "../model/Table"
-import { insertMatch, insertMatchPlayers } from "../model/Match"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../model/Match"
 
 jest.mock("../model/Table")
 jest.mock("../model/Match")
 
 beforeEach(() => {
+  jest.clearAllMocks() 
   jest.mocked(findOrCreateDemoTable).mockResolvedValue({ id: "t1", ante: 1, minimum_bet: 2 })
+  jest.mocked(nextMatchNumber).mockResolvedValue(5)
   jest.mocked(insertMatch).mockResolvedValue("m1")
   jest.mocked(insertMatchPlayers).mockResolvedValue(undefined)
 })
@@ -26,7 +28,7 @@ describe("dealDemo", () => {
 
   it("saves the match with the table, pot and dealer seat", async () => {
     await dealDemo()
-    expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", matchNumber: 1, pot: 4, dealerSeat: 0 })
+    expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", matchNumber: 5, pot: 4, dealerSeat: 0 })
   })
 
   it("saves every demo player as a bot", async () => {
@@ -42,5 +44,10 @@ describe("dealDemo", () => {
   it("returns the saved match id", async () => {
     const deal = await dealDemo()
     expect(deal.matchId).toBe("m1")
+  })
+  it("returns whose turn it is: the first player left of the dealer", async () => {
+    const deal = await dealDemo()
+    expect(deal.dealerSeat).toBe(0)
+    expect(deal.toActSeat).toBe(1)
   })
 })

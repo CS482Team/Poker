@@ -21,3 +21,16 @@ export async function insertMatchPlayers(matchId: string, players: NewMatchPlaye
     .insert(players.map(p => ({ match_id: matchId, seat_number: p.seatNumber, user_id: p.userId, bot_name: p.botName })))
   if (error) throw error
 }
+
+// Next match number for a table: one more than its highest so far (1 for a new table)
+export async function nextMatchNumber(tableId: string): Promise<number> {
+  const { data, error } = await getSupabase()
+    .from("match")
+    .select("match_number")
+    .eq("table_id", tableId)
+    .order("match_number", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return (data?.match_number ?? 0) + 1
+}

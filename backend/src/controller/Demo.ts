@@ -2,7 +2,8 @@ import { createGame, startHand } from "../game/Dealer"
 import type { Card, Rng } from "../game/Card"
 import type { PlayerStatus, SeatInput, TableConfig } from "../game/GameState"
 import { findOrCreateDemoTable } from "../model/Table"
-import { insertMatch, insertMatchPlayers } from "../model/Match"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../model/Match"
+
 
 // TODO: demo only; remove once rooms (S12/S14) and per-player views exist
 const DEMO_SEATS: SeatInput[] = [
@@ -14,7 +15,7 @@ const DEMO_SEATS: SeatInput[] = [
 const MAX_BETS_PER_ROUND = 4
 
 export interface DemoPlayer { seat: number; name: string; stack: number; status: PlayerStatus; hand: Card[] }
-export interface DemoDeal { matchId: string; pot: number; dealerSeat: number; players: DemoPlayer[] }
+export interface DemoDeal { matchId: string; pot: number; dealerSeat: number; toActSeat: number | null; players: DemoPlayer[] }
 
 // Starts a hand at the demo table with bot players, saves it, and returns every player's cards
 export async function dealDemo(rng?: Rng): Promise<DemoDeal> {
@@ -32,9 +33,10 @@ export async function dealDemo(rng?: Rng): Promise<DemoDeal> {
   if (!started.ok) throw new Error(started.error)
   const game = started.value
 
+  const matchNumber = await nextMatchNumber(table.id)
   const matchId = await insertMatch({
     tableId: table.id,
-    matchNumber: game.handNumber,
+    matchNumber,
     pot: game.pot,
     dealerSeat: game.dealerIndex,
   })
@@ -44,6 +46,7 @@ export async function dealDemo(rng?: Rng): Promise<DemoDeal> {
     matchId,
     pot: game.pot,
     dealerSeat: game.dealerIndex,
+    toActSeat: game.toActIndex,
     players: game.players.map((p, seat) => ({ seat, name: p.name, stack: p.stack, status: p.status, hand: p.hand })),
   }
 }
