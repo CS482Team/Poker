@@ -7,3 +7,7 @@ export function getCurrentTableId(): string | null {
 export function setCurrentTableId(id: string) {
   localStorage.setItem(CURRENT_TABLE_KEY, id);
 }
+
+export function clearCurrentTableId() {
+  localStorage.removeItem(CURRENT_TABLE_KEY);
+}

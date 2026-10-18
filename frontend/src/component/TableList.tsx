@@ -2,8 +2,9 @@
 
 import type { Table } from "@shared/table"
 import NewTableForm from "@/component/NewTableForm"
-import { getCurrentTableId } from "@/service/currentTableService"
-import { fetchTables } from "@/service/tableService"
+import { getCurrentTableId, setCurrentTableId } from "@/service/currentTableService"
+import { fetchTables, joinTable, POLL_INTERVAL_MS } from "@/service/tableService"
+import { CURRENT_USER_ID } from "@/service/userService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -25,14 +26,32 @@ export default function TableList() {
   const [currentId, setCurrentId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchTables()
-      .then((loaded) => {
-        setTables(loaded)
-        setCurrentId(getCurrentTableId())
-      })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false))
+    const load = () =>
+      fetchTables()
+        .then((loaded) => {
+          setTables(loaded)
+          setCurrentId(getCurrentTableId())
+          setError(null)
+        })
+        .catch((err: Error) => setError(err.message))
+        .finally(() => setLoading(false))
+
+    load()
+    const timer = setInterval(load, POLL_INTERVAL_MS)
+    return () => clearInterval(timer)
   }, [])
+
+  async function enter(table: Table, isCurrent: boolean) {
+    try {
+      if (!isCurrent) {
+        await joinTable(table.id, CURRENT_USER_ID)
+        setCurrentTableId(table.id)
+      }
+      router.push(`/table/${table.id}`)
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
 
   return (
     <div className="page-shell">
@@ -77,7 +96,7 @@ export default function TableList() {
               <span className="hidden text-sm text-[#b5a9a9] md:block">{seats} players</span>
               <span className="hidden text-sm md:block">${table.buyIn}</span>
               <div className="flex flex-wrap items-center gap-2 md:flex-row-reverse md:justify-start">
-                <button type="button" disabled={full && !current} onClick={() => router.push(`/table/${table.id}`)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
+                <button type="button" disabled={full && !current} onClick={() => enter(table, current)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
                   {actionLabel(current, full)}
                 </button>
               </div>
