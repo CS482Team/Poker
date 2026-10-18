@@ -35,6 +35,26 @@ Copy `.env.example` to `.env` (gitignored) and fill in `SUPABASE_URL` and `SUPAB
 
 `dotenv` is installed but not yet loaded, so `.env` is not read until someone adds `import "dotenv/config"` to `src/index.ts` (needed once the backend uses Supabase).
 
+## Folder structure
+
+MVC, with the poker game engine kept separate from the network and database layers so the card mechanics can be unit tested on their own (design doc, section 4.1).
+
+```
+src/
+  config/      configuration and environment (e.g. Supabase client setup)
+  controller/  request handlers: validate input, call game/ or model/, shape the response
+  game/        the poker engine: pure functions over plain GameState data (deck, dealing, betting, hand evaluation)
+  model/       data access and types for database tables (Supabase)
+  route/       Express REST route definitions (accounts, friends, tables, adverts)
+  socket/      Socket.IO event handlers for live gameplay; thin layer over game/
+  util/        small shared helpers
+  app.ts       Express app (CORS, /health)
+  index.ts     entry point: HTTP server + Socket.IO + listen
+```
+
+- `game/` must not import from `controller/`, `route/`, `socket/` or `model/`. Those layers call into `game/`, never the other way round.
+- Empty folders contain a `.gitkeep` so git tracks them; delete it once the folder has real files.
+
 ## Architecture notes
 
 - `src/app.ts` defines the Express app (CORS, `/health`). `src/index.ts` wraps it in `http.createServer`, attaches a Socket.IO `Server` and listens. Port 4000 and the Socket.IO CORS origin (`http://localhost:3000`) are hardcoded.
@@ -42,8 +62,18 @@ Copy `.env.example` to `.env` (gitignored) and fill in `SUPABASE_URL` and `SUPAB
 - TypeScript is pinned to 6 because ts-jest does not support TypeScript 7.
 - `tsconfig.json` builds `src/` into `dist/` and is strict, including `noUncheckedIndexedAccess` (indexing an array gives `T | undefined`) and `exactOptionalPropertyTypes` (prefer `| null` over optional `?` fields in state).
 
+## Coding standards (design doc, section 4.4)
+
+- Code files are named with singular capitalized words, e.g. `Card.ts`, `Card.test.ts`. Entry points `index.ts` and `app.ts` are the exception.
+- Database tables and columns use singular snake_case names (e.g. `table_players.seat_number`).
+- Avoid the `any` type.
+- Add comments where they clarify the code.
+- Every test has a clearly defined purpose. When a bug is found, add a test for it to prevent regression.
+
 ## Git workflow
 
-- `main` is the default branch; integration happens on `develop`.
-- Feature branches are named `feature/<issue#>-<slug>` (e.g. `feature/3-initialize-the-project`) and merged into `develop` via PR.
-- Commit messages are prefixed with the issue number, e.g. `#3 init frontend and backend`.
+- Merge flow: feature branch → `develop` (1 approving PR review) → `main` (2 approving reviews). Nobody pushes directly to `develop` or `main`.
+- Every PR must be approved by a teammate other than its author.
+- Merging to `develop` requires 100% of unit tests passing and at least 80% code coverage (to be enforced by GitHub Actions CI).
+- Feature branches are named by issue number and feature, e.g. `feature/13-login-page`.
+- Commit messages contain the issue number, are short, and describe the change, e.g. `#3 init frontend and backend`.
