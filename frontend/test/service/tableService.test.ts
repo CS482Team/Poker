@@ -1,6 +1,6 @@
 import { createTable, fetchTable, fetchTables, joinTable, leaveTable } from "@/service/tableService"
 
-const table = { name: "Room", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
+const table = { hostId: "u1", name: "Room", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
 
 function respond(ok: boolean, body?: unknown) {
   global.fetch = jest.fn().mockResolvedValue({ ok, status: ok ? 200 : 500, json: async () => body })

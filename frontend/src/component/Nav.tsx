@@ -1,5 +1,6 @@
 "use client"
 
+import DevUserSwitch from "@/component/DevUserSwitch"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -8,7 +9,7 @@ export default function Nav() {
   const onTable = pathname.startsWith("/table")
 
   return (
-    <nav className="site-header flex justify-center gap-2 py-3">
+    <nav className="site-header relative flex justify-center gap-2 py-3">
       <Link href="/" className={pathname === "/" ? "nav-tab active" : "nav-tab"}>
         Lobby
       </Link>
@@ -19,6 +20,7 @@ export default function Nav() {
       ) : (
         <span className="nav-tab opacity-40">Table</span>
       )}
+      <DevUserSwitch />
     </nav>
   )
 }

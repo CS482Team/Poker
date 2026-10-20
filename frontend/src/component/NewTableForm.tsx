@@ -2,7 +2,7 @@
 
 import { setCurrentTableId } from "@/service/currentTableService"
 import { createTable, joinTable } from "@/service/tableService"
-import { CURRENT_USER_ID } from "@/service/userService"
+import { getCurrentUserId } from "@/service/userService"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -26,8 +26,8 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const id = await createTable({ name, maxPlayers, buyIn, minimumBet, ante })
-      await joinTable(id, CURRENT_USER_ID)
+      const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante })
+      await joinTable(id, getCurrentUserId())
       setCurrentTableId(id)
       router.push(`/table/${id}`)
     } catch (err) {

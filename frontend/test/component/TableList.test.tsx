@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import TableList from "@/component/TableList"
 import { getCurrentTableId } from "@/service/currentTableService"
+import { watchTables } from "@/service/socketService"
 import { fetchTables, joinTable } from "@/service/tableService"
 
 const mockPush = jest.fn()
@@ -10,10 +11,13 @@ jest.mock("next/navigation", () => ({
 }))
 
 jest.mock("@/service/tableService", () => ({
-  POLL_INTERVAL_MS: 3000,
   fetchTables: jest.fn(),
   joinTable: jest.fn(),
   createTable: jest.fn(),
+}))
+
+jest.mock("@/service/socketService", () => ({
+  watchTables: jest.fn(() => jest.fn()),
 }))
 
 jest.mock("@/service/currentTableService", () => ({
@@ -43,6 +47,15 @@ describe("TableList", () => {
     jest.mocked(fetchTables).mockResolvedValue([table])
     render(<TableList />)
     expect(await screen.findByText("Room One")).toBeInTheDocument()
+  })
+
+  it("shows tables pushed over the socket", async () => {
+    jest.mocked(fetchTables).mockResolvedValue([])
+    render(<TableList />)
+    await screen.findByText("No tables yet.")
+    const push = jest.mocked(watchTables).mock.calls[0][0]
+    act(() => push([table]))
+    expect(screen.getByText("Room One")).toBeInTheDocument()
   })
 
   it("shows the error", async () => {

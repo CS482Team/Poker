@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
+import { watchTable } from "@/service/socketService"
 import { fetchTable, leaveTable } from "@/service/tableService"
-import { CURRENT_USER_ID } from "@/service/userService"
+import { getCurrentUserId } from "@/service/userService"
 
 const mockPush = jest.fn()
 
@@ -10,9 +11,12 @@ jest.mock("next/navigation", () => ({
 }))
 
 jest.mock("@/service/tableService", () => ({
-  POLL_INTERVAL_MS: 3000,
   fetchTable: jest.fn(),
   leaveTable: jest.fn(),
+}))
+
+jest.mock("@/service/socketService", () => ({
+  watchTable: jest.fn(() => jest.fn()),
 }))
 
 jest.mock("@/service/currentTableService", () => ({
@@ -25,7 +29,7 @@ const table = {
   maxPlayers: 6,
   buyIn: 100,
   seats: [
-    { userId: CURRENT_USER_ID, username: "Alex", seatNumber: 0, stack: 2450 },
+    { userId: getCurrentUserId(), username: "Alex", seatNumber: 0, stack: 2450 },
     { userId: "u2", username: "Maya", seatNumber: 1, stack: 1840 },
   ],
 }
@@ -42,6 +46,14 @@ describe("GameTable", () => {
     expect(screen.getByText("Me")).toBeInTheDocument()
   })
 
+  it("shows a player who joins over the socket", async () => {
+    render(<GameTable id="t1" />)
+    await screen.findByText("Maya")
+    const push = jest.mocked(watchTable).mock.calls[0][1]
+    act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 2, stack: 100 }] }))
+    expect(screen.getByText("Sam")).toBeInTheDocument()
+  })
+
   it("shows the error", async () => {
     jest.mocked(fetchTable).mockRejectedValue(new Error("Failed"))
     render(<GameTable id="t1" />)
@@ -52,7 +64,7 @@ describe("GameTable", () => {
     render(<GameTable id="t1" />)
     fireEvent.click(await screen.findByRole("button", { name: "Leave table" }))
     await screen.findByText("Maya")
-    expect(leaveTable).toHaveBeenCalledWith("t1", CURRENT_USER_ID)
+    expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
     expect(mockPush).toHaveBeenCalledWith("/")
   })
 })
