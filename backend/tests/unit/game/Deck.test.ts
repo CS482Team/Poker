@@ -1,5 +1,6 @@
-import { createDeck, shuffle, SUITS } from "./Card"
-import type { Card, Rng } from "./Card"
+import { createDeck, shuffle } from "../../../src/game/Deck"
+import { SUITS } from "../../../src/game/Card"
+import type { Card, Rng } from "../../../src/game/Card"
 
 // A tiny seeded random generator, so shuffles are repeatable in tests
 function seededRng(seed: number): Rng {
