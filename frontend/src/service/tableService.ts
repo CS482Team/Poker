@@ -2,9 +2,6 @@ import type { NewTable, Table, TableDetail } from "@shared/table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// TODO replace polling with Socket.IO 
-export const POLL_INTERVAL_MS = 3000;
-
 export async function fetchTables(): Promise<Table[]> {
   const res = await fetch(`${API_URL}/tables`);
   if (!res.ok) throw new Error(`Failed to load tables (${res.status})`);

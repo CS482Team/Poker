@@ -1,30 +1,11 @@
-import {
-  addPlayer,
-  countPlayers,
-  createTable,
-  deleteTable,
-  getAllTables,
-  getTable,
-  removePlayer,
-} from "../../src/db/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../../src/db/TableDAO"
+import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
-const mockState: { result: object } = { result: {} }
-const mockQuery: Record<string, unknown> = {
-  select: () => mockQuery,
-  insert: () => mockQuery,
-  delete: () => mockQuery,
-  eq: () => mockQuery,
-  order: () => mockQuery,
-  single: () => Promise.resolve(mockState.result),
-  maybeSingle: () => Promise.resolve(mockState.result),
-  then: (resolve: (value: object) => void) => resolve(mockState.result),
-}
+jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
 
-jest.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({ from: () => mockQuery }),
-}))
+const newTable = { hostId: "u1", name: "New", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
 
-const failure = { error: new Error("db down") }
+beforeEach(resetMock)
 
 describe("TableDAO", () => {
   it("lists tables", async () => {
@@ -48,32 +29,23 @@ describe("TableDAO", () => {
     expect(await getTable("missing")).toBeNull()
   })
 
-  it("creates a table", async () => {
+  it("creates a table with its host", async () => {
     mockState.result = { data: { id: "new-id" } }
-    const id = await createTable({ name: "New", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 })
-    expect(id).toBe("new-id")
+    expect(await createTable(newTable)).toBe("new-id")
+    expect(calls).toContainEqual(["insert", [{ name: "New", max_players: 4, buy_in: 100, minimum_bet: 5, ante: 1, host_id: "u1" }]])
   })
 
-  it("counts players", async () => {
-    mockState.result = { count: 3 }
-    expect(await countPlayers("t1")).toBe(3)
-  })
-
-  it("adds, removes and deletes without error", async () => {
-    mockState.result = {}
-    await addPlayer("t1", "u1", 0, 100)
-    await removePlayer("t1", "u1")
+  it("deletes the table by id", async () => {
     await deleteTable("t1")
+    expect(calls).toContainEqual(["from", ["table"]])
+    expect(calls).toContainEqual(["eq", ["id", "t1"]])
   })
 
   it("throws when the database fails", async () => {
     mockState.result = failure
     await expect(getAllTables()).rejects.toThrow("db down")
     await expect(getTable("t1")).rejects.toThrow("db down")
-    await expect(createTable({ name: "New", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 })).rejects.toThrow("db down")
-    await expect(addPlayer("t1", "u1", 0, 100)).rejects.toThrow("db down")
-    await expect(removePlayer("t1", "u1")).rejects.toThrow("db down")
-    await expect(countPlayers("t1")).rejects.toThrow("db down")
+    await expect(createTable(newTable)).rejects.toThrow("db down")
     await expect(deleteTable("t1")).rejects.toThrow("db down")
   })
 })

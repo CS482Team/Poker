@@ -1,12 +1,14 @@
 "use client"
 
 import { clearCurrentTableId } from "@/service/currentTableService"
-import { fetchTable, leaveTable, POLL_INTERVAL_MS } from "@/service/tableService"
-import { CURRENT_USER_ID } from "@/service/userService"
+import { watchTable } from "@/service/socketService"
+import { fetchTable, leaveTable } from "@/service/tableService"
+import { getCurrentUserId } from "@/service/userService"
 import type { TableDetail } from "@shared/table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
+/* TODO better than this */
 const seatPositions = [
   { left: "11%", top: "62%" },
   { left: "31%", top: "15%" },
@@ -22,22 +24,18 @@ export default function GameTable({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const load = () =>
-      fetchTable(id)
-        .then((loaded) => {
-          setTable(loaded)
-          setError(null)
-        })
-        .catch((err: Error) => setError(err.message))
-
-    load()
-    const timer = setInterval(load, POLL_INTERVAL_MS)
-    return () => clearInterval(timer)
+    fetchTable(id)
+      .then((loaded) => {
+        setTable(loaded)
+        setError(null)
+      })
+      .catch((err: Error) => setError(err.message))
+    return watchTable(id, setTable)
   }, [id])
 
   async function leave() {
     try {
-      await leaveTable(id, CURRENT_USER_ID)
+      await leaveTable(id, getCurrentUserId())
       clearCurrentTableId()
       router.push("/")
     } catch (err) {
@@ -53,7 +51,7 @@ export default function GameTable({ id }: { id: string }) {
       <div className="poker-table relative h-[436px] rounded-[44%/50%]">
         <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
         {table.seats.map((seat) => {
-          const name = seat.userId === CURRENT_USER_ID ? "Me" : seat.username
+          const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
           return (
             <div
               key={seat.userId}

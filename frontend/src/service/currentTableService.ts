@@ -1,13 +1,18 @@
-const CURRENT_TABLE_KEY = "currentTableId";
+import { getCurrentUserId } from "@/service/userService";
+
+/* keeps each user's current table separate so two users can test in one browser */
+function key() {
+  return `currentTableId:${getCurrentUserId()}`;
+}
 
 export function getCurrentTableId(): string | null {
-  return localStorage.getItem(CURRENT_TABLE_KEY);
+  return localStorage.getItem(key());
 }
 
 export function setCurrentTableId(id: string) {
-  localStorage.setItem(CURRENT_TABLE_KEY, id);
+  localStorage.setItem(key(), id);
 }
 
 export function clearCurrentTableId() {
-  localStorage.removeItem(CURRENT_TABLE_KEY);
+  localStorage.removeItem(key());
 }

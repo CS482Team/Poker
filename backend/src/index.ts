@@ -1,10 +1,9 @@
 import "dotenv/config"
 import { createServer } from "http"
-import { Server } from "socket.io"
 import { app } from "./app"
+import { initSocket } from "./socket/io"
 
-
+const port = process.env.PORT
 const server = createServer(app)
-new Server(server, { cors: { origin: "http://localhost:3000" } })
-server.listen(4000, () => console.log("backend on :4000"))
-
+initSocket(server)
+server.listen(port, () => console.log(`backend on :${port}`))

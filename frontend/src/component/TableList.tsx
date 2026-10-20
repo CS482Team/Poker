@@ -3,8 +3,9 @@
 import type { Table } from "@shared/table"
 import NewTableForm from "@/component/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/currentTableService"
-import { fetchTables, joinTable, POLL_INTERVAL_MS } from "@/service/tableService"
-import { CURRENT_USER_ID } from "@/service/userService"
+import { watchTables } from "@/service/socketService"
+import { fetchTables, joinTable } from "@/service/tableService"
+import { getCurrentUserId } from "@/service/userService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -26,25 +27,21 @@ export default function TableList() {
   const [currentId, setCurrentId] = useState<string | null>(null)
 
   useEffect(() => {
-    const load = () =>
-      fetchTables()
-        .then((loaded) => {
-          setTables(loaded)
-          setCurrentId(getCurrentTableId())
-          setError(null)
-        })
-        .catch((err: Error) => setError(err.message))
-        .finally(() => setLoading(false))
-
-    load()
-    const timer = setInterval(load, POLL_INTERVAL_MS)
-    return () => clearInterval(timer)
+    setCurrentId(getCurrentTableId())
+    fetchTables()
+      .then((loaded) => {
+        setTables(loaded)
+        setError(null)
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+    return watchTables(setTables)
   }, [])
 
   async function enter(table: Table, isCurrent: boolean) {
     try {
       if (!isCurrent) {
-        await joinTable(table.id, CURRENT_USER_ID)
+        await joinTable(table.id, getCurrentUserId())
         setCurrentTableId(table.id)
       }
       router.push(`/table/${table.id}`)
