@@ -1,8 +1,8 @@
 import request from "supertest"
-import { app } from "../app"
-import { dealDemo } from "../controller/Demo"
+import { app } from "../../src/app"
+import { dealDemo } from "../../src/services/Demo"
 
-jest.mock("../controller/Demo")
+jest.mock("../../src/services/Demo")
 
 describe("POST /demo/deal", () => {
   it("returns the deal as JSON", async () => {
@@ -16,9 +16,12 @@ describe("POST /demo/deal", () => {
   })
 
   it("returns 500 when dealing fails", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {})
     jest.mocked(dealDemo).mockRejectedValue(new Error("db down"))
     const res = await request(app).post("/demo/deal")
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ error: "deal-failed" })
+    expect(consoleError).toHaveBeenCalledWith("demo deal failed:", expect.any(Error))
+    consoleError.mockRestore()
   })
 })
