@@ -1,12 +1,33 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-display: var(--font-oswald), sans-serif;
+
+  --color-felt: #b10e0e;        /* table centre */
+  --color-felt-dark: #6e0606;   /* table edge */
+  --color-rim: #2b2b2b;         /* table rim */
+  --color-room: #7a0a0a;        /* page background base */
+  --color-panel: #1c1414;       /* chat / pills */
+  --color-panel-edge: #2e2222;
+  --color-card-red: #c8102e;
+  --color-fold: #f0503c;
+  --color-raise: #3fd94f;
+  --color-turn: #facc15;   
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-room);
+  color: white;
+  font-family: var(--font-display);
 }
+
+@keyframes deal-in {
+  from { opacity: 0; transform: translateY(-24px) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes turn-glow {
+  0%, 100% { box-shadow: 0 0 6px 2px rgb(250 204 21 / 0.5); }
+  50%      { box-shadow: 0 0 18px 6px rgb(250 204 21 / 0.9); }
+}
+.animate-turn-glow { animation: turn-glow 1.6s ease-in-out infinite; }
+.animate-deal-in { animation: deal-in 300ms ease-out both; }
