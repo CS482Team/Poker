@@ -1,17 +1,17 @@
-import { insertMatch, insertMatchPlayers, nextMatchNumber} from "./Match"
-import { getSupabase } from "../config/Supabase"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../../src/dao/MatchDao"
+import { getSupabase } from "../../../src/config/Supabase"
 
-jest.mock("../config/Supabase")
+jest.mock("../../../src/config/Supabase")
 
-// Fake Supabase query: every method returns the same object, and `await` on it gives `result`
 function fakeQuery(result: { data: unknown; error: unknown }) {
   const q: { [method: string]: jest.Mock } = {}
-  for (const m of ["select", "insert", "update", "eq", "order", "limit", "single", "maybeSingle"]) q[m] = jest.fn(() => q)
+  for (const m of ["select", "insert", "update", "eq", "order", "limit", "single", "maybeSingle"]) {
+    q[m] = jest.fn(() => q)
+  }
   q.then = jest.fn((resolve: (v: unknown) => void) => resolve(result))
   return q
 }
 
-// Make getSupabase().from(...) return the given fake query
 function useFakeQuery(q: ReturnType<typeof fakeQuery>) {
   const from = jest.fn(() => q)
   jest.mocked(getSupabase).mockReturnValue({ from } as unknown as ReturnType<typeof getSupabase>)
@@ -52,6 +52,7 @@ describe("insertMatchPlayers", () => {
       { match_id: "m1", seat_number: 1, user_id: null, bot_name: "Bob" },
     ])
   })
+
   it("throws when Supabase returns an error", async () => {
     useFakeQuery(fakeQuery({ data: null, error: new Error("boom") }))
     await expect(insertMatchPlayers("m1", [])).rejects.toThrow("boom")
@@ -71,6 +72,7 @@ describe("nextMatchNumber", () => {
     useFakeQuery(fakeQuery({ data: { match_number: 7 }, error: null }))
     expect(await nextMatchNumber("t1")).toBe(8)
   })
+
   it("throws when Supabase returns an error", async () => {
     useFakeQuery(fakeQuery({ data: null, error: new Error("boom") }))
     await expect(nextMatchNumber("t1")).rejects.toThrow("boom")

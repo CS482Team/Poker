@@ -1,9 +1,8 @@
-import { findOrCreateDemoTable } from "./Table"
-import { getSupabase } from "../config/Supabase"
+import { findOrCreateDemoTable } from "../../../src/dao/TableDao"
+import { getSupabase } from "../../../src/config/Supabase"
 
-jest.mock("../config/Supabase")
+jest.mock("../../../src/config/Supabase")
 
-// Fake Supabase query: every method returns the same object, and `await` on it gives `result`
 function fakeQuery(result: { data: unknown; error: unknown }) {
   const q: { [method: string]: jest.Mock } = {}
   for (const m of ["select", "insert", "update", "eq", "single", "maybeSingle"]) q[m] = jest.fn(() => q)

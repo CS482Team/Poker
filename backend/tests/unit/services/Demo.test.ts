@@ -1,12 +1,12 @@
-import { dealDemo } from "./Demo"
-import { findOrCreateDemoTable } from "../model/Table"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../model/Match"
+import { dealDemo } from "../../../src/services/Demo"
+import { findOrCreateDemoTable } from "../../../src/dao/TableDao"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../../src/dao/MatchDao"
 
-jest.mock("../model/Table")
-jest.mock("../model/Match")
+jest.mock("../../../src/dao/TableDao")
+jest.mock("../../../src/dao/MatchDao")
 
 beforeEach(() => {
-  jest.clearAllMocks() 
+  jest.clearAllMocks()
   jest.mocked(findOrCreateDemoTable).mockResolvedValue({ id: "t1", ante: 1, minimum_bet: 2 })
   jest.mocked(nextMatchNumber).mockResolvedValue(5)
   jest.mocked(insertMatch).mockResolvedValue("m1")
@@ -45,6 +45,7 @@ describe("dealDemo", () => {
     const deal = await dealDemo()
     expect(deal.matchId).toBe("m1")
   })
+
   it("returns whose turn it is: the first player left of the dealer", async () => {
     const deal = await dealDemo()
     expect(deal.dealerSeat).toBe(0)
