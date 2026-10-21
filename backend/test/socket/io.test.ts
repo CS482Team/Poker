@@ -1,7 +1,7 @@
 import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
-import * as dao from "../../src/db/TableDAO"
+import { getAllTables, getTable } from "../../src/db/TableDAO"
 import { broadcastChange, initSocket } from "../../src/socket/io"
 
 jest.mock("../../src/db/TableDAO", () => ({
@@ -9,7 +9,6 @@ jest.mock("../../src/db/TableDAO", () => ({
   getTable: jest.fn(),
 }))
 
-const mockedDao = jest.mocked(dao)
 const detail = { id: "t1", name: "Room", maxPlayers: 2, buyIn: 100, seats: [] }
 
 let server: HttpServer
@@ -26,8 +25,8 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  mockedDao.getTable.mockResolvedValue(detail)
-  mockedDao.getAllTables.mockResolvedValue([])
+  jest.mocked(getTable).mockResolvedValue(detail)
+  jest.mocked(getAllTables).mockResolvedValue([])
   client = connect(`http://localhost:${(server.address() as AddressInfo).port}`)
   await next("connect")
 })
@@ -61,7 +60,7 @@ describe("socket", () => {
   })
 
   it("does not send a deleted table", async () => {
-    mockedDao.getTable.mockResolvedValue(null)
+    jest.mocked(getTable).mockResolvedValue(null)
     await join("watch", "t1")
     await join("watchLobby")
     const handler = jest.fn()
