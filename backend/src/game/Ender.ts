@@ -1,7 +1,7 @@
 import type { GameState, PlayerState, Result, SeatInput, TableConfig } from "./GameState"
 import type { Suit, Rank } from "./Card"
 
-export const WINCONDS: Record<string, number> =
+const WINCONDS: Record<string, number> =
     {"Royal Flush": 10,
     "Straight Flush": 9,
     "Four of a Kind": 8,
@@ -11,38 +11,74 @@ export const WINCONDS: Record<string, number> =
     "Three of a Kind": 4,
     "Two Pair": 3,
     "Pair": 2,
-    "High Card": 1} as const
+    "High Card": 1};
 
-export function scoreHands() {
-    //for every player who has not folded
-        //CHECKING CARDS FOR WIN CONDITION
-        //Check If All Are Same Suit
-        //Check If All are In Row
+export function scoreHands(state: GameState) {
+    //Run through each player
+    for (let step = 1; step <= players.length; step++) {
+        const p = players[(dealerIndex + step) % players.length]!
+        if(p.status == "active") {
+            let suits = new Set<string>();
+            const ranks: number[] = [];
+            //Make a set of card ranks and suits in each hand
+            for(Card c of p.hand) {
+                suits.add(c.Suit);
+                ranks.push(c.Rank);
+            }
+            ranks.sort((r1,r2) => r2 - r1);
+            //CHECKING CARDS FOR WIN CONDITION
+            //Check If All are In Row (Straight)
+            let straight = false;
+            if(ranks[0]+0 === ranks[1]+1 === ranks[2]+2 === ranks[3]+3 === ranks[4]+4) {
+                straight = true;
+            }
+            //Check If All Are Same Suit (Flush)
+            let flush = false;
+            if(suits.size === 1) {
+                flush = true;
+            }
             //If Both Of Above
+            if(flush && straight) {
                 //If High Card is Ace:
+                if(ranks[0] === 14) {
                     //Royal Flush (10)
-                //Else:
+                }
+                else {
                     //Straight Flush (9)
+                }
+            }
             //If Only Same Suit:
-                //Flush (6)
+            else if(flush) {
+                    //Flush (6)
+            }
             //If Only Same Row
+            else if(straight) {
                 //Straight (5)
-        //Else Check How Many Cards Match
-            //4 Match
-                //Four Of A Kind (8)
-            //1 Set of 3 Match and 1 Set of 2 Match
-                //Full House (7)
-            //Else Just 1 Set of Three Matches
-                //Three Of A Kind (4)
-            //2 Sets of 2 Match
-                //2 Pair (3)
-            //1 Pair Matches
-                //Pair (2)
-        //Nothing Else Works
-           //High Card (1)
+            }
+            else {
+                //Check How Many Cards Match
+                let matchval = 0;
+                let matchval2 = 0;
+                //for(let i = 1; i < ranks.length; i++) {
+                //    if(
+                //}
+                    //4 Match
+                        //Four Of A Kind (8)
+                    //1 Set of 3 Match and 1 Set of 2 Match
+                        //Full House (7)
+                    //Else Just 1 Set of Three Matches
+                        //Three Of A Kind (4)
+                    //2 Sets of 2 Match
+                        //2 Pair (3)
+                    //1 Pair Matches
+                        //Pair (2)
+                //Nothing Else Works
+                   //High Card (1)
+            }
+        }
 }
 
-export function declareWinner() {
+export function declareWinner(state: GameState) {
     //Search For Player With Highest WINCOND
     //If 2 or More Players Share Highest WINCOND
         //10: Split Pot
