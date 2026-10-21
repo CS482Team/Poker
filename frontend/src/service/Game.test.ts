@@ -25,15 +25,24 @@ describe("game service", () => {
     expect(fetch).toHaveBeenCalledWith("http://localhost:4000/game/g1/view/bot-1", expect.anything())
   })
 
-  it("sends a betting action with the player and the action type", async () => {
+  it("sends a bet or raise with the player, the action type and the amount", async () => {
     jest.mocked(fetch).mockReturnValue(respond(200, { gameId: "g1" }))
 
-    await act("g1", "bot-1", "raise")
+    await act("g1", "bot-1", "raise", 30)
 
     const [url, init] = jest.mocked(fetch).mock.calls[0]!
     expect(url).toBe("http://localhost:4000/game/g1/action")
     expect(init?.method).toBe("POST")
-    expect(JSON.parse(String(init?.body))).toEqual({ playerId: "bot-1", action: { type: "raise" } })
+    expect(JSON.parse(String(init?.body))).toEqual({ playerId: "bot-1", action: { type: "raise", amount: 30 } })
+  })
+
+  it("leaves the amount out for actions that don't take one", async () => {
+    jest.mocked(fetch).mockReturnValue(respond(200, { gameId: "g1" }))
+
+    await act("g1", "bot-1", "call")
+
+    const [, init] = jest.mocked(fetch).mock.calls[0]!
+    expect(JSON.parse(String(init?.body))).toEqual({ playerId: "bot-1", action: { type: "call" } })
   })
 
   it("throws the backend's error code when a request is refused", async () => {

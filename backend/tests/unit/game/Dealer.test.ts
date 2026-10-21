@@ -2,7 +2,7 @@ import { createGame, startHand } from "../../../src/game/Dealer"
 import type { GameState, SeatInput, TableConfig } from "../../../src/game/GameState"
 import type { Card, Rng } from "../../../src/game/Card"
 
-const config: TableConfig = { ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 }
+const config: TableConfig = { ante: 1, minBet: 2 }
 
 const seats: SeatInput[] = [
   { id: "a", name: "Alice", stack: 100 },
@@ -92,7 +92,7 @@ describe("startHand", () => {
   it("starts the pre-draw betting round", () => {
     const game = dealtGame()
     expect(game.phase).toBe("predraw-betting")
-    expect(game.round?.betSize).toBe(config.smallBet)
+    expect(game.round?.minRaise).toBe(config.minBet)
   })
 
   it("gives the first turn to the player left of the dealer", () => {

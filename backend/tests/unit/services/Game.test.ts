@@ -20,8 +20,12 @@ beforeEach(() => {
 })
 
 describe("configForTable", () => {
-  it("uses the table's ante and minimum bet, with the big bet at double", () => {
-    expect(configForTable(table)).toEqual({ ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 })
+  it("uses the table's ante and minimum bet", () => {
+    expect(configForTable(table)).toEqual({ ante: 1, minBet: 2 })
+  })
+
+  it("never lets the minimum bet be 0 chips (the column defaults to 0)", () => {
+    expect(configForTable({ ...table, minimum_bet: 0 }).minBet).toBe(1)
   })
 })
 
@@ -72,9 +76,9 @@ describe("getPlayerView", () => {
       seat: 1,
       hand: game.players[1]!.hand,
       legalActions: [
-        { type: "fold", amount: 0 },
-        { type: "check", amount: 0 },
-        { type: "bet", amount: 2 },
+        { type: "fold" },
+        { type: "check" },
+        { type: "bet", min: 2, max: 99 },
       ],
     })
     expect(result.value.players.map(p => p.cardCount)).toEqual([5, 5, 5])
@@ -99,7 +103,7 @@ describe("takeAction", () => {
   it("applies the action to the stored game and returns the player's updated view", async () => {
     const { gameId } = await startGame(table, seats)
 
-    const result = takeAction(gameId, "b", { type: "bet" })
+    const result = takeAction(gameId, "b", { type: "bet", amount: 2 })
 
     if (!result.ok) throw new Error(result.error)
     expect(result.value.pot).toBe(5)

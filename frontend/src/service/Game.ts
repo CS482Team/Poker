@@ -2,7 +2,13 @@ import type { Card } from "@/util/Card"
 
 // Mirrors the backend types in backend/src/services/Game.ts and backend/src/game/Betting.ts; keep in sync
 export type ActionType = "fold" | "check" | "call" | "bet" | "raise"
-export interface LegalAction { type: ActionType; amount: number }
+
+// What the player may do right now (no-limit: bet/raise give the allowed range of "to" amounts)
+export type LegalAction =
+  | { type: "fold" }
+  | { type: "check" }
+  | { type: "call"; amount: number } // chips the call costs
+  | { type: "bet" | "raise"; min: number; max: number } // total to bet this round; max is all-in
 
 export type Phase = "waiting" | "predraw-betting" | "draw" | "postdraw-betting" | "showdown" | "hand-complete"
 export type PlayerStatus = "active" | "folded" | "all-in" | "sitting-out"
@@ -24,7 +30,7 @@ export interface PlayerView {
   handNumber: number
   dealerSeat: number
   toActSeat: number | null
-  round: { street: "predraw" | "postdraw"; betSize: number; currentBet: number; betsMade: number } | null
+  round: { street: "predraw" | "postdraw"; currentBet: number; minRaise: number } | null
   you: { seat: number; hand: Card[]; legalActions: LegalAction[] }
   players: PublicPlayer[]
 }
@@ -52,10 +58,12 @@ export function getView(gameId: string, playerId: string): Promise<PlayerView> {
   return request(`/game/${gameId}/view/${playerId}`)
 }
 
-// Plays a betting action for a player and returns their updated view
-export function act(gameId: string, playerId: string, type: ActionType): Promise<PlayerView> {
+// Plays a betting action for a player and returns their updated view.
+// amount is only for bet/raise: the player's total bet this round ("raise to 20").
+export function act(gameId: string, playerId: string, type: ActionType, amount?: number): Promise<PlayerView> {
+  const action = amount === undefined ? { type } : { type, amount }
   return request(`/game/${gameId}/action`, {
     method: "POST",
-    body: JSON.stringify({ playerId, action: { type } }),
+    body: JSON.stringify({ playerId, action }),
   })
 }

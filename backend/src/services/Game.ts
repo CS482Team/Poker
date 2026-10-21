@@ -7,15 +7,11 @@ import { applyAction, getLegalActions } from "../game/Betting"
 import type { ActionError, LegalAction, PlayerAction } from "../game/Betting"
 import { gameStore } from "./GameStore"
 
-const MAX_BETS_PER_ROUND = 4 // fixed-limit: one bet + three raises
-
 // Table settings from the database → the engine's config
 export function configForTable(table: TableRow): TableConfig {
   return {
     ante: table.ante,
-    smallBet: table.minimum_bet,
-    bigBet: table.minimum_bet * 2,
-    maxBetsPerRound: MAX_BETS_PER_ROUND,
+    minBet: Math.max(1, table.minimum_bet), // the column defaults to 0; a bet must be at least 1 chip
   }
 }
 

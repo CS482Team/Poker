@@ -58,10 +58,10 @@ export default function Table() {
       await show(id, DEFAULT_PLAYER_ID, followTurn)
     })
 
-  const handleAction = (type: ActionType) =>
+  const handleAction = (type: ActionType, amount?: number) =>
     run(async () => {
       if (!gameId) return
-      const next = await act(gameId, playerId, type)
+      const next = await act(gameId, playerId, type, amount)
       if (followTurn) await show(gameId, playerId, true)
       else setView(next)
     })
@@ -85,7 +85,7 @@ export default function Table() {
 
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-8 py-6">
         <RoomHeader
-          stakes="Stakes 2 / 4"
+          stakes="No-limit · min bet 2" // TODO: from the room's settings (S13)
           dealing={busy}
           onDeal={handleDeal}
           devControls={
@@ -106,7 +106,9 @@ export default function Table() {
           <section key={gameId ?? "empty"} className="flex flex-1 flex-col items-center gap-4 pt-10">
             <PokerTable view={view} />
             {view && <PlayerHand cards={view.you.hand} />}
+            {/* key: a new turn resets the bet slider to the new minimum */}
             <ActionBar
+              key={`${playerId}-${view?.toActSeat}-${view?.round?.currentBet}`}
               legalActions={view?.you.legalActions ?? []}
               busy={busy}
               status={statusText(view)}
