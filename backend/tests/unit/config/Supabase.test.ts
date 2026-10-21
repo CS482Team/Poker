@@ -4,8 +4,8 @@ jest.mock("@supabase/supabase-js", () => ({ createClient: jest.fn(() => ({})) })
 const ORIGINAL_ENV = process.env
 
 // Load a fresh copy of Supabase.ts, so the cached client from a previous test is gone
-function loadConfig(): typeof import("./Supabase") {
-  return require("./Supabase")
+function loadConfig(): typeof import("../../../src/config/Supabase") {
+  return require("../../../src/config/Supabase")
 }
 
 beforeEach(() => {
