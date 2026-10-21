@@ -1,4 +1,4 @@
-import { createTable, deleteTable, getAllTables, getTable } from "../../src/db/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../../src/dao/TableDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)

@@ -28,7 +28,7 @@ export async function getAllTables(): Promise<Table[]> {
 export async function getTable(id: string): Promise<TableDetail | null> {
   const { data, error } = await supabase
     .from("table")
-    .select("id, name, max_players, buy_in, table_players(user_id, seat_number, stack, user(username))")
+    .select("id, name, max_players, buy_in, minimum_bet, ante, table_players(user_id, seat_number, stack, user(username))")
     .eq("id", id)
     .maybeSingle()
 
@@ -40,6 +40,8 @@ export async function getTable(id: string): Promise<TableDetail | null> {
     name: data.name,
     maxPlayers: data.max_players,
     buyIn: data.buy_in,
+    minimumBet: data.minimum_bet,
+    ante: data.ante,
     seats: data.table_players.map((row: any) => ({
       userId: row.user_id,
       username: row.user.username,

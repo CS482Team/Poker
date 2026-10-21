@@ -4,7 +4,8 @@ import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, setBalance } from "../dao/UserDAO"
-import { broadcastChange } from "../socket/io"
+import { endGame, startIfReady } from "../services/Game"
+import { broadcastChange, sendHands } from "../socket/io"
 
 /* TODO maybe make an env config? */
 const MIN_PLAYERS = 2
@@ -42,8 +43,10 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
   const { id, userId } = req.params
   const stack = await removePlayer(id, userId)
   if (stack !== null) await changeBalance(userId, stack, "cash_out")
+  endGame(id)
   if ((await countPlayers(id)) === 0) await deleteTable(id)
   await broadcastChange(id)
+  await dealIfReady(id)
   res.status(204).end()
 }
 
@@ -75,10 +78,16 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
   await addPlayer(table.id, userId, seatNumber, table.buyIn)
   await changeBalance(userId, -table.buyIn, "buy_in")
   await broadcastChange(table.id)
+  await dealIfReady(table.id)
   res.status(204).end()
 }
 
 /* HELPER FUNCTIONS */
+
+async function dealIfReady(tableId: string) {
+  const game = await startIfReady(tableId)
+  if (game) sendHands(game)
+}
 
 /* changes a user's balance and logs it */
 async function changeBalance(userId: string, delta: number, reason: string) {

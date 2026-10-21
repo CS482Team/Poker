@@ -21,6 +21,6 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "../shared/GameState.ts"],
   "exclude": ["src/**/*.test.ts"]
 }
