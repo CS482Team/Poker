@@ -57,11 +57,22 @@ export function scoreHands(state: GameState) {
             }
             else {
                 //Check How Many Cards Match
+                //TODO: Explain this
                 let matchval = 0;
+                let val_to_match = 0;
                 let matchval2 = 0;
-                //for(let i = 1; i < ranks.length; i++) {
-                //    if(
-                //}
+                for(let i = 1; i < ranks.length; i++) {
+                    if(val_to_match === 2 && ranks[i] === ranks[i-1]) {
+                        matchval2++;
+                    }
+                    else if((val_to_match === 0 || val_to_match === 1) && ranks[i] === ranks[i-1]) {
+                        val_to_match === 1;
+                        matchval++;
+                    }
+                    else if(val_to_match === 1){
+                        val_to_match = 2;
+                    }
+                }
                     //4 Match
                         //Four Of A Kind (8)
                     //1 Set of 3 Match and 1 Set of 2 Match
