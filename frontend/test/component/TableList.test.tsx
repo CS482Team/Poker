@@ -25,6 +25,8 @@ jest.mock("@/service/currentTableService", () => ({
   setCurrentTableId: jest.fn(),
 }))
 
+const seat = (userId: string, seatNumber: number) => ({ userId, username: userId, seatNumber, stack: 100 })
+
 const table = {
   id: "t1",
   name: "Room One",
@@ -34,7 +36,7 @@ const table = {
   minimumBet: 10,
   ante: 5,
   maxPlayers: 6,
-  players: 2,
+  seats: [seat("u1", 0), seat("u2", 1)],
 }
 
 beforeEach(() => {
@@ -83,7 +85,7 @@ describe("TableList", () => {
   })
 
   it("disables a full table", async () => {
-    jest.mocked(fetchTables).mockResolvedValue([{ ...table, players: 6 }])
+    jest.mocked(fetchTables).mockResolvedValue([{ ...table, seats: [0, 1, 2, 3, 4, 5].map((n) => seat(`u${n}`, n)) }])
     render(<TableList />)
     expect(await screen.findByRole("button", { name: "Full" })).toBeDisabled()
   })

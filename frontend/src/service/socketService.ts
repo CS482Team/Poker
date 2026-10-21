@@ -1,4 +1,4 @@
-import type { Table, TableDetail } from "@shared/table"
+import type { Table } from "@shared/table"
 import type { Card } from "@/util/Card"
 import { io } from "socket.io-client"
 
@@ -13,7 +13,7 @@ function listen(event: string, onConnect: string, payload: unknown, handler: (da
 }
 
 /* gives live updates for one table */
-export function watchTable(id: string, onTable: (table: TableDetail) => void) {
+export function watchTable(id: string, onTable: (table: Table) => void) {
   return listen("table", "watch", id, onTable)
 }
 

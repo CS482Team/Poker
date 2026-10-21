@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "http"
 import { Server } from "socket.io"
-import { getAllTables, getTable } from "../dao/TableDAO"
+import { getAllTables, getTable } from "../dao/TableDao"
 import type { GameState } from "../../../shared/GameState"
 import { getHand } from "../services/Game"
 

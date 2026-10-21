@@ -6,7 +6,7 @@ import { fetchTable, leaveTable } from "@/service/tableService"
 import { getCurrentUserId } from "@/service/userService"
 import PlayerHand from "@/component/PlayerHand"
 import type { Card } from "@/util/Card"
-import type { TableDetail } from "@shared/table"
+import type { Table } from "@shared/table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -22,7 +22,7 @@ const seatPositions = [
 
 export default function GameTable({ id }: { id: string }) {
   const router = useRouter()
-  const [table, setTable] = useState<TableDetail | null>(null)
+  const [table, setTable] = useState<Table | null>(null)
   const [hand, setHand] = useState<Card[]>([])
   const [error, setError] = useState<string | null>(null)
 

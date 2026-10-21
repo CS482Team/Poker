@@ -29,6 +29,8 @@ const table = {
   name: "Room One",
   maxPlayers: 6,
   buyIn: 100,
+  status: 1,
+  variant: "five_card_draw",
   minimumBet: 5,
   ante: 1,
   seats: [

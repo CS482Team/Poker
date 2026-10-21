@@ -1,11 +1,13 @@
 import type { GameState } from "../../../shared/GameState"
 import type { Card } from "../game/Card"
 import { createGame, startHand } from "../game/Dealer"
-import { getTable } from "../dao/TableDAO"
+import { getTable } from "../dao/TableDao"
+
+// TODO this file is still free game to replace
 
 const MAX_BETS_PER_ROUND = 4
 const games = new Map<string, GameState>()
-
+ 
 export async function startIfReady(tableId: string): Promise<GameState | null> {
   if (games.has(tableId)) return null
   const table = await getTable(tableId)
@@ -14,6 +16,7 @@ export async function startIfReady(tableId: string): Promise<GameState | null> {
   const seats = [...table.seats]
     .sort((a, b) => a.seatNumber - b.seatNumber)
     .map((s) => ({ id: s.userId, name: s.username, stack: s.stack }))
+
   const config = {
     ante: table.ante,
     smallBet: table.minimumBet,

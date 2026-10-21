@@ -1,4 +1,4 @@
-import type { NewTable, Table, TableDetail } from "@shared/table";
+import type { NewTable, Table } from "@shared/table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -8,7 +8,7 @@ export async function fetchTables(): Promise<Table[]> {
   return res.json();
 }
 
-export async function fetchTable(id: string): Promise<TableDetail> {
+export async function fetchTable(id: string): Promise<Table> {
   const res = await fetch(`${API_URL}/tables/${id}`);
   if (!res.ok) throw new Error(`Failed to load table (${res.status})`);
   return res.json();
