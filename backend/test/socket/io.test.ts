@@ -1,7 +1,7 @@
 import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
-import { getAllTables, getTable } from "../../src/db/TableDAO"
+import { getAllTables, getTable } from "../../src/dao/TableDAO"
 import { broadcastChange, initSocket } from "../../src/socket/io"
 
 jest.mock("../../src/db/TableDAO", () => ({
