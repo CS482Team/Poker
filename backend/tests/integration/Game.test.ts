@@ -111,7 +111,7 @@ describe("POST /game/:gameId/action", () => {
     handNumber: 1,
     dealerSeat: 0,
     toActSeat: 2,
-    round: { street: "predraw", betSize: 2, currentBet: 2, betsMade: 1 },
+    round: { street: "predraw", currentBet: 10, minRaise: 10 },
     you: { seat: 1, hand: [], legalActions: [] },
     players: [],
   }
@@ -119,19 +119,29 @@ describe("POST /game/:gameId/action", () => {
   it("applies the action and returns the player's updated view", async () => {
     jest.mocked(takeAction).mockReturnValue({ ok: true, value: view })
 
-    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet" } })
+    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: 10 } })
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual(view)
-    expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "bet" })
+    expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "bet", amount: 10 })
+  })
+
+  it("passes actions without an amount through unchanged", async () => {
+    jest.mocked(takeAction).mockReturnValue({ ok: true, value: view })
+
+    await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "call" } })
+
+    expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "call" })
   })
 
   it("rejects a missing player or an unknown action type", async () => {
     const noPlayer = await request(app).post("/game/g1/action").send({ action: { type: "bet" } })
     const badType = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "all-in" } })
+    const badAmount = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: "lots" } })
 
     expect(noPlayer.status).toBe(400)
     expect(badType.status).toBe(400)
+    expect(badAmount.status).toBe(400)
     expect(badType.body).toEqual({ error: "invalid-action" })
     expect(takeAction).not.toHaveBeenCalled()
   })

@@ -18,9 +18,9 @@ const players: PublicPlayer[] = NAMES.map((name, seat) => ({
 }))
 const hand: Card[] = [2, 3, 4, 5, 14].map(rank => ({ rank, suit: "spades" }))
 const opening: LegalAction[] = [
-  { type: "fold", amount: 0 },
-  { type: "check", amount: 0 },
-  { type: "bet", amount: 2 },
+  { type: "fold" },
+  { type: "check" },
+  { type: "bet", min: 2, max: 99 },
 ]
 
 // A player's view of the demo hand: Alice deals, so Bob (seat 1) acts first
@@ -32,7 +32,7 @@ function viewFor(seat: number, overrides: Partial<PlayerView> = {}): PlayerView 
     handNumber: 1,
     dealerSeat: 0,
     toActSeat: 1,
-    round: { street: "predraw", betSize: 2, currentBet: 0, betsMade: 0 },
+    round: { street: "predraw", currentBet: 0, minRaise: 2 },
     you: { seat, hand, legalActions: seat === 1 ? opening : [] },
     players,
     ...overrides,
@@ -90,7 +90,7 @@ describe("Table (game room)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Bet 2" }))
 
     expect(await screen.findByText("Your turn, Cara")).toBeInTheDocument()
-    expect(act).toHaveBeenCalledWith("g1", "bot-1", "bet")
+    expect(act).toHaveBeenCalledWith("g1", "bot-1", "bet", 2)
     expect(screen.getByText("6")).toBeInTheDocument()
   })
 
@@ -133,7 +133,53 @@ describe("Table (game room)", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Fold" }))
 
-    await waitFor(() => expect(act).toHaveBeenCalledWith("g1", "bot-1", "fold"))
+    await waitFor(() => expect(act).toHaveBeenCalledWith("g1", "bot-1", "fold", undefined))
+  })
+
+  it("sends a check when Check is clicked", async () => {
+    jest.mocked(act).mockResolvedValue(viewFor(1, { toActSeat: 2 }))
+    await dealIn()
+
+    fireEvent.click(screen.getByRole("button", { name: "Check" }))
+
+    await waitFor(() => expect(act).toHaveBeenCalledWith("g1", "bot-1", "check", undefined))
+  })
+
+  it("bets the amount chosen on the slider", async () => {
+    jest.mocked(act).mockResolvedValue(viewFor(1, { toActSeat: 2 }))
+    await dealIn()
+
+    fireEvent.change(screen.getByLabelText("Bet amount"), { target: { value: "40" } })
+    fireEvent.click(screen.getByRole("button", { name: "Bet 40" }))
+
+    await waitFor(() => expect(act).toHaveBeenCalledWith("g1", "bot-1", "bet", 40))
+  })
+
+  it("labels the top of the slider as all-in", async () => {
+    await dealIn()
+
+    fireEvent.change(screen.getByLabelText("Bet amount"), { target: { value: "99" } })
+
+    expect(screen.getByRole("button", { name: "All-in 99" })).toBeEnabled()
+  })
+
+  it("offers call and raise-to when facing a bet", async () => {
+    const facingBet = viewFor(1, {
+      round: { street: "predraw", currentBet: 10, minRaise: 10 },
+      you: {
+        seat: 1,
+        hand,
+        legalActions: [{ type: "fold" }, { type: "call", amount: 10 }, { type: "raise", min: 20, max: 99 }],
+      },
+    })
+    jest.mocked(getView).mockImplementation(async (_game, playerId) => (playerId === "bot-1" ? facingBet : viewFor(seatOf(playerId))))
+    jest.mocked(act).mockResolvedValue(viewFor(1, { toActSeat: 2 }))
+    render(<Table />)
+    fireEvent.click(screen.getByRole("button", { name: "Deal" }))
+
+    fireEvent.click(await screen.findByRole("button", { name: "Call 10" }))
+    expect(screen.getByRole("button", { name: "Raise to 20" })).toBeInTheDocument()
+    await waitFor(() => expect(act).toHaveBeenCalledWith("g1", "bot-1", "call", undefined))
   })
 
   it("shows the backend's error when a request fails", async () => {
