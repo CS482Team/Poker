@@ -1,7 +1,7 @@
 export interface Table {
   id: string
   name: string
-  status: number
+  status: number // 1 for active, 0 for inavtive
   variant: string
   buyIn: number
   minimumBet: number
@@ -22,6 +22,8 @@ export interface TableDetail {
   name: string
   maxPlayers: number
   buyIn: number
+  minimumBet: number
+  ante: number
   seats: Seat[]
 }
 

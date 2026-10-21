@@ -17,6 +17,7 @@ jest.mock("@/service/tableService", () => ({
 
 jest.mock("@/service/socketService", () => ({
   watchTable: jest.fn(() => jest.fn()),
+  watchHand: jest.fn(() => jest.fn()),
 }))
 
 jest.mock("@/service/currentTableService", () => ({
@@ -28,6 +29,8 @@ const table = {
   name: "Room One",
   maxPlayers: 6,
   buyIn: 100,
+  minimumBet: 5,
+  ante: 1,
   seats: [
     { userId: getCurrentUserId(), username: "Alex", seatNumber: 0, stack: 2450 },
     { userId: "u2", username: "Maya", seatNumber: 1, stack: 1840 },

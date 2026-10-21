@@ -1,9 +1,11 @@
 "use client"
 
 import { clearCurrentTableId } from "@/service/currentTableService"
-import { watchTable } from "@/service/socketService"
+import { watchHand, watchTable } from "@/service/socketService"
 import { fetchTable, leaveTable } from "@/service/tableService"
 import { getCurrentUserId } from "@/service/userService"
+import PlayerHand from "@/component/PlayerHand"
+import type { Card } from "@/util/Card"
 import type { TableDetail } from "@shared/table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -21,6 +23,7 @@ const seatPositions = [
 export default function GameTable({ id }: { id: string }) {
   const router = useRouter()
   const [table, setTable] = useState<TableDetail | null>(null)
+  const [hand, setHand] = useState<Card[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -30,7 +33,12 @@ export default function GameTable({ id }: { id: string }) {
         setError(null)
       })
       .catch((err: Error) => setError(err.message))
-    return watchTable(id, setTable)
+    const stopTable = watchTable(id, setTable)
+    const stopHand = watchHand(id, getCurrentUserId(), setHand)
+    return () => {
+      stopTable()
+      stopHand()
+    }
   }, [id])
 
   async function leave() {
@@ -66,6 +74,9 @@ export default function GameTable({ id }: { id: string }) {
             </div>
           )
         })}
+      </div>
+      <div className="mt-6">
+        <PlayerHand cards={hand} />
       </div>
       <div className="mt-6 text-center">
         <button type="button" onClick={leave} className="secondary-action">

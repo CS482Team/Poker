@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto"
-import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "./GameState"
+import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "../../../shared/GameState"
 import { createDeck, shuffle } from "./Deck"
 import type { Rng } from "./Card"
 

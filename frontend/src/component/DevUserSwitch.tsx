@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 export default function DevUserSwitch() {
   const [userId, setUserId] = useState(DEV_USERS[0].id)
 
-  useEffect(() => setUserId(getCurrentUserId()), [])
+  useEffect(() => setUserId(getCurrentUserId()), [0])
 
   function change(id: string) {
     setCurrentUserId(id)
