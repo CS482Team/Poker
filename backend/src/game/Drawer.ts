@@ -10,17 +10,17 @@ import type { deck } from "./Dealer"
 //The trouble is figuring out which cards are selected, making the cards buttons, etc.
 
 //remove selected cards from hand
-export function removeCards(step: int) {
+export function removeCards(state: GameState, step: int) {
     const p = players[(dealerIndex + step) % players.length]!
     int num_selected = 0;
     //for each card selected by this player
         p.hand.pop();
         num_selected++;
-    drawCards(num_selected, p);
+    drawCards(state, num_selected, p);
 }
 
 //draw random cards from the deck equal to number of cards removed
-export function drawCards(num_selected: int, p: players) {
+export function drawCards(state: GameState, num_selected: int, p: players) {
     for (let card = 0; card < num_selected; card++) {
         if (inHand(p)) p.hand.push(deck.pop()!)
     }
