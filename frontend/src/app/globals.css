@@ -204,4 +204,16 @@ button:disabled {
 
 input, textarea {
   user-select: text;
+
 }
+
+@keyframes deal-in {
+  from { opacity: 0; transform: translateY(-24px) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes turn-glow {
+  0%, 100% { box-shadow: 0 0 6px 2px rgb(250 204 21 / 0.5); }
+  50%      { box-shadow: 0 0 18px 6px rgb(250 204 21 / 0.9); }
+}
+.animate-turn-glow { animation: turn-glow 1.6s ease-in-out infinite; }
+.animate-deal-in { animation: deal-in 300ms ease-out both; }

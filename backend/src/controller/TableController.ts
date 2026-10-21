@@ -1,9 +1,9 @@
 import { Request, Response } from "express"
 import type { NewTable, TableDetail } from "../../../shared/table"
-import { logBalanceChange } from "../db/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../db/TableDAO"
-import { addPlayer, countPlayers, removePlayer } from "../db/TablePlayersDAO"
-import { getBalance, setBalance } from "../db/UserDAO"
+import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
+import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
+import { getBalance, setBalance } from "../dao/UserDAO"
 import { broadcastChange } from "../socket/io"
 
 /* TODO maybe make an env config? */

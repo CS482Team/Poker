@@ -1,4 +1,4 @@
-import { addPlayer, countPlayers, removePlayer } from "../../src/db/TablePlayersDAO"
+import { addPlayer, countPlayers, removePlayer } from "../../src/dao/TablePlayersDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)

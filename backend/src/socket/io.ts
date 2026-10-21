@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "http"
 import { Server } from "socket.io"
-import { getAllTables, getTable } from "../db/TableDAO"
+import { getAllTables, getTable } from "../dao/TableDAO"
 
 const LOBBY = "lobby"
 let io: Server | undefined
