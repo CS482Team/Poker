@@ -81,4 +81,9 @@ describe("Table (demo game room)", () => {
 
     expect(await screen.findByText("Deal failed (500)")).toBeInTheDocument()
   })
+
+  it("tests clicks of cards", async() => {
+    fireEvent.click(screen.getByRole("button", { name: "A♠" }))
+    expect(screen.getByRole("button", { name: "A♠, selected to discard" })).toHaveAttribute("aria-pressed", "true")
+  })
 })

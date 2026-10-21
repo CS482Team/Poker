@@ -18,6 +18,7 @@ export default function Table() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [revealAll, setRevealAll] = useState(false)
+  const [selected, setSelected] = useState<number[]>([])
 
   async function handleDeal() {
     setLoading(true)
@@ -30,6 +31,24 @@ export default function Table() {
       setLoading(false)
     }
   }
+
+  // Add the position if it isn't picked, remove it if it is
+  const toggleCard = (i: number) =>
+  setSelected(s => (s.includes(i) ? s.filter(x => x !== i) : [...s, i]))
+
+
+  const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
+
+
+  {view && (
+
+    <PlayerHand
+        cards={view.you.hand}
+        selected={selected}
+        canSelect={canDraw && !busy}
+        onToggle={toggleCard}
+    />
+  )
 
   const you = deal?.players.find(p => p.seat === 0)
   const toAct = deal?.players.find(p => p.seat === deal.toActSeat)
