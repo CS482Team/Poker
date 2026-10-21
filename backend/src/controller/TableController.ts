@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
-import type { NewTable, TableDetail } from "../../../shared/table"
+import type { NewTable, Table } from "../../../shared/table"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDao"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, setBalance } from "../dao/UserDAO"
 import { endGame, startIfReady } from "../services/Game"
@@ -96,7 +96,7 @@ async function changeBalance(userId: string, delta: number, reason: string) {
 }
 
 /* finds the lowest empty seat */
-function firstFreeSeat(table: TableDetail) {
+function firstFreeSeat(table: Table) {
   const taken = new Set(table.seats.map((seat) => seat.seatNumber))
   for (let seatNumber = 0; seatNumber < table.maxPlayers; seatNumber++) {
     if (!taken.has(seatNumber)) return seatNumber
