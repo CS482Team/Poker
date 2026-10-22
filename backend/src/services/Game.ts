@@ -102,3 +102,12 @@ export function getPlayerView(gameId: string, playerId: PlayerId): Result<Player
     },
   }
 }
+
+export function drawCards(gameId: string, playerId: string, discard: number[]) {
+    const game = gameStore.get(gameId) // the live game, deck included
+    if (!game) return { ok: false, error: "game-not-found" }
+    const result = applyDraw(game, playerId, discard) // the actual rule (pure)
+    if (!result.ok) return result // refused: the stored game is untouched
+    gameStore.save(result.value) // keep the new state for the next request
+    return getPlayerView(gameId, playerId) // send back only this player's view
+}

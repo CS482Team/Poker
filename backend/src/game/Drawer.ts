@@ -1,27 +1,21 @@
 import type { GameState, PlayerState, Result, SeatInput, TableConfig } from "./GameState"
-import { nextSeat } from "./Dealer"
-import type { deck } from "./Dealer"
 
-//function to move between players?
-//for (let step = 1; step <= players.length; step++) {
-//Base on betting turns
+export function applyDraw(state: GameState, playerId: PlayerId, discard: number[]): Result<GameState, DrawError> {
+    // 1. Is a draw allowed right now, by this player?
+    if (state.phase !== "draw") return { ok: false, error: "wrong-phase" }
+    if (!isPlayersTurn(state, playerId)) return { ok: false, error: "not-your-turn" }
 
-//Very unfinished, not even usable but lays out kind of a plan for the main functions I want here
-//The trouble is figuring out which cards are selected, making the cards buttons, etc.
+    // 2. Copy what we'll change, so the input is never touched
+    const deck = [...state.deck]
+    const players = state.players.map(p => ({ ...p }))
+    const me = players.find(p => p.id === playerId)!
 
-//remove selected cards from hand
-export function removeCards(state: GameState, step: int) {
-    const p = players[(dealerIndex + step) % players.length]!
-    int num_selected = 0;
-    //for each card selected by this player
-        p.hand.pop();
-        num_selected++;
-    drawCards(state, num_selected, p);
-}
+    // 3. Swap each discarded position for a card off the top of the deck (the end of the array)
+    me.hand = me.hand.map((card, i) => (discard.includes(i) ? deck.pop()! : card))
+    me.hasActed = true // this player has drawn
 
-//draw random cards from the deck equal to number of cards removed
-export function drawCards(state: GameState, num_selected: int, p: players) {
-    for (let card = 0; card < num_selected; card++) {
-        if (inHand(p)) p.hand.push(deck.pop()!)
-    }
+    // 4. Next drawer, or start the post-draw betting when everyone's done
+    const next = advanceTurn({ ...state, deck, players }, p => isInHand(p) && !p.hasActed)
+    if (next.toActIndex === null) return { ok: true, value: startBettingRound(next, "postdraw") }
+    return { ok: true, value: next }
 }
