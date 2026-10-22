@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
-import { watchTable } from "@/service/socketService"
-import { fetchTable, leaveTable } from "@/service/tableService"
-import { getCurrentUserId } from "@/service/userService"
+import { watchTable } from "@/service/SocketService"
+import { fetchTable, leaveTable } from "@/service/TableService"
+import { getCurrentUserId } from "@/service/UserService"
 
 const mockPush = jest.fn()
 
@@ -10,23 +10,23 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
-jest.mock("@/service/tableService", () => ({
+jest.mock("@/service/TableService", () => ({
   fetchTable: jest.fn(),
   leaveTable: jest.fn(),
 }))
 
-jest.mock("@/service/socketService", () => ({
+jest.mock("@/service/SocketService", () => ({
   watchTable: jest.fn(() => jest.fn()),
   watchHand: jest.fn(() => jest.fn()),
 }))
 
-jest.mock("@/service/currentTableService", () => ({
+jest.mock("@/service/CurrentTableService", () => ({
   clearCurrentTableId: jest.fn(),
 }))
 
 const table = {
   id: "t1",
-  name: "Room One",
+  name: "Table One",
   maxPlayers: 6,
   buyIn: 100,
   status: 1,

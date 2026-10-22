@@ -1,13 +1,13 @@
 "use client"
 
-import { DEV_USERS, getCurrentUserId, setCurrentUserId } from "@/service/userService"
+import { DEV_USERS, getCurrentUserId, setCurrentUserId } from "@/service/UserService"
 import { useEffect, useState } from "react"
 
 /* TODO dev only, delete once auth exists */
 export default function DevUserSwitch() {
   const [userId, setUserId] = useState(DEV_USERS[0].id)
 
-  useEffect(() => setUserId(getCurrentUserId()), [0])
+  useEffect(() => setUserId(getCurrentUserId()), [])
 
   function change(id: string) {
     setCurrentUserId(id)

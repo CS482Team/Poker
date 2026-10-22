@@ -1,8 +1,8 @@
-import { supabase } from "./SupabaseClient"
+import { getSupabase } from "../config/Supabase"
 
 /* gets a user's chips */
 export async function getBalance(userId: string): Promise<number> {
-  const { data, error } = await supabase.from("user").select("chip_balance").eq("id", userId).single()
+  const { data, error } = await getSupabase().from("user").select("chip_balance").eq("id", userId).single()
 
   if (error) throw error
 
@@ -11,7 +11,7 @@ export async function getBalance(userId: string): Promise<number> {
 
 /* saves a user's new chip total */
 export async function setBalance(userId: string, balance: number): Promise<void> {
-  const { error } = await supabase.from("user").update({ chip_balance: balance }).eq("id", userId)
+  const { error } = await getSupabase().from("user").update({ chip_balance: balance }).eq("id", userId)
 
   if (error) throw error
 }

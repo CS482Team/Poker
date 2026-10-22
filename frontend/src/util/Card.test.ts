@@ -2,10 +2,10 @@
 import fs from "fs"
 import path from "path"
 import { CARD_BACK_IMAGE, cardImage, cardLabel } from "./Card"
-import type { Suit } from "./Card"
+import type { Rank, Suit } from "@shared/Card"
 
 const SUITS: Suit[] = ["clubs", "diamonds", "hearts", "spades"]
-const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+const RANKS: Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 describe("cardLabel", () => {
   it("shows face cards as letters", () => {

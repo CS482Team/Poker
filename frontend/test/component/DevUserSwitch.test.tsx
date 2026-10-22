@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import DevUserSwitch from "@/component/DevUserSwitch"
-import { DEV_USERS, getCurrentUserId } from "@/service/userService"
+import { DEV_USERS, getCurrentUserId } from "@/service/UserService"
 
 beforeEach(() => {
   sessionStorage.clear()

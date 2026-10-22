@@ -1,8 +1,7 @@
 import type { Server as HttpServer } from "http"
 import { Server } from "socket.io"
-import { getAllTables, getTable } from "../dao/TableDao"
-import type { GameState } from "../../../shared/GameState"
-import { getHand } from "../services/Game"
+import { getAllTables, getTable } from "../dao/TableDAO"
+import { getTableView } from "../services/GameService"
 
 const LOBBY = "lobby"
 let io: Server | undefined
@@ -18,9 +17,9 @@ export function initSocket(server: HttpServer) {
     })
     // TODO use the logged in user once auth exists
     socket.on("watchHand", async (info: { tableId: string; userId: string }, ack?: () => void) => {
-      await socket.join(handRoom(info.tableId, info.userId))
-      const hand = getHand(info.tableId, info.userId)
-      if (hand) socket.emit("hand", hand)
+      await socket.join(handTable(info.tableId, info.userId))
+      const view = getTableView(info.tableId, info.userId)
+      if (view) socket.emit("view", view)
       ack?.()
     })
     socket.on("watchLobby", async (ack?: () => void) => {
@@ -30,6 +29,8 @@ export function initSocket(server: HttpServer) {
   })
 }
 
+/* BROADCASTS */
+
 /* sends the latest table and lobby state to watchers */
 export async function broadcastChange(tableId: string) {
   if (!io) return
@@ -38,12 +39,16 @@ export async function broadcastChange(tableId: string) {
   io.to(LOBBY).emit("tables", await getAllTables())
 }
 
-export function sendHands(game: GameState) {
-  for (const player of game.players) {
-    io?.to(handRoom(game.roomId, player.id)).emit("hand", player.hand)
+/* sends the latest game state to watchers */
+export function sendViews(tableId: string, userIds: string[]) {
+  for (const id of userIds) {
+    const view = getTableView(tableId, id)
+    if (view) io?.to(handTable(tableId, id)).emit("view", view)
   }
 }
 
-function handRoom(tableId: string, userId: string) {
+/* HELPERS */
+
+function handTable(tableId: string, userId: string) {
   return `hand:${tableId}:${userId}`
 }

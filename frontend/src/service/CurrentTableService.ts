@@ -1,6 +1,7 @@
-import { getCurrentUserId } from "@/service/userService";
+import { getCurrentUserId } from "@/service/UserService";
 
-/* keeps each user's current table separate so two users can test in one browser */
+/* TODO temp remove once the server knows which table a user is at
+   used rn so two users can test in one browser */
 function key() {
   return `currentTableId:${getCurrentUserId()}`;
 }

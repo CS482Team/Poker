@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import TableList from "@/component/TableList"
-import { getCurrentTableId } from "@/service/currentTableService"
-import { watchTables } from "@/service/socketService"
-import { fetchTables, joinTable } from "@/service/tableService"
+import { getCurrentTableId } from "@/service/CurrentTableService"
+import { watchTables } from "@/service/SocketService"
+import { fetchTables, joinTable } from "@/service/TableService"
 
 const mockPush = jest.fn()
 
@@ -10,17 +10,17 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
-jest.mock("@/service/tableService", () => ({
+jest.mock("@/service/TableService", () => ({
   fetchTables: jest.fn(),
   joinTable: jest.fn(),
   createTable: jest.fn(),
 }))
 
-jest.mock("@/service/socketService", () => ({
+jest.mock("@/service/SocketService", () => ({
   watchTables: jest.fn(() => jest.fn()),
 }))
 
-jest.mock("@/service/currentTableService", () => ({
+jest.mock("@/service/CurrentTableService", () => ({
   getCurrentTableId: jest.fn(),
   setCurrentTableId: jest.fn(),
 }))
@@ -29,7 +29,7 @@ const seat = (userId: string, seatNumber: number) => ({ userId, username: userId
 
 const table = {
   id: "t1",
-  name: "Room One",
+  name: "Table One",
   status: 0,
   variant: "five_card_draw",
   buyIn: 100,
@@ -48,7 +48,7 @@ describe("TableList", () => {
   it("shows the tables", async () => {
     jest.mocked(fetchTables).mockResolvedValue([table])
     render(<TableList />)
-    expect(await screen.findByText("Room One")).toBeInTheDocument()
+    expect(await screen.findByText("Table One")).toBeInTheDocument()
   })
 
   it("shows tables pushed over the socket", async () => {
@@ -57,7 +57,7 @@ describe("TableList", () => {
     await screen.findByText("No tables yet.")
     const push = jest.mocked(watchTables).mock.calls[0][0]
     act(() => push([table]))
-    expect(screen.getByText("Room One")).toBeInTheDocument()
+    expect(screen.getByText("Table One")).toBeInTheDocument()
   })
 
   it("shows the error", async () => {
@@ -70,7 +70,7 @@ describe("TableList", () => {
     jest.mocked(fetchTables).mockResolvedValue([table])
     render(<TableList />)
     fireEvent.click(await screen.findByRole("button", { name: "Join" }))
-    await screen.findByText("Room One")
+    await screen.findByText("Table One")
     expect(joinTable).toHaveBeenCalled()
     expect(mockPush).toHaveBeenCalledWith("/table/t1")
   })

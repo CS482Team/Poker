@@ -1,4 +1,4 @@
-import { DEV_USERS, getCurrentUserId, setCurrentUserId } from "@/service/userService"
+import { DEV_USERS, getCurrentUserId, setCurrentUserId } from "@/service/UserService"
 
 beforeEach(() => sessionStorage.clear())
 

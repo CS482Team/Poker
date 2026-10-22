@@ -1,8 +1,8 @@
-import type { Table } from "@shared/table"
-import type { Card } from "@/util/Card"
+import type { Table } from "@shared/Table"
+import type { PlayerView } from "@shared/PlayerView"
 import { io } from "socket.io-client"
 
-/* opens a socket, joins a room and handles one event */
+/* opens a socket, joins a table and handles one event */
 function listen(event: string, onConnect: string, payload: unknown, handler: (data: any) => void) {
   const socket = io(process.env.NEXT_PUBLIC_API_URL)
   socket.on("connect", () => socket.emit(onConnect, payload))
@@ -22,6 +22,6 @@ export function watchTables(onTables: (tables: Table[]) => void) {
   return listen("tables", "watchLobby", undefined, onTables)
 }
 
-export function watchHand(tableId: string, userId: string, onHand: (hand: Card[]) => void) {
-  return listen("hand", "watchHand", { tableId, userId }, onHand)
+export function watchHand(tableId: string, userId: string, onView: (view: PlayerView) => void) {
+  return listen("view", "watchHand", { tableId, userId }, onView)
 }

@@ -1,6 +1,5 @@
 import { getSupabase } from "../config/Supabase"
 
-/* TODO move to shared/ */
 export interface NewMatch { tableId: string; matchNumber: number; pot: number; dealerSeat: number }
 export interface NewMatchPlayer { seatNumber: number; userId: string | null; botName: string | null }
 

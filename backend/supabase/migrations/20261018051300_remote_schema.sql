@@ -458,14 +458,14 @@ CREATE POLICY "see your own balance history" ON "public"."balance_log"
   TO "authenticated"
   USING ((user_id = auth.uid()));
 
-CREATE POLICY "read chat of a room you sit in" ON "public"."chat_message"
+CREATE POLICY "read chat of a table you sit in" ON "public"."chat_message"
   FOR SELECT
   TO "authenticated"
   USING ((EXISTS ( SELECT 1
    FROM public.table_players tp
   WHERE ((tp.table_id = chat_message.table_id) AND (tp.user_id = auth.uid())))));
 
-CREATE POLICY "send chat to a room you sit in" ON "public"."chat_message"
+CREATE POLICY "send chat to a table you sit in" ON "public"."chat_message"
   FOR INSERT
   TO "authenticated"
   WITH CHECK (((user_id = auth.uid()) AND (EXISTS ( SELECT 1

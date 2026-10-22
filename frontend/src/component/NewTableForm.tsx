@@ -1,8 +1,8 @@
 "use client"
 
-import { setCurrentTableId } from "@/service/currentTableService"
-import { createTable, joinTable } from "@/service/tableService"
-import { getCurrentUserId } from "@/service/userService"
+import { setCurrentTableId } from "@/service/CurrentTableService"
+import { createTable, joinTable } from "@/service/TableService"
+import { getCurrentUserId } from "@/service/UserService"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 

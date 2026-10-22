@@ -1,32 +1,32 @@
 import request from "supertest"
 import { app } from "../../src/app"
-import { logBalanceChange } from "../../src/db/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../../src/db/TableDAO"
-import { addPlayer, countPlayers, removePlayer } from "../../src/db/TablePlayersDAO"
-import { getBalance, setBalance } from "../../src/db/UserDAO"
+import { logBalanceChange } from "../../src/dao/BalanceLogDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../../src/dao/TableDAO"
+import { addPlayer, countPlayers, removePlayer } from "../../src/dao/TablePlayersDAO"
+import { getBalance, setBalance } from "../../src/dao/UserDAO"
 
-jest.mock("../../src/db/TableDAO", () => ({
+jest.mock("../../src/dao/TableDAO", () => ({
   getAllTables: jest.fn(),
   getTable: jest.fn(),
   createTable: jest.fn(),
   deleteTable: jest.fn(),
 }))
-jest.mock("../../src/db/TablePlayersDAO", () => ({
+jest.mock("../../src/dao/TablePlayersDAO", () => ({
   addPlayer: jest.fn(),
   removePlayer: jest.fn(),
   countPlayers: jest.fn(),
 }))
-jest.mock("../../src/db/UserDAO", () => ({
+jest.mock("../../src/dao/UserDAO", () => ({
   getBalance: jest.fn(),
   setBalance: jest.fn(),
 }))
-jest.mock("../../src/db/BalanceLogDAO", () => ({
+jest.mock("../../src/dao/BalanceLogDAO", () => ({
   logBalanceChange: jest.fn(),
 }))
 
-const validTable = { hostId: "u1", name: "Room", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
+const validTable = { hostId: "u1", name: "Table", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
 const seat = { userId: "u1", username: "Maya", seatNumber: 0, stack: 150 }
-const detail = { id: "t1", name: "Room", maxPlayers: 2, buyIn: 150, seats: [seat] }
+const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 150, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [seat] }
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -42,7 +42,7 @@ describe("tables", () => {
   it("gets a table", async () => {
     jest.mocked(getTable).mockResolvedValue(detail)
     const res = await request(app).get("/tables/t1")
-    expect(res.body.name).toBe("Room")
+    expect(res.body.name).toBe("Table")
   })
 
   it("returns 404 for a missing table", async () => {

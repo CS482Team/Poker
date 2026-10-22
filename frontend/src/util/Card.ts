@@ -1,6 +1,4 @@
-// Mirrors the backend's Card type (backend/src/game/Card.ts); keep in sync
-export type Suit = "clubs" | "diamonds" | "hearts" | "spades"
-export interface Card { rank: number; suit: Suit } // 11=J 12=Q 13=K 14=A
+import type { Card, Suit } from "@shared/Card"
 
 const RANK_LABELS: Record<number, string> = { 11: "J", 12: "Q", 13: "K", 14: "A" }
 const SUIT_SYMBOLS: Record<Suit, string> = { clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" }

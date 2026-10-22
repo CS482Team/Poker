@@ -1,4 +1,4 @@
-import { clearCurrentTableId, getCurrentTableId, setCurrentTableId } from "@/service/currentTableService"
+import { clearCurrentTableId, getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 
 beforeEach(() => {
   localStorage.clear()

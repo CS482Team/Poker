@@ -10,10 +10,10 @@ beforeEach(resetMock)
 describe("TableDAO", () => {
   it("lists tables", async () => {
     mockState.result = {
-      data: [{ id: "t1", name: "One", status: 0, variant: "five_card_draw", buy_in: 100, minimum_bet: 5, ante: 1, max_players: 6, bot_count: 1, table_players: [{ count: 2 }] }],
+      data: [{ id: "t1", name: "One", status: 0, variant: "five_card_draw", buy_in: 100, minimum_bet: 5, ante: 1, max_players: 6, table_players: [{ user_id: "u1", seat_number: 0, stack: 100, user: { username: "Maya" } }, { user_id: "u2", seat_number: 1, stack: 100, user: { username: "Sam" } }] }],
     }
     const tables = await getAllTables()
-    expect(tables[0].players).toBe(3)
+    expect(tables[0].seats).toHaveLength(2)
   })
 
   it("gets a table with its seats", async () => {

@@ -1,11 +1,11 @@
 import { Request, Response } from "express"
-import type { NewTable, Table } from "../../../shared/table"
+import type { NewTable, Table } from "../../../shared/Table"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDao"
+import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, setBalance } from "../dao/UserDAO"
-import { endGame, startIfReady } from "../services/Game"
-import { broadcastChange, sendHands } from "../socket/io"
+import { endGame, startIfReady } from "../services/GameService"
+import { broadcastChange, sendViews } from "../socket/io"
 
 /* TODO maybe make an env config? */
 const MIN_PLAYERS = 2
@@ -85,8 +85,8 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
 /* HELPER FUNCTIONS */
 
 async function dealIfReady(tableId: string) {
-  const game = await startIfReady(tableId)
-  if (game) sendHands(game)
+  const playerIds = await startIfReady(tableId)
+  if (playerIds) sendViews(tableId, playerIds)
 }
 
 /* changes a user's balance and logs it */

@@ -1,7 +1,7 @@
 import request from "supertest"
 import { app } from "../src/app"
 
-jest.mock("../src/db/supabase", () => ({ supabase: {} }))
+jest.mock("../src/config/Supabase", () => ({ getSupabase: () => ({}) }))
 
 describe("GET /health", () => {
   it("returns ok", async () => {
