@@ -83,6 +83,8 @@ describe("Table (demo game room)", () => {
   })
 
   it("tests clicks of cards", async() => {
+    //jest.mocked(dealDemo).mockResolvedValue(deal)
+    //render(<Table />)
     fireEvent.click(screen.getByRole("button", { name: "A♠" }))
     expect(screen.getByRole("button", { name: "A♠, selected to discard" })).toHaveAttribute("aria-pressed", "true")
   })
