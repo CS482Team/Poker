@@ -2,14 +2,17 @@ import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
 import { getAllTables, getTable } from "../../src/dao/TableDAO"
-import { broadcastChange, initSocket } from "../../src/socket/io"
+import { broadcastChange, initSocket, sendViews } from "../../src/socket/io"
+import { getTableView } from "../../src/services/GameService"
 
-jest.mock("../../src/db/TableDAO", () => ({
+jest.mock("../../src/dao/TableDAO", () => ({
   getAllTables: jest.fn(),
   getTable: jest.fn(),
 }))
 
-const detail = { id: "t1", name: "Room", maxPlayers: 2, buyIn: 100, seats: [] }
+jest.mock("../../src/services/GameService", () => ({ getTableView: jest.fn() }))
+
+const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 100, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [] }
 
 let server: HttpServer
 let client: Socket
@@ -69,5 +72,20 @@ describe("socket", () => {
     await broadcastChange("t1")
     await lobby
     expect(handler).not.toHaveBeenCalled()
+  })
+
+  it("sends a player their view when they watch it", async () => {
+    jest.mocked(getTableView).mockReturnValue({ id: "g1" } as never)
+    const received = next("view")
+    await join("watchHand", { tableId: "t1", userId: "a" })
+    expect(await received).toEqual({ id: "g1" })
+  })
+
+  it("pushes views to the players in a table", async () => {
+    jest.mocked(getTableView).mockReturnValue({ id: "g1" } as never)
+    await join("watchHand", { tableId: "t1", userId: "a" })
+    const received = next("view")
+    sendViews("t1", ["a", "b"])
+    expect(await received).toEqual({ id: "g1" })
   })
 })

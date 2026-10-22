@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import NewTableForm from "@/component/NewTableForm"
-import { createTable, joinTable } from "@/service/tableService"
+import { createTable, joinTable } from "@/service/TableService"
 
 const mockPush = jest.fn()
 
@@ -8,17 +8,17 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
-jest.mock("@/service/tableService", () => ({
+jest.mock("@/service/TableService", () => ({
   createTable: jest.fn(),
   joinTable: jest.fn(),
 }))
 
-jest.mock("@/service/currentTableService", () => ({
+jest.mock("@/service/CurrentTableService", () => ({
   setCurrentTableId: jest.fn(),
 }))
 
 function submit() {
-  fireEvent.change(screen.getByLabelText("Table name"), { target: { value: "My Room" } })
+  fireEvent.change(screen.getByLabelText("Table name"), { target: { value: "My Table" } })
   fireEvent.click(screen.getByRole("button", { name: "Create" }))
 }
 

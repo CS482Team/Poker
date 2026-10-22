@@ -1,23 +1,23 @@
 "use client"
 
-import { clearCurrentTableId } from "@/service/currentTableService"
-import { watchHand, watchTable } from "@/service/socketService"
-import { fetchTable, leaveTable } from "@/service/tableService"
-import { getCurrentUserId } from "@/service/userService"
+import { clearCurrentTableId } from "@/service/CurrentTableService"
+import { watchHand, watchTable } from "@/service/SocketService"
+import { fetchTable, leaveTable } from "@/service/TableService"
+import { getCurrentUserId } from "@/service/UserService"
 import PlayerHand from "@/component/PlayerHand"
-import type { Card } from "@/util/Card"
-import type { Table } from "@shared/table"
+import type { Card } from "@shared/Card"
+import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 /* TODO better than this */
 const seatPositions = [
-  { left: "11%", top: "62%" },
-  { left: "31%", top: "15%" },
-  { left: "69%", top: "15%" },
-  { left: "89%", top: "62%" },
-  { left: "69%", top: "82%" },
-  { left: "31%", top: "82%" },
+  { left: "9%", top: "51%" },
+  { left: "30%", top: "7%" },
+  { left: "70%", top: "7%" },
+  { left: "91%", top: "51%" },
+  { left: "70%", top: "84%" },
+  { left: "30%", top: "84%" },
 ]
 
 export default function GameTable({ id }: { id: string }) {
@@ -34,7 +34,7 @@ export default function GameTable({ id }: { id: string }) {
       })
       .catch((err: Error) => setError(err.message))
     const stopTable = watchTable(id, setTable)
-    const stopHand = watchHand(id, getCurrentUserId(), setHand)
+    const stopHand = watchHand(id, getCurrentUserId(), (view) => setHand(view.you.hand))
     return () => {
       stopTable()
       stopHand()
@@ -55,7 +55,7 @@ export default function GameTable({ id }: { id: string }) {
   if (!table) return <p className="p-8 text-center">Loading table…</p>
 
   return (
-    <div className="relative isolate mx-auto my-16 w-[90%] max-w-[940px]">
+    <div className="relative isolate mx-auto my-16 w-[90%] max-w-[780px]">
       <div className="poker-table relative h-[436px] rounded-[44%/50%]">
         <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
         {table.seats.map((seat) => {

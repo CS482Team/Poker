@@ -1,11 +1,11 @@
 "use client"
 
-import type { Table } from "@shared/table"
+import type { Table } from "@shared/Table"
 import NewTableForm from "@/component/NewTableForm"
-import { getCurrentTableId, setCurrentTableId } from "@/service/currentTableService"
-import { watchTables } from "@/service/socketService"
-import { fetchTables, joinTable } from "@/service/tableService"
-import { getCurrentUserId } from "@/service/userService"
+import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
+import { watchTables } from "@/service/SocketService"
+import { fetchTables, joinTable } from "@/service/TableService"
+import { getCurrentUserId } from "@/service/UserService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -80,7 +80,7 @@ export default function TableList() {
           const stakes = `$${table.ante} / $${table.minimumBet}`
           const seats = `${table.seats.length}/${table.maxPlayers}`
           return (
-            <div key={table.id} className="room-row grid gap-3 border-b border-white/10 px-[22px] py-3.5 last:border-0 md:grid-cols-[1.5fr_1fr_.8fr_.7fr_.6fr_220px] md:items-center md:gap-4">
+            <div key={table.id} className="list-row grid gap-3 border-b border-white/10 px-[22px] py-3.5 last:border-0 md:grid-cols-[1.5fr_1fr_.8fr_.7fr_.6fr_220px] md:items-center md:gap-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className={`size-2 rounded-full ${full ? "bg-[#6b6262]" : "bg-[#6fd099]"}`}/>

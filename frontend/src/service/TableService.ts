@@ -1,4 +1,4 @@
-import type { NewTable, Table } from "@shared/table";
+import type { NewTable, Table } from "@shared/Table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 

@@ -1,5 +1,6 @@
-import type { Card } from "../backend/src/game/Card"
-export type PlayerId = string // socket.id for now; Supabase user id after Heloisa's auth
+import type { Card } from "./Card"
+
+export type PlayerId = string // TODO socket.id for now use Supabase user id after Heloisa's auth
 export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
 export type StartError = "too-few-players" | "too-many-players" | "wrong-phase"
 
@@ -10,7 +11,10 @@ export interface TableConfig { // TABLE SETTINGS
   maxBetsPerRound: number // 4 = one bet + three raises
 }
 
-export interface SeatInput { id: PlayerId; name: string; stack: number } // what rooms (Cyrus) hand to createGame
+export interface SeatInput { 
+  id: PlayerId; name: 
+  string; stack: number 
+} // what tables (Cyrus) hand to createGame
 
 export type PlayerStatus = "active" | "folded" | "all-in" | "sitting-out"
 
@@ -42,11 +46,9 @@ export type Phase =
   | "showdown"          // S4 (Sean): pay out the pot -can change if needed
   | "hand-complete"     // S4 done; S1 can start the next hand
 
-export type GameAction = "fold" | "check" | "call" | "bet" | "raise"
-
 export interface GameState {
   id: string
-  roomId: string
+  tableId: string
   config: TableConfig
   players: PlayerState[]     // in seat order; index = seat
   dealerIndex: number
@@ -57,4 +59,3 @@ export interface GameState {
   round: BettingRound | null // null outside betting phases
   handNumber: number
 }
-

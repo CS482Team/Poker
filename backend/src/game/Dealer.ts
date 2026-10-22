@@ -1,24 +1,16 @@
 import { randomUUID } from "crypto"
 import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "../../../shared/GameState"
 import { createDeck, shuffle } from "./Deck"
-import type { Rng } from "./Card"
+import type { Rng } from "../../../shared/Card"
+import { nextSeat } from "./Turn"
 
 const HAND_SIZE = 5
 
 const MIN_PLAYERS = 2
 const MAX_PLAYERS = 6
 
-// Index of the next seat after `from` (wrapping around the table) whose player passes `check`, or null if nobody does
-function nextSeat(players: PlayerState[], from: number, check: (p: PlayerState) => boolean): number | null {
-  for (let step = 1; step <= players.length; step++) {
-    const i = (from + step) % players.length
-    if (check(players[i]!)) return i
-  }
-  return null
-}
-
 export function createGame(
-  roomId: string,
+  tableId: string,
   seats: SeatInput[],
   config: TableConfig,
 ): Result<GameState, StartError> {
@@ -40,7 +32,7 @@ export function createGame(
     ok: true,
     value: {
       id: randomUUID(),
-      roomId,
+      tableId,
       config,
       players,
       dealerIndex: 0,

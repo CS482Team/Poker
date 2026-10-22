@@ -5,15 +5,15 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }))
 
-jest.mock("@/service/tableService", () => ({
+jest.mock("@/service/TableService", () => ({
   fetchTables: jest.fn().mockResolvedValue([]),
 }))
 
-jest.mock("@/service/socketService", () => ({
+jest.mock("@/service/SocketService", () => ({
   watchTables: jest.fn(() => jest.fn()),
 }))
 
-jest.mock("@/service/currentTableService", () => ({
+jest.mock("@/service/CurrentTableService", () => ({
   getCurrentTableId: jest.fn(),
 }))
 

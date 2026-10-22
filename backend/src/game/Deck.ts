@@ -1,5 +1,7 @@
-import type { Card, Rng } from "./Card"
-import { SUITS, RANKS } from "./Card"
+import type { Card, Rank, Rng, Suit } from "../../../shared/Card"
+
+const SUITS: Suit[] = ["clubs", "diamonds", "hearts", "spades"]
+const RANKS: Rank[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 // Builds a fresh, ordered 52-card deck: every rank of every suit
 export function createDeck(): Card[] {

@@ -1,5 +1,5 @@
 import { io } from "socket.io-client"
-import { watchTable, watchTables } from "@/service/socketService"
+import { watchTable, watchTables, watchHand } from "@/service/SocketService"
 
 jest.mock("socket.io-client", () => ({ io: jest.fn() }))
 
@@ -36,5 +36,14 @@ describe("socketService", () => {
     handlers.tables([])
     expect(socket.emit).toHaveBeenCalledWith("watchLobby", undefined)
     expect(onTables).toHaveBeenCalledWith([])
+  })
+
+  it("watches a player's view and passes updates on", () => {
+    const onView = jest.fn()
+    watchHand("t1", "u1", onView)
+    handlers.connect()
+    handlers.view({ id: "g1" })
+    expect(socket.emit).toHaveBeenCalledWith("watchHand", { tableId: "t1", userId: "u1" })
+    expect(onView).toHaveBeenCalledWith({ id: "g1" })
   })
 })
