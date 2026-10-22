@@ -23,7 +23,7 @@ export default function PlayerHand({ cards, selected = [], canSelect = false, on
                         disabled={!canSelect}
                         aria-pressed={isSelected}
                         aria-label={`${cardLabel(card)}${isSelected ? ", selected to discard" : ""}`}
-                        onClick={() => onToggle.(i)} //had a ? that broke the code
+                        onClick={() => onToggle?.(i)}
                         className={`rounded-md transition-transform disabled:cursor-default ${
                         isSelected ? "-translate-y-5 ring-4 ring-turn" : canSelect ? "hover:-translate-y-2" : ""
                         }`}

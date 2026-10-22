@@ -53,3 +53,15 @@ export function playerViewController(req: Request, res: Response): void {
   }
   res.json(result.value)
 }
+
+export function drawController(req: Request, res: Response): void {
+    const { playerId, discard } = req.body ?? {}
+    // shape check only: a string id, and 0–5 whole numbers between 0 and 4 with no repeats
+    if (typeof playerId !== "string" || !isDiscardList(discard)) {
+        res.status(400).json({ error: "invalid-draw" })
+        return
+    }
+    const result = drawCards(String(req.params.gameId), playerId, discard)
+    if (!result.ok) { res.status(statusFor(result.error)).json({ error: result.error }); return }
+    res.json(result.value) // the player's updated view, with new cards
+}
