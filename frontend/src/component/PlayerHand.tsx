@@ -11,7 +11,6 @@ interface PlayerHandProps {
 
 }
 
-
 export default function PlayerHand({ cards, selected = [], canSelect = false, onToggle }: PlayerHandProps) {
     return (
         <div className="flex justify-center gap-2">
@@ -24,7 +23,7 @@ export default function PlayerHand({ cards, selected = [], canSelect = false, on
                         disabled={!canSelect}
                         aria-pressed={isSelected}
                         aria-label={`${cardLabel(card)}${isSelected ? ", selected to discard" : ""}`}
-                        onClick={() => onToggle?.(i)}
+                        onClick={() => onToggle.(i)} //had a ? that broke the code
                         className={`rounded-md transition-transform disabled:cursor-default ${
                         isSelected ? "-translate-y-5 ring-4 ring-turn" : canSelect ? "hover:-translate-y-2" : ""
                         }`}
@@ -36,3 +35,13 @@ export default function PlayerHand({ cards, selected = [], canSelect = false, on
         </div>
     )
 }
+
+/*export default function PlayerHand({ cards }: { cards: Card[] }) {
+  return (
+    <div className="flex justify-center gap-2">
+      {cards.map((card, i) => (
+        <PlayingCard key={cardLabel(card)} card={card} size="lg" index={i} />
+      ))}
+    </div>
+ )
+}*/
