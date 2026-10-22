@@ -1,0 +1,1 @@
+export type GameAction = "fold" | "check" | "call" | "bet" | "raise"
