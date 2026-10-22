@@ -48,7 +48,7 @@ export default function Table() {
         canSelect={canDraw && !busy}
         onToggle={toggleCard}
     />
-  )
+  )}
 
   const you = deal?.players.find(p => p.seat === 0)
   const toAct = deal?.players.find(p => p.seat === deal.toActSeat)
