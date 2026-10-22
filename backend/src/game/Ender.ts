@@ -42,22 +42,27 @@ export function scoreHands(state: GameState) {
                 //If High Card is Ace:
                 if(ranks[0] === 14) {
                     //Royal Flush (10)
+                    p.winCond = 10;
                 }
                 else {
                     //Straight Flush (9)
+                    p.winCond = 9;
                 }
             }
             //If Only Same Suit:
             else if(flush) {
-                    //Flush (6)
+                //Flush (6)
+                p.winCond = 8;
             }
             //If Only Same Row
             else if(straight) {
                 //Straight (5)
+                p.winCond = 5;
             }
             else {
                 //Check How Many Cards Match
-                //TODO: Explain this
+                //Each matchval is a count of how many cards match (minus one) in each hand, matchval2 counts if there is a second match
+                //val_to_match dictates 3 states: 0 - initial (searching for the first match, 1 - found first match, 2 - move on to second match
                 let matchval = 0;
                 let val_to_match = 0;
                 let matchval2 = 0;
@@ -73,24 +78,53 @@ export function scoreHands(state: GameState) {
                         val_to_match = 2;
                     }
                 }
-                    //4 Match
-                        //Four Of A Kind (8)
-                    //1 Set of 3 Match and 1 Set of 2 Match
-                        //Full House (7)
-                    //Else Just 1 Set of Three Matches
-                        //Three Of A Kind (4)
-                    //2 Sets of 2 Match
-                        //2 Pair (3)
-                    //1 Pair Matches
-                        //Pair (2)
+                //4 Match
+                if(matchval === 3) {
+                    //Four Of A Kind (8)
+                    p.winCond = 8;
+                }
+                //1 Set of 3 Match and 1 Set of 2 Match
+                else if((matchval === 2 && matchval2 === 1) || (matchval === 1 && matchval2 === 2)) {
+                    //Full House (7)
+                    p.winCond = 7;
+                }
+                //Else Just 1 Set of Three Matches
+                else if(matchval === 2) {
+                    //Three Of A Kind (4)
+                    p.winCond = 4;
+                }
+                //2 Sets of 2 Match
+                else if(matchval === 1 && matchval2 === 1) {
+                    //2 Pair (3)
+                    p.winCond = 3;
+                }
+                //1 Pair Matches
+                else if(matchval === 1) {
+                    //Pair (2)
+                    p.winCond = 2;
+                }
                 //Nothing Else Works
-                   //High Card (1)
+                else {
+                    //High Card (1)
+                    p.winCond = 1;
+                }
             }
         }
+    }
 }
 
-export function declareWinner(state: GameState) {
+function declareWinner(state: GameState) {
+    let maxWinCond = 0;
+    //TODO: Make an array for tied winners?
     //Search For Player With Highest WINCOND
+    for (let step = 1; step <= players.length; step++) {
+        const p = players[(dealerIndex + step) % players.length]!
+        if(p.status == "active") {
+            if(p.winCond > maxWinCond) {
+                maxWinCond = p.winCond;
+            }
+        }
+    }
     //If 2 or More Players Share Highest WINCOND
         //10: Split Pot
         //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins

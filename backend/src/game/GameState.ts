@@ -25,6 +25,7 @@ export interface PlayerState {
   betThisRound: number     // chips put in during the current betting round
   totalContributed: number // chips put in this hand, antes included (S4 side pots)
   hasActed: boolean        // acted since the last bet/raise in this round
+  winCond: number		   // win condition met, filled in at ending
 }
 
 export type Street = "predraw" | "postdraw"
