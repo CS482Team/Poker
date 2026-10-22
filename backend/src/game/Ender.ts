@@ -115,13 +115,20 @@ export function scoreHands(state: GameState) {
 
 function declareWinner(state: GameState) {
     let maxWinCond = 0;
-    //TODO: Make an array for tied winners?
+    const winners: player[] = [];
     //Search For Player With Highest WINCOND
     for (let step = 1; step <= players.length; step++) {
         const p = players[(dealerIndex + step) % players.length]!
         if(p.status == "active") {
             if(p.winCond > maxWinCond) {
                 maxWinCond = p.winCond;
+                //Empty the winner array
+                winners = [];
+            }
+            //If instead of else if for less redundancy
+            if(p.winCond === maxWinCond) {
+                //Add player to winner array
+                winners.push(p);
             }
         }
     }
