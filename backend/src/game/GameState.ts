@@ -4,11 +4,10 @@ export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }
 export type StartError = "too-few-players" | "too-many-players" | "wrong-phase"
 
 
+// No-limit betting: players choose their bet size, from minBet up to their whole stack
 export interface TableConfig {
   ante: number
-  smallBet: number        // pre-draw bet/raise size
-  bigBet: number          // post-draw bet/raise size (normally 2 × smallBet)
-  maxBetsPerRound: number // 4 = one bet + three raises
+  minBet: number // smallest opening bet (and the smallest first raise), same before and after the draw
 }
 
 export interface SeatInput { id: PlayerId; name: string; stack: number } // what rooms (Cyrus) hand to createGame
@@ -26,15 +25,15 @@ export interface PlayerState {
   totalContributed: number // chips put in this hand, antes included (S4 side pots)
   hasActed: boolean        // acted since the last bet/raise in this round
   winCond: number		   // win condition met, filled in at ending
+  hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
 }
 
 export type Street = "predraw" | "postdraw"
 
 export interface BettingRound {
   street: Street
-  betSize: number   // smallBet or bigBet
   currentBet: number // highest betThisRound at the table
-  betsMade: number  // 0..maxBetsPerRound (a bet counts 1, each raise +1)
+  minRaise: number   // smallest raise increment: the size of the last full bet/raise (starts at minBet)
 }
 
 export type Phase =

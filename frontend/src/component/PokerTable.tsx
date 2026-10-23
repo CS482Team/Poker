@@ -1,21 +1,16 @@
 import Seat from "./Seat"
 import EmptySeat from "./EmptySeat"
-import type { DemoDeal } from "@/service/Game"
+import type { PlayerView } from "@/service/Game"
 import { OPEN_SPOTS, SPOT_POSITION, spotForSeat } from "@/util/SeatLayout"
 import me from "@/asset/me2.png"
 import bot1 from "@/asset/bot1.png"
 import bot2 from "@/asset/bot2.png"
 import bot3 from "@/asset/bot3.png"
 
-// Avatar for each seat (seat 0 = you)
+// Avatar for each seat (the avatar stays with the player, whoever is viewing)
 const AVATARS = [me, bot1, bot2, bot3]
 
-interface PokerTableProps {
-  deal: DemoDeal | null
-  revealAll: boolean
-}
-
-export default function PokerTable({ deal, revealAll }: PokerTableProps) {
+export default function PokerTable({ view }: { view: PlayerView | null }) {
   return (
     <div className="relative mx-auto aspect-[2/1] w-full max-w-4xl">
       {/* rim */}
@@ -27,10 +22,10 @@ export default function PokerTable({ deal, revealAll }: PokerTableProps) {
         <span className="absolute inset-0 flex select-none items-center justify-center text-8xl font-bold text-white/5">
           H&D
         </span>
-        {deal ? (
+        {view ? (
           <div className="absolute left-1/2 top-[34%] flex -translate-x-1/2 items-center gap-2 text-lg">
             <span className="size-4 rounded-full border-2 border-white bg-card-red" />
-            Pot <strong>{deal.pot}</strong>
+            Pot <strong>{view.pot}</strong>
           </div>
         ) : (
           <p className="absolute inset-0 flex items-center justify-center text-lg text-white/70">
@@ -39,24 +34,23 @@ export default function PokerTable({ deal, revealAll }: PokerTableProps) {
         )}
       </div>
 
-      {/* seats, centred on their spot around the oval */}
-      {deal?.players.map(player => (
+      {/* seats, centred on their spot around the oval; the viewer sits at the bottom */}
+      {view?.players.map(player => (
         <div
           key={player.seat}
           className="absolute -translate-x-1/2 -translate-y-1/2"
-          style={SPOT_POSITION[spotForSeat(player.seat)]}
+          style={SPOT_POSITION[spotForSeat(player.seat, view.you.seat, view.players.length)]}
         >
           <Seat
             player={player}
             avatar={AVATARS[player.seat] ?? bot1}
-            isDealer={player.seat === deal.dealerSeat}
-            isToAct={player.seat === deal.toActSeat}
-            faceUp={revealAll}
-            showCards={player.seat !== 0}
+            isDealer={player.seat === view.dealerSeat}
+            isToAct={player.seat === view.toActSeat}
+            showCards={player.seat !== view.you.seat}
           />
         </div>
       ))}
-      {deal &&
+      {view &&
         OPEN_SPOTS.map(spot => (
           <div key={spot} className="absolute -translate-x-1/2 -translate-y-1/2" style={SPOT_POSITION[spot]}>
             <EmptySeat />
