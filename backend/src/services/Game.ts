@@ -3,17 +3,15 @@ import type { Card, Rng } from "../game/Card"
 import type { BettingRound, Phase, PlayerId, PlayerStatus, Result, SeatInput, StartError, TableConfig } from "../game/GameState"
 import type { TableRow } from "../dao/TableDao"
 import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDao"
+import { applyAction, getLegalActions } from "../game/Betting"
+import type { ActionError, LegalAction, PlayerAction } from "../game/Betting"
 import { gameStore } from "./GameStore"
-
-const MAX_BETS_PER_ROUND = 4 // fixed-limit: one bet + three raises
 
 // Table settings from the database → the engine's config
 export function configForTable(table: TableRow): TableConfig {
   return {
     ante: table.ante,
-    smallBet: table.minimum_bet,
-    bigBet: table.minimum_bet * 2,
-    maxBetsPerRound: MAX_BETS_PER_ROUND,
+    minBet: Math.max(1, table.minimum_bet), // the column defaults to 0; a bet must be at least 1 chip
   }
 }
 
@@ -64,7 +62,7 @@ export interface PlayerView {
   dealerSeat: number
   toActSeat: number | null
   round: BettingRound | null
-  you: { seat: number; hand: Card[] }
+  you: { seat: number; hand: Card[]; legalActions: LegalAction[] } // legalActions is empty when it isn't your turn
   players: PublicPlayer[]
 }
 
@@ -89,7 +87,7 @@ export function getPlayerView(gameId: string, playerId: PlayerId): Result<Player
       dealerSeat: game.dealerIndex,
       toActSeat: game.toActIndex,
       round: game.round,
-      you: { seat, hand: me.hand },
+      you: { seat, hand: me.hand, legalActions: getLegalActions(game, playerId) },
       players: game.players.map((p, i) => ({
         seat: i,
         id: p.id,
@@ -101,6 +99,20 @@ export function getPlayerView(gameId: string, playerId: PlayerId): Result<Player
       })),
     },
   }
+}
+
+export type ActError = ViewError | ActionError
+
+// Applies a betting action (check, call, bet, raise, fold) to a stored game and returns the player's updated view
+export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<PlayerView, ActError> {
+  const game = gameStore.get(gameId)
+  if (!game) return { ok: false, error: "game-not-found" }
+
+  const result = applyAction(game, playerId, action)
+  if (!result.ok) return result
+
+  gameStore.save(result.value)
+  return getPlayerView(gameId, playerId)
 }
 
 export function drawCards(gameId: string, playerId: string, discard: number[]) {
