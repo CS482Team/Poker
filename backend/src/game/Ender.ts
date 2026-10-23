@@ -111,6 +111,7 @@ export function scoreHands(state: GameState) {
             }
         }
     }
+    declareWinner(state);
 }
 
 function declareWinner(state: GameState) {
@@ -133,6 +134,7 @@ function declareWinner(state: GameState) {
         }
     }
     //If 2 or More Players Share Highest WINCOND
+    if(winners.length > 1) {
         //10: Split Pot
         //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins
         //8, 4: Check Highest Card Among The Matching Numbers (CANNOT SPLIT)
@@ -141,4 +143,5 @@ function declareWinner(state: GameState) {
         //3: Check Highest Pair, If Same: Check Other Pair, If Still Same: Split Pot
         //2: Check Which Pair Is Higher, If Same: Split Pot, otherwise highest wins
         //1: Check Which Card Is Higher, If Same: Split Pot
+    }
 }
