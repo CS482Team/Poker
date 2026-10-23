@@ -1,6 +1,6 @@
 import request from "supertest"
 import { app } from "../../src/app"
-import { getPlayerView, startGame, StartGameError } from "../../src/services/Game"
+import { getPlayerView, startGame, StartGameError, takeAction } from "../../src/services/Game"
 import type { PlayerView } from "../../src/services/Game"
 import { findOrCreateDemoTable } from "../../src/dao/TableDao"
 import { DEMO_SEATS } from "../../src/services/Demo"
@@ -10,6 +10,7 @@ jest.mock("../../src/services/Game", () => ({
   ...jest.requireActual("../../src/services/Game"),
   startGame: jest.fn(),
   getPlayerView: jest.fn(),
+  takeAction: jest.fn(),
 }))
 
 const table = { id: "t1", ante: 1, minimum_bet: 2 }
@@ -80,7 +81,7 @@ describe("GET /game/:gameId/view/:playerId", () => {
       dealerSeat: 0,
       toActSeat: 1,
       round: null,
-      you: { seat: 0, hand: [] },
+      you: { seat: 0, hand: [], legalActions: [] },
       players: [],
     }
     jest.mocked(getPlayerView).mockReturnValue({ ok: true, value: view })
@@ -99,5 +100,63 @@ describe("GET /game/:gameId/view/:playerId", () => {
 
     expect(res.status).toBe(404)
     expect(res.body).toEqual({ error: "game-not-found" })
+  })
+})
+
+describe("POST /game/:gameId/action", () => {
+  const view: PlayerView = {
+    gameId: "g1",
+    phase: "predraw-betting",
+    pot: 5,
+    handNumber: 1,
+    dealerSeat: 0,
+    toActSeat: 2,
+    round: { street: "predraw", currentBet: 10, minRaise: 10 },
+    you: { seat: 1, hand: [], legalActions: [] },
+    players: [],
+  }
+
+  it("applies the action and returns the player's updated view", async () => {
+    jest.mocked(takeAction).mockReturnValue({ ok: true, value: view })
+
+    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: 10 } })
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual(view)
+    expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "bet", amount: 10 })
+  })
+
+  it("passes actions without an amount through unchanged", async () => {
+    jest.mocked(takeAction).mockReturnValue({ ok: true, value: view })
+
+    await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "call" } })
+
+    expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "call" })
+  })
+
+  it("rejects a missing player or an unknown action type", async () => {
+    const noPlayer = await request(app).post("/game/g1/action").send({ action: { type: "bet" } })
+    const badType = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "all-in" } })
+    const badAmount = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: "lots" } })
+
+    expect(noPlayer.status).toBe(400)
+    expect(badType.status).toBe(400)
+    expect(badAmount.status).toBe(400)
+    expect(badType.body).toEqual({ error: "invalid-action" })
+    expect(takeAction).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["game-not-found", 404],
+    ["not-your-turn", 409],
+    ["wrong-phase", 409],
+    ["illegal-action", 400],
+  ] as const)("returns %s as HTTP %i", async (error, status) => {
+    jest.mocked(takeAction).mockReturnValue({ ok: false, error })
+
+    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "check" } })
+
+    expect(res.status).toBe(status)
+    expect(res.body).toEqual({ error })
   })
 })

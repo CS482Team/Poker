@@ -2,7 +2,7 @@ import { createGameStore } from "../../../src/services/GameStore"
 import { createGame } from "../../../src/game/Dealer"
 import type { GameState, SeatInput, TableConfig } from "../../../src/game/GameState"
 
-const config: TableConfig = { ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 }
+const config: TableConfig = { ante: 1, minBet: 2 }
 const seats: SeatInput[] = [
   { id: "a", name: "Alice", stack: 100 },
   { id: "b", name: "Bob", stack: 100 },
