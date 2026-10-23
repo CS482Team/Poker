@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 // Dev switcher from the mock; Draw and Showdown unlock with S3 / S4
 const DEV_TABS = [
   { label: "Table", enabled: true },
@@ -8,12 +10,11 @@ const DEV_TABS = [
 interface RoomHeaderProps {
   stakes: string
   dealing: boolean
-  revealAll: boolean
   onDeal: () => void
-  onToggleReveal: () => void
+  devControls?: ReactNode // dev-only tools, e.g. the seat switcher
 }
 
-export default function RoomHeader({ stakes, dealing, revealAll, onDeal, onToggleReveal }: RoomHeaderProps) {
+export default function RoomHeader({ stakes, dealing, onDeal, devControls }: RoomHeaderProps) {
   return (
     <header className="flex items-center justify-between">
       <h1 className="text-4xl font-bold">Room 1</h1>
@@ -32,10 +33,7 @@ export default function RoomHeader({ stakes, dealing, revealAll, onDeal, onToggl
             </button>
           ))}
         </div>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" checked={revealAll} onChange={onToggleReveal} className="accent-red-600" />
-          Reveal all
-        </label>
+        {devControls}
         <button
           onClick={onDeal}
           disabled={dealing}
