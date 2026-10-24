@@ -14,6 +14,7 @@ const WINCONDS: Record<string, number> =
     "High Card": 1};
 
 export function scoreHands(state: GameState) {
+    players = state.players;
     //Run through each player
     for (let step = 1; step <= players.length; step++) {
         const p = players[(dealerIndex + step) % players.length]!
@@ -43,39 +44,59 @@ export function scoreHands(state: GameState) {
                 if(ranks[0] === 14) {
                     //Royal Flush (10)
                     p.winCond = 10;
+                    p.winningRanks = ranks.slice();
                 }
                 else {
                     //Straight Flush (9)
                     p.winCond = 9;
+                    p.winningRanks = ranks.slice();
                 }
             }
             //If Only Same Suit:
             else if(flush) {
                 //Flush (6)
                 p.winCond = 8;
+                p.winningRanks = ranks.slice();
+
             }
             //If Only Same Row
             else if(straight) {
                 //Straight (5)
                 p.winCond = 5;
+                p.winningRanks = ranks.slice();
             }
             else {
                 //Check How Many Cards Match
                 //Each matchval is a count of how many cards match (minus one) in each hand, matchval2 counts if there is a second match
-                //val_to_match dictates 3 states: 0 - initial (searching for the first match, 1 - found first match, 2 - move on to second match
+                //match_state dictates 3 states: 0 - initial (searching for the first match, 1 - found first match, 2 - move on to second match
+                //matcher1 and matcher2: values being matched
                 let matchval = 0;
-                let val_to_match = 0;
+                let match_state = 0;
                 let matchval2 = 0;
+                let matcher1 = 0;
+                let matcher2 = 0;
                 for(let i = 1; i < ranks.length; i++) {
-                    if(val_to_match === 2 && ranks[i] === ranks[i-1]) {
+                    if(match_state === 2 && ranks[i] === ranks[i-1]) {
                         matchval2++;
+                        matcher2 = ranks[i];
                     }
-                    else if((val_to_match === 0 || val_to_match === 1) && ranks[i] === ranks[i-1]) {
-                        val_to_match === 1;
+                    else if(match_state <= 1 && ranks[i] === ranks[i-1]) {
+                        match_state === 1;
                         matchval++;
+                        matcher1 = ranks[i];
                     }
-                    else if(val_to_match === 1){
-                        val_to_match = 2;
+                    else if(match_state === 1){
+                        match_state = 2;
+                    }
+                }
+                if(matchval !== 0) {
+                    for(let j = 0; j < matchval; j++)  {
+                        p.winningRanks.push(matcher1);
+                    }
+                }
+                if(matchval2 !== 0) {
+                    for(let j = 0; j < matchval2; j++) {
+                        p.winningRanks.push(matcher2);
                     }
                 }
                 //4 Match
@@ -107,6 +128,7 @@ export function scoreHands(state: GameState) {
                 else {
                     //High Card (1)
                     p.winCond = 1;
+                    p.matcher
                 }
             }
         }
@@ -116,7 +138,7 @@ export function scoreHands(state: GameState) {
 
 function declareWinner(state: GameState) {
     let maxWinCond = 0;
-    const winners: player[] = [];
+    const winners: PlayerState[] = [];
     //Search For Player With Highest WINCOND
     for (let step = 1; step <= players.length; step++) {
         const p = players[(dealerIndex + step) % players.length]!
@@ -135,13 +157,49 @@ function declareWinner(state: GameState) {
     }
     //If 2 or More Players Share Highest WINCOND
     if(winners.length > 1) {
-        //10: Split Pot
-        //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins
-        //8, 4: Check Highest Card Among The Matching Numbers (CANNOT SPLIT)
-        //7: Check Highest Card Among The Three Matching Specifically (CANNOT SPLIT)
-        //6: Check Highest Card, If Same Check 2nd Highest Card Until Lowest, If Still Same Split Pot
-        //3: Check Highest Pair, If Same: Check Other Pair, If Still Same: Split Pot
-        //2: Check Which Pair Is Higher, If Same: Split Pot, otherwise highest wins
-        //1: Check Which Card Is Higher, If Same: Split Pot
+        switch(maxWinCond) {
+            //10: Split Pot
+            case 10:
+                splitPot(state, winners);
+                break;
+            //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins
+            case 9:
+            case 5:
+                break;
+            //8, 4: Check Highest Card Among The Matching Numbers (CANNOT SPLIT)
+            case 8:
+            case 4:
+                break;
+            //7: Check Highest Card Among The Three Matching Specifically (CANNOT SPLIT)
+            case 7:
+                break;
+            //6: Check Highest Card, If Same Check 2nd Highest Card Until Lowest, If Still Same Split Pot
+            case 6:
+                break;
+            //3: Check Highest Pair, If Same: Check Other Pair, If Still Same: Split Pot
+            case 3:
+                break;
+            //2: Check Which Pair Is Higher, If Same: Split Pot, otherwise highest wins
+            case 2:
+                break;
+            //1: Check Which Card Is Higher, If Same: Split Pot
+            //Check if this is correct
+            case 1:
+                break;
+        }
     }
+}
+
+//Splits the pot among winners who tied
+function splitPot(state: GameState, winners: PlayerState[]) {
+    let new_pot = Math.floor(state.pot / winners.length);
+    let remainder = state.pot % winners.length;
+    for(Player winner of winners) {
+    winner.stack += new_pot;
+        if(remainder !== 0) {
+            winner.strack += remainder;
+            remainder = 0;
+        }
+    }
+    state.pot = 0;
 }

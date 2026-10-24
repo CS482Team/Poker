@@ -57,4 +57,94 @@ describe("endGame", () => {
         const result = scoreHands("room-1");
 
     })
+    
+    it("checks for straight flush") {
+
+    }
+
+    it("checks for flush") {
+
+    }
+
+    it("checks for straight") {
+
+    }
+
+    it("checks for four-of-a-kind") {
+
+    }
+
+    it("checks for full house") {
+
+    }
+
+    it("checks for three-of-a-kind") {
+
+    }
+
+    it("checks for two pair") {
+
+    }
+
+    it("checks for pait") {
+
+    }
+
+    it("checks for high card") {
+
+    }
+
+    it("delivers payout to winner") {
+
+    }
+
+    it("splits pot for royal flush tie") {
+
+    }
+
+    it("checks for matching tie") {
+
+    }
+
+    it("checks for full house tie") {
+
+    }
+
+    it("checks highest for flush") {
+
+    }
+
+    it("splits even flushes") {
+
+    }
+
+    it("checks highest pairs for 2 pair") {
+
+    }
+
+    it("checks second pair for 2 pair") {
+
+    }
+
+    it("splits for tied 2 pair") {
+
+    }
+
+    it("checks highest pair") {
+
+    }
+
+    it("splits even pair") {
+
+    }
+
+    it("checks for highest high card") {
+
+    }
+
+    it("splits even high card") {
+
+    }
+
+    //Note: there may be some room here for remainder tests but this seems excessive at this moment
 })
