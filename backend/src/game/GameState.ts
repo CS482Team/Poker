@@ -24,6 +24,7 @@ export interface PlayerState {
   betThisRound: number     // chips put in during the current betting round
   totalContributed: number // chips put in this hand, antes included (S4 side pots)
   winCond: number		   // win condition met, filled in at ending
+  winningRanks: number[]   // the winning cards of the hand, filled in at ending
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
 }
 
