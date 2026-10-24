@@ -1,4 +1,6 @@
-import type { GameState, PlayerState, Result, SeatInput, TableConfig } from "./GameState"
+import type { GameState, PlayerState, Result, SeatInput, TableConfig, PlayerId} from "./GameState"
+import { advanceTurn, firstToAct, isInHand, isPlayersTurn } from "./Turn"
+
 
 export function applyDraw(state: GameState, playerId: PlayerId, discard: number[]): Result<GameState, DrawError> {
     // 1. Is a draw allowed right now, by this player?
@@ -6,6 +8,8 @@ export function applyDraw(state: GameState, playerId: PlayerId, discard: number[
     if (!isPlayersTurn(state, playerId)) return { ok: false, error: "not-your-turn" }
 
     // 2. Copy what we'll change, so the input is never touched
+
+    //Shouldn't these things change? Look into if these change the state end.
     const deck = [...state.deck]
     const players = state.players.map(p => ({ ...p }))
     const me = players.find(p => p.id === playerId)!
