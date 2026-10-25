@@ -47,12 +47,17 @@ cd frontend && npm test            # or: npm run test:coverage
 
 ## Implemented
 
-- The lobby has a list of tables updated live as people create, join and leave them
-- Joining a table takes the buy-in from your balance, and leaving pays your stack back
-- A table is deleted when the last player leaves
-- Once two players are seated, everyone antes and gets five cards
-- The first betting round is playable: fold, check, call, or bet/raise
+- List of tables shown live as people create, join and leave them
+- Betting, the draw, a second betting round, and showdown done
+
+#### Details
+- The winner is shown at rounds end, and the next hand is dealt a few seconds later
+- Leaving mid-hand folds you and cashes out the chips you have left
+- The game ends when only one player can still play
+- Table is deleted when the last player leaves
 
 ## TODO
-- The draw phase, the second betting round, showdown, and sign-in
-- Until sign-in exists, use the user switch in the nav bar to play as each test user
+- User accounts and sign in
+- Games still only exist in memory
+- Players with no chips still stay seated
+- Need to show the name of the winning hand

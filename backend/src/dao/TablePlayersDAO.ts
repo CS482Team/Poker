@@ -28,6 +28,16 @@ export async function removePlayer(tableId: string, userId: string): Promise<num
   return data.stack
 }
 
+export async function updateStack(tableId: string, userId: string, stack: number): Promise<void> {
+  const { error } = await getSupabase()
+    .from("table_players")
+    .update({ stack })
+    .eq("table_id", tableId)
+    .eq("user_id", userId)
+
+  if (error) throw error
+}
+
 /* counts the players seated at a table */
 export async function countPlayers(tableId: string): Promise<number> {
   const { count, error } = await getSupabase()

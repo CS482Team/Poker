@@ -1,4 +1,4 @@
-import { configForTable, getTableView, startGame, takeAction } from "../../src/services/GameService"
+import { configForTable, getTableView, leaveGame, startGame, takeAction } from "../../src/services/GameService"
 import { gameDAO } from "../../src/dao/GameDAO"
 import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
@@ -92,6 +92,14 @@ describe("takeAction", () => {
 
   it("reports a game that doesn't exist", () => {
     expect(takeAction("no-such-game", "b", { type: "check" })).toEqual({ ok: false, error: "game-not-found" })
+  })
+
+  it("folds a player who leaves and pays the last one left", async () => {
+    await started()
+    expect(leaveGame("t1", "b")!.toActIndex).toBe(2)
+    const ended = leaveGame("t1", "c")!
+    expect(ended.phase).toBe("hand-complete")
+    expect(ended.players[0]!.stack).toBe(102)
   })
 
   it("pays the pot when the hand reaches showdown", async () => {
