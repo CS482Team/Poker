@@ -152,8 +152,8 @@ button:disabled {
 
 .seat-portrait {
   display: grid;
-  width: 76px;
-  height: 76px;
+  width: 104px;
+  height: 104px;
   margin: 0 auto;
   place-items: center;
   border: 3px solid #d8d4d4;
@@ -161,7 +161,7 @@ button:disabled {
   background: radial-gradient(circle at 50% 35%, #6e4a4c, #2f1a1c);
   box-shadow: 0 4px 10px rgba(0, 0, 0, .55);
   color: #f5f2ef;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
 }
 
