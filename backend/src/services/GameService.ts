@@ -1,7 +1,7 @@
 import { createGame, startHand } from "../game/Dealer"
 import type { Rng } from "../../../shared/Card"
 import type { GameState, PlayerId, Result, SeatInput, StartError, TableConfig } from "../../../shared/GameState"
-import type { PlayerView, ViewError } from "../../../shared/PlayerView"
+import type { PlayerView } from "../../../shared/PlayerView"
 import type { Table } from "../../../shared/Table"
 import { getTable } from "../dao/TableDAO"
 import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
@@ -18,11 +18,9 @@ export function configForTable(table: Pick<Table, "ante" | "minimumBet">): Table
   }
 }
 
-export interface StartedGame { gameId: string; matchId: string }
-
 // Creates a game at a table, deals the first hand, keeps it in the game store,
 // and saves the match rows.
-export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<StartedGame, StartError>> {
+export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<GameState, StartError>> {
   const created = createGame(table.id, seats, configForTable(table))
   if (!created.ok) return created
   const started = startHand(created.value, rng)
@@ -36,49 +34,38 @@ export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">
   // TODO bots need a name, not a user id
   await insertMatchPlayers(matchId, game.players.map((p, seat) => ({ seatNumber: seat, userId: p.id, botName: null })))
 
-  return { ok: true, value: { gameId: game.id, matchId } }
-}
-
-// The game as seen by one player (never includes the deck or other players' cards)
-export function getPlayerView(gameId: string, playerId: PlayerId): Result<PlayerView, ViewError> {
-  const game = gameDAO.get(gameId)
-  if (!game) return { ok: false, error: "game-not-found" }
-  return toPlayerView(game, playerId)
+  return started
 }
 
 export function getTableView(tableId: string, userId: PlayerId): PlayerView | null {
   const game = gameDAO.findByTable(tableId)
-  const view = game ? toPlayerView(game, userId) : null
-  return view?.ok ? view.value : null
+  return game ? toPlayerView(game, userId) : null
 }
 
-function toPlayerView(game: GameState, playerId: PlayerId): Result<PlayerView, ViewError> {
+function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
   const seat = game.players.findIndex(p => p.id === playerId)
   const me = game.players[seat]
-  if (!me) return { ok: false, error: "player-not-in-game" }
+  if (!me) return null
 
   return {
-    ok: true,
-    value: {
-      gameId: game.id,
-      tableId: game.tableId,
-      phase: game.phase,
-      pot: game.pot,
-      handNumber: game.handNumber,
-      dealerSeat: game.dealerIndex,
-      toActSeat: game.toActIndex,
-      round: game.round,
-      you: { seat, hand: me.hand, legalActions: getLegalActions(game, playerId) },
-      players: game.players.map((p, i) => ({
-        seat: i,
-        id: p.id,
-        name: p.name,
-        stack: p.stack,
-        status: p.status,
-        betThisRound: p.betThisRound,
-        cardCount: p.hand.length,
-      })),
-    },
+    gameId: game.id,
+    tableId: game.tableId,
+    phase: game.phase,
+    pot: game.pot,
+    handNumber: game.handNumber,
+    dealerSeat: game.dealerIndex,
+    toActSeat: game.toActIndex,
+    round: game.round,
+    you: { seat, hand: me.hand, legalActions: getLegalActions(game, playerId) },
+    players: game.players.map((p, i) => ({
+      seat: i,
+      id: p.id,
+      name: p.name,
+      stack: p.stack,
+      status: p.status,
+      betThisRound: p.betThisRound,
+      cardCount: p.hand.length,
+    })),
   }
 }
 
@@ -100,16 +87,13 @@ export function endGame(tableId: string) {
   if (game) gameDAO.delete(game.id)
 }
 
-export type ActError = ViewError | ActionError
+export type ActError = "game-not-found" | ActionError
 
-// Applies a betting action (check, call, bet, raise, fold) to a stored game and returns the player's updated view
-export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<PlayerView, ActError> {
+export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<GameState, ActError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
 
   const result = applyAction(game, playerId, action)
-  if (!result.ok) return result
-
-  gameDAO.save(result.value)
-  return getPlayerView(gameId, playerId)
+  if (result.ok) gameDAO.save(result.value)
+  return result
 }

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
 import { act as playAction } from "@/service/GameService"
-import { watchHand, watchTable } from "@/service/SocketService"
+import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 
@@ -18,7 +18,6 @@ jest.mock("@/service/TableService", () => ({
 
 jest.mock("@/service/SocketService", () => ({
   watchTable: jest.fn(() => jest.fn()),
-  watchHand: jest.fn(() => jest.fn()),
 }))
 
 jest.mock("@/service/GameService", () => ({ act: jest.fn() }))
@@ -52,7 +51,7 @@ const view = {
 async function showView() {
   render(<GameTable id="t1" />)
   await screen.findByText("Maya")
-  act(() => jest.mocked(watchHand).mock.calls[0][2](view as never))
+  act(() => jest.mocked(watchTable).mock.calls[0][3](view as never))
 }
 
 beforeEach(() => {
@@ -70,7 +69,7 @@ describe("GameTable", () => {
   it("shows a player who joins over the socket", async () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
-    const push = jest.mocked(watchTable).mock.calls[0][1]
+    const push = jest.mocked(watchTable).mock.calls[0][2]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 2, stack: 100 }] }))
     expect(screen.getByText("Sam")).toBeInTheDocument()
   })

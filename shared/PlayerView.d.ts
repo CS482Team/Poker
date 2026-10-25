@@ -24,5 +24,3 @@ export interface PlayerView {
   you: { seat: number; hand: Card[]; legalActions: LegalAction[] }
   players: PublicPlayer[]
 }
-
-export type ViewError = "game-not-found" | "player-not-in-game"

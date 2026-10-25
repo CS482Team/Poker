@@ -1,5 +1,5 @@
 import { io } from "socket.io-client"
-import { watchTable, watchTables, watchHand } from "@/service/SocketService"
+import { watchTable, watchTables } from "@/service/SocketService"
 
 jest.mock("socket.io-client", () => ({ io: jest.fn() }))
 
@@ -18,13 +18,18 @@ beforeEach(() => {
 })
 
 describe("socketService", () => {
-  it("watches a table and passes updates on", () => {
+  it("watches a table and its game on one socket", () => {
     const onTable = jest.fn()
-    const stop = watchTable("t1", onTable)
+    const onView = jest.fn()
+    const stop = watchTable("t1", "u1", onTable, onView)
     handlers.connect()
     handlers.table({ id: "t1" })
+    handlers.view({ id: "g1" })
+    expect(io).toHaveBeenCalledTimes(1)
     expect(socket.emit).toHaveBeenCalledWith("watch", "t1")
+    expect(socket.emit).toHaveBeenCalledWith("watchHand", { tableId: "t1", userId: "u1" })
     expect(onTable).toHaveBeenCalledWith({ id: "t1" })
+    expect(onView).toHaveBeenCalledWith({ id: "g1" })
     stop()
     expect(socket.disconnect).toHaveBeenCalled()
   })
@@ -36,14 +41,5 @@ describe("socketService", () => {
     handlers.tables([])
     expect(socket.emit).toHaveBeenCalledWith("watchLobby", undefined)
     expect(onTables).toHaveBeenCalledWith([])
-  })
-
-  it("watches a player's view and passes updates on", () => {
-    const onView = jest.fn()
-    watchHand("t1", "u1", onView)
-    handlers.connect()
-    handlers.view({ id: "g1" })
-    expect(socket.emit).toHaveBeenCalledWith("watchHand", { tableId: "t1", userId: "u1" })
-    expect(onView).toHaveBeenCalledWith({ id: "g1" })
   })
 })
