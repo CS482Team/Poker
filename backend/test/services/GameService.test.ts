@@ -1,4 +1,4 @@
-import { configForTable, getPlayerView, startGame, StartGameError } from "../../src/services/GameService"
+import { configForTable, getPlayerView, startGame } from "../../src/services/GameService"
 import { gameDAO } from "../../src/dao/GameDAO"
 import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
@@ -26,9 +26,15 @@ describe("configForTable", () => {
   })
 })
 
+async function started() {
+  const result = await startGame(table, seats)
+  if (!result.ok) throw new Error(result.error)
+  return result.value
+}
+
 describe("startGame", () => {
   it("keeps the dealt game in the store, ready for pre-draw betting", async () => {
-    const { gameId } = await startGame(table, seats)
+    const { gameId } = await started()
 
     const game = gameDAO.get(gameId)
     expect(game?.phase).toBe("predraw-betting")
@@ -38,7 +44,7 @@ describe("startGame", () => {
   })
 
   it("saves the match with the table's next match number", async () => {
-    const { gameId, matchId } = await startGame(table, seats)
+    const { gameId, matchId } = await started()
 
     expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", matchNumber: 3, pot: 3, dealerSeat: 0 })
     expect(insertMatchPlayers).toHaveBeenCalledWith("m1", [
@@ -51,19 +57,19 @@ describe("startGame", () => {
   })
 
   it("refuses to start with fewer than 2 players, and saves nothing", async () => {
-    await expect(startGame(table, seats.slice(0, 1))).rejects.toThrow(StartGameError)
+    expect(await startGame(table, seats.slice(0, 1))).toEqual({ ok: false, error: "too-few-players" })
     expect(insertMatch).not.toHaveBeenCalled()
   })
 
   it("refuses to deal when fewer than 2 players have chips", async () => {
     const broke = [{ id: "a", name: "Alice", stack: 100 }, { id: "b", name: "Bob", stack: 0 }]
-    await expect(startGame(table, broke)).rejects.toMatchObject({ reason: "too-few-players" })
+    expect(await startGame(table, broke)).toEqual({ ok: false, error: "too-few-players" })
   })
 })
 
 describe("getPlayerView", () => {
   it("shows the player their own cards and only card counts for everyone else", async () => {
-    const { gameId } = await startGame(table, seats)
+    const { gameId } = await started()
     const game = gameDAO.get(gameId)!
 
     const result = getPlayerView(gameId, "b")
@@ -82,7 +88,7 @@ describe("getPlayerView", () => {
   })
 
   it("reports a player who isn't in the game", async () => {
-    const { gameId } = await startGame(table, seats)
+    const { gameId } = await started()
     expect(getPlayerView(gameId, "stranger")).toEqual({ ok: false, error: "player-not-in-game" })
     gameDAO.delete(gameId)
   })

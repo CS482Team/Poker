@@ -3,11 +3,9 @@ import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig
 import { createDeck, shuffle } from "./Deck"
 import type { Rng } from "../../../shared/Card"
 import { nextSeat } from "./Turn"
+import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 
 const HAND_SIZE = 5
-
-const MIN_PLAYERS = 2
-const MAX_PLAYERS = 6
 
 export function createGame(
   tableId: string,
