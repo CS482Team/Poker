@@ -36,6 +36,26 @@ cd frontend && npm run dev # http://localhost:3000
 cd backend && npm run dev  # http://localhost:4000
 ```
 
+## Demo
+
+One command starts everything for testing or a class demo: the local database (reset to the seed data), the backend, the frontend, and an empty 2-player "Class Demo" table.
+
+```bash
+scripts/demo.sh              # add --keep-data to skip the database reset
+```
+
+It needs Docker running and ports 3000 and 4000 free. It uses the local database even if your `.env` files point at the hosted one, and doesn't change them.
+
+When it prints **Ready**:
+
+1. Open http://localhost:3000 in two browser tabs. In the second tab, switch to User 2 (Theo) in the top-right menu.
+2. Join "Class Demo" from the lobby in both tabs. The first hand deals as soon as both players are seated.
+3. Play in whichever tab says "Your turn". After each showdown the next hand deals itself 5 seconds later.
+
+Skip the seeded "Dummy" tables: their players are added straight to the database, so they never deal a hand.
+
+Ctrl+C stops the servers. Logs are in `.demo/`. The database keeps running; stop it with `cd backend && npx supabase stop`.
+
 ## Test
 
 CI requires 80% coverage.
