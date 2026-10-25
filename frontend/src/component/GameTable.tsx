@@ -43,6 +43,10 @@ export default function GameTable({ id }: { id: string }) {
     return watchTable(id, getCurrentUserId(), setTable, setView)
   }, [id])
 
+  useEffect(() => {
+    if (!canDraw) setSelected([])
+  }, [canDraw])
+
   async function leave() {
     try {
       await leaveTable(id, getCurrentUserId())

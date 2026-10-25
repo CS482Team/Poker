@@ -46,6 +46,11 @@ describe("POST /game/:gameId/draw", () => {
     expect(res.status).toBe(400)
   })
 
+  it("rejects duplicate discards", async () => {
+    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 0] })
+    expect(res.status).toBe(400)
+  })
+
   it("maps a refused draw to its status", async () => {
     jest.mocked(drawCards).mockReturnValue({ ok: false, error: "wrong-phase" })
     const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [] })
