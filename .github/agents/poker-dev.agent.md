@@ -100,11 +100,11 @@ Dependencies only point downward: `route → controller → services → game` a
 | `game/Dealer.ts` | `createGame`, `startHand` (antes, deal, first to act) |
 | `game/Turn.ts` | `nextSeat`, `firstToAct`, `advanceTurn`, `isPlayersTurn`, `isInHand`: shared by betting and the draw, each takes a `canAct` rule |
 | `game/Betting.ts` | `startBettingRound(state, street)`, `getLegalActions`, `applyAction`; when pre-draw betting ends it sets `phase: "draw"`, resets `hasActed`, and sets `toActIndex` to the first drawer |
-| `services/GameService.ts` | `startGame`, `startIfReady`, `getPlayerView` / `getTableView` (only that player's cards + `legalActions`), `takeAction` |
+| `services/GameService.ts` | `startGame`, `startIfReady`, `getTableView` (only that player's cards + `legalActions`), `takeAction` |
 
 **Hand-offs:** the draw (S3) should be a pure `applyDraw(state, playerId, discard: number[])` in `game/` (discard = card **positions** 0–4; copy `state.deck`, `pop()` replacements, `advanceTurn(state, p => isInHand(p) && !p.hasActed)`, and call `startBettingRound(state, "postdraw")` when `toActIndex` is null), plus `POST /game/:gameId/draw` next to the routes in `route/GameRouter.ts`. Showdown (S4) starts from `phase: "showdown"`; `totalContributed` supports side pots; results go to `match_players.hand_rank` / `net_result`.
 
-**REST + Socket.IO:** `GET /game/:gameId/view/:playerId`, `POST /game/:gameId/action` (see README). Games start when a second player joins a table; each player gets their view over the socket (`watchHand` / `view`), re-sent after every action. `playerId` comes from the request body until auth exists (S7).
+**REST + Socket.IO:** `POST /game/:gameId/action` (see README). Games start when a second player joins a table; each player gets their view over the socket (`watchHand` / `view`), re-sent after every action. `playerId` comes from the request body until auth exists (S7).
 
 ### Data Model (Supabase)
 Tables and columns use **singular snake_case**. Essential columns from the design doc:

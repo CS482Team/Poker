@@ -3,7 +3,7 @@
 import ActionBar from "@/component/ActionBar"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act } from "@/service/GameService"
-import { watchHand, watchTable } from "@/service/SocketService"
+import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 import PlayerHand from "@/component/PlayerHand"
@@ -38,12 +38,7 @@ export default function GameTable({ id }: { id: string }) {
         setError(null)
       })
       .catch((err: Error) => setError(err.message))
-    const stopTable = watchTable(id, setTable)
-    const stopHand = watchHand(id, getCurrentUserId(), setView)
-    return () => {
-      stopTable()
-      stopHand()
-    }
+    return watchTable(id, getCurrentUserId(), setTable, setView)
   }, [id])
 
   async function leave() {

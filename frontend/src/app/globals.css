@@ -214,9 +214,8 @@ button:disabled {
   color: white;
 }
 
-input, textarea {
+input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="password"]), textarea {
   user-select: text;
-
 }
 
 @keyframes deal-in {
