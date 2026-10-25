@@ -1,16 +1,14 @@
 import { randomUUID } from "crypto"
-import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "./GameState"
+import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig } from "../../../shared/GameState"
 import { createDeck, shuffle } from "./Deck"
-import type { Rng } from "./Card"
+import type { Rng } from "../../../shared/Card"
 import { nextSeat } from "./Turn"
+import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 
 const HAND_SIZE = 5
 
-const MIN_PLAYERS = 2
-const MAX_PLAYERS = 6
-
 export function createGame(
-  roomId: string,
+  tableId: string,
   seats: SeatInput[],
   config: TableConfig,
 ): Result<GameState, StartError> {
@@ -32,7 +30,7 @@ export function createGame(
     ok: true,
     value: {
       id: randomUUID(),
-      roomId,
+      tableId,
       config,
       players,
       dealerIndex: 0,

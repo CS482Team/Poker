@@ -1,15 +1,16 @@
-import "./globals.css"
-import { Oswald } from "next/font/google"
-import type { Metadata } from "next"
-
-const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" })
-
-export const metadata: Metadata = { title: "Hearts & Diamonds" }
+import Nav from "@/component/NavBar";
+import { Suspense } from "react";
+import "./globals.css";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={oswald.variable}>
-      <body>{children}</body>
+    <html lang="en">
+      <body className="app-shell min-h-screen text-[#f5f2ef]">
+        <Suspense>
+          <Nav />
+        </Suspense>
+        {children}
+      </body>
     </html>
   )
 }
