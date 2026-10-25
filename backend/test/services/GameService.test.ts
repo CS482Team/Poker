@@ -93,4 +93,13 @@ describe("takeAction", () => {
   it("reports a game that doesn't exist", () => {
     expect(takeAction("no-such-game", "b", { type: "check" })).toEqual({ ok: false, error: "game-not-found" })
   })
+
+  it("pays the pot when the hand reaches showdown", async () => {
+    const game = await started()
+    takeAction(game.id, "b", { type: "fold" })
+    takeAction(game.id, "c", { type: "fold" })
+    const ended = gameDAO.get(game.id)!
+    expect(ended.phase).toBe("hand-complete")
+    expect(ended.players[0]!.stack).toBe(102)
+  })
 })

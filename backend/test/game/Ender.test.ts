@@ -123,5 +123,27 @@ describe("endGame", () => {
         expect(stacksAfter(mixed(13, 10, 8, 6, 3), mixed(13, 10, 8, 6, 3))).toEqual([115, 115])
     })
 
+    it("checks for A-2-3-4-5 straight", () => {
+        expect(winCondOf(mixed(14, 5, 4, 3, 2))).toBe(5)
+        expect(stacksAfter(mixed(14, 5, 4, 3, 2), mixed(6, 5, 4, 3, 2))).toEqual([100, 130])
+    })
+
+    it("checks kickers for pair", () => {
+        expect(stacksAfter(mixed(9, 9, 13, 5, 2), mixed(9, 9, 12, 5, 2))).toEqual([130, 100])
+    })
+
+    it("checks kicker for 2 pair", () => {
+        expect(stacksAfter(mixed(13, 13, 4, 4, 3), mixed(13, 13, 4, 4, 2))).toEqual([130, 100])
+    })
+
+    it("pays side pots to the best hand that could win them", () => {
+        const state = showdown(suited("spades", 14, 13, 12, 11, 10), mixed(9, 9, 6, 5, 2), mixed(13, 10, 8, 6, 3))
+        state.players[0].status = "all-in"
+        state.players.forEach((p, i) => { p.totalContributed = i === 0 ? 10 : 30 })
+        state.pot = 70
+        scoreHands(state)
+        expect(state.players.map(p => p.stack)).toEqual([130, 140, 100])
+    })
+
     //Note: there may be some room here for remainder tests but this seems excessive at this moment
 })

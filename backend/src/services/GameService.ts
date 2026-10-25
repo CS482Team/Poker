@@ -11,6 +11,7 @@ import type { ActionError } from "../game/Betting"
 import type { PlayerAction } from "../../../shared/Actions"
 import { applyDraw } from "../game/Drawer"
 import type { DrawError } from "../game/Drawer"
+import { scoreHands } from "../game/Ender"
 
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
@@ -96,7 +97,7 @@ export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAct
   if (!game) return { ok: false, error: "game-not-found" }
 
   const result = applyAction(game, playerId, action)
-  if (result.ok) gameDAO.save(result.value)
+  if (result.ok) gameDAO.save(finishIfShowdown(result.value))
   return result
 }
 
@@ -107,6 +108,11 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
   if (!game) return { ok: false, error: "game-not-found" }
 
   const result = applyDraw(game, playerId, discard)
-  if (result.ok) gameDAO.save(result.value)
+  if (result.ok) gameDAO.save(finishIfShowdown(result.value))
   return result
+}
+
+function finishIfShowdown(game: GameState): GameState {
+  if (game.phase === "showdown") scoreHands(game)
+  return game
 }
