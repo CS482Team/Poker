@@ -46,6 +46,7 @@ const view = {
   toActSeat: 0,
   players: [{ seat: 0, name: "Alex" }],
   you: { seat: 0, hand: [], legalActions: [{ type: "check" }] },
+  winners: [],
 }
 
 async function showView(shown: object = view) {
@@ -99,6 +100,14 @@ describe("GameTable", () => {
     await showView()
     fireEvent.click(screen.getByRole("button", { name: "Check" }))
     expect(await screen.findByText("Failed to act (409)")).toBeInTheDocument()
+  })
+
+  it("shows the pot and live stacks", async () => {
+    await showView({ ...view, pot: 40, toActSeat: null, players: [{ seat: 1, id: "u2", name: "Maya", stack: 1800 }], winners: ["u2"] })
+    expect(screen.getByText("$40")).toBeInTheDocument()
+    expect(screen.getByLabelText("Winner")).toBeInTheDocument()
+    expect(screen.getByText("$1,800")).toBeInTheDocument()
+    expect(screen.getByText("Round over, waiting for next round")).toBeInTheDocument()
   })
 
   it("draws the selected cards", async () => {

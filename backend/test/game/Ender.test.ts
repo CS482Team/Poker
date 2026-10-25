@@ -73,6 +73,7 @@ describe("endGame", () => {
         expect(state.players.map(p => p.stack)).toEqual([130, 100])
         expect(state.pot).toBe(0)
         expect(state.phase).toBe("hand-complete")
+        expect(state.winners).toEqual(["p0"])
     })
 
     it("splits pot for royal flush tie", () => {

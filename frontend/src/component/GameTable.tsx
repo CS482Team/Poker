@@ -13,15 +13,10 @@ import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-/* TODO better than this */
-const seatPositions = [
-  { left: "9%", top: "51%" },
-  { left: "30%", top: "7%" },
-  { left: "70%", top: "7%" },
-  { left: "91%", top: "51%" },
-  { left: "70%", top: "84%" },
-  { left: "30%", top: "84%" },
-]
+function seatPosition(i: number, count: number) {
+  const angle = count === 1 ? Math.PI / 2 : Math.PI - (i * Math.PI) / (count - 1)
+  return { left: `${50 + 43 * Math.cos(angle)}%`, top: `${55 - 41 * Math.sin(angle)}%` }
+}
 
 export default function GameTable({ id }: { id: string }) {
   const router = useRouter()
@@ -94,33 +89,60 @@ export default function GameTable({ id }: { id: string }) {
 
   return (
     <div className="relative isolate mx-auto my-16 w-[90%] max-w-[780px]">
+      <div className="mb-12 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">{table.name}</h1>
+        <div className="flex gap-8 text-sm text-[#d8cfcf]">
+          <span>Min bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
+          <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
+          <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
+          <span>Max players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+        </div>
+      </div>
       <div className="poker-table relative h-[436px] rounded-[44%/50%]">
         <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
-        {table.seats.map((seat) => {
+        {view && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
+            <span className="text-lg text-[#d8cfcf]">Pot </span>
+            <span className="text-3xl font-bold text-white">${view.pot}</span>
+          </div>
+        )}
+        {[...table.seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
           const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
+          const live = view?.players.find((p) => p.id === seat.userId)
+          const won = view?.winners.includes(seat.userId)
           return (
             <div
               key={seat.userId}
               className="absolute -translate-x-1/2 -translate-y-1/2 text-center"
-              style={seatPositions[seat.seatNumber]}
+              style={seatPosition(i, table.seats.length)}
             >
-              <div className="seat-portrait">{name[0]}</div>
+              {won && (
+                <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-6 left-1/2 h-5 w-7 -translate-x-1/2">
+                  <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
+                </svg>
+              )}
+              <div className="seat-portrait" style={won ? { borderColor: "#e8b84a" } : undefined}>
+                {name[0]}
+              </div>
               <div className="seat-label">
                 <span>{name}</span>
-                <small>${seat.stack.toLocaleString()}</small>
+                <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
               </div>
+              {live && live.betThisRound > 0 && <small>Bet ${live.betThisRound}</small>}
             </div>
           )
         })}
       </div>
-      <div className="mt-6">
-        <PlayerHand
-          cards={view?.you.hand ?? []}
-          selected={selected}
-          canSelect={canDraw && !busy}
-          onToggle={toggleCard}
-        />
-      </div>
+      {view && (
+        <div className="relative z-10 -mt-12">
+          <PlayerHand
+            cards={view.you.hand}
+            selected={selected}
+            canSelect={canDraw && !busy}
+            onToggle={toggleCard}
+          />
+        </div>
+      )}
       {canDraw && (
         <div className="mt-6 text-center">
           <button type="button" onClick={handleDraw} disabled={busy} className="secondary-action">
@@ -152,8 +174,7 @@ function statusText(view: PlayerView): string {
   if (view.phase === "draw") {
     return view.toActSeat === view.you.seat ? "Pick cards to discard, then draw" : "Waiting for others to draw"
   }
-  if (view.phase === "showdown") return "Betting over: showdown is next"
   const toAct = view.toActSeat === null ? undefined : view.players[view.toActSeat]
-  if (!toAct) return "Waiting for the next round"
+  if (!toAct) return "Round over, waiting for next round"
   return toAct.seat === view.you.seat ? "Your turn" : `${toAct.name} to act`
 }

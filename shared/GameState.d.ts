@@ -58,4 +58,5 @@ export interface GameState {
   pot: number
   round: BettingRound | null // null outside betting phases
   handNumber: number
+  winners: PlayerId[]        // filled in at ending
 }

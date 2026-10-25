@@ -69,6 +69,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
       betThisRound: p.betThisRound,
       cardCount: p.hand.length,
     })),
+    winners: game.winners,
   }
 }
 
@@ -113,6 +114,7 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
 }
 
 function finishIfShowdown(game: GameState): GameState {
+  // TODO save stacks to table_players so leaving cashes out the right amount
   if (game.phase === "showdown") scoreHands(game)
   return game
 }

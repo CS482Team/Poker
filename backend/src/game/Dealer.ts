@@ -42,6 +42,7 @@ export function createGame(
       pot: 0,
       round: null,
       handNumber: 0,
+      winners: [],
     },
   }
 }
@@ -103,6 +104,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
       pot,
       round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
       handNumber: state.handNumber + 1,
+      winners: [],
     },
   }
 }
