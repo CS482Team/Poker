@@ -1,5 +1,5 @@
 import PlayingCard from "./PlayingCard"
-import type { Card } from "@/util/Card"
+import type { Card } from "@shared/Card"
 import { cardLabel } from "@/util/Card"
 
 export default function PlayerHand({ cards }: { cards: Card[] }) {
