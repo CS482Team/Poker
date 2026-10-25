@@ -38,10 +38,10 @@ cd backend && npm run dev  # http://localhost:4000
 
 ## Demo
 
-One command starts everything for testing or a class demo: the local database (reset to the seed data), the backend, the frontend, and an empty 2-player "Class Demo" table.
+Command for demo on local machine
 
 ```bash
-scripts/demo.sh              # add --keep-data to skip the database reset
+scripts/demo.sh              #starts servers, runs install, supabase and docker init, frontend and backend
 ```
 
 It needs Docker running and ports 3000 and 4000 free. It uses the local database even if your `.env` files point at the hosted one, and doesn't change them.
