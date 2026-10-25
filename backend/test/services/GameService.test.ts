@@ -1,4 +1,4 @@
-import { configForTable, getPlayerView, startGame } from "../../src/services/GameService"
+import { configForTable, getPlayerView, startGame, takeAction } from "../../src/services/GameService"
 import { gameDAO } from "../../src/dao/GameDAO"
 import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
@@ -21,8 +21,12 @@ beforeEach(() => {
 })
 
 describe("configForTable", () => {
-  it("uses the table's ante and minimum bet, with the big bet at double", () => {
-    expect(configForTable(table)).toEqual({ ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 })
+  it("uses the table's ante and minimum bet", () => {
+    expect(configForTable(table)).toEqual({ ante: 1, minBet: 2 })
+  })
+
+  it("never lets the minimum bet be 0 chips (the column defaults to 0)", () => {
+    expect(configForTable({ ...table, minimumBet: 0 }).minBet).toBe(1)
   })
 })
 
@@ -75,7 +79,15 @@ describe("getPlayerView", () => {
     const result = getPlayerView(gameId, "b")
 
     if (!result.ok) throw new Error(result.error)
-    expect(result.value.you).toEqual({ seat: 1, hand: game.players[1]!.hand })
+    expect(result.value.you).toEqual({
+      seat: 1,
+      hand: game.players[1]!.hand,
+      legalActions: [
+        { type: "fold" },
+        { type: "check" },
+        { type: "bet", min: 2, max: 99 },
+      ],
+    })
     expect(result.value.players.map(p => p.cardCount)).toEqual([5, 5, 5])
     expect(JSON.stringify(result.value.players)).not.toContain("hand")
     expect(result.value).not.toHaveProperty("deck")
@@ -91,5 +103,43 @@ describe("getPlayerView", () => {
     const { gameId } = await started()
     expect(getPlayerView(gameId, "stranger")).toEqual({ ok: false, error: "player-not-in-game" })
     gameDAO.delete(gameId)
+  })
+})
+
+describe("takeAction", () => {
+  it("applies the action to the stored game and returns the player's updated view", async () => {
+    const { gameId } = await started()
+
+    const result = takeAction(gameId, "b", { type: "bet", amount: 2 })
+
+    if (!result.ok) throw new Error(result.error)
+    expect(result.value.pot).toBe(5)
+    expect(result.value.toActSeat).toBe(2)
+    expect(gameDAO.get(gameId)?.pot).toBe(5) // saved, so the next request sees it
+    gameDAO.delete(gameId)
+  })
+
+  it("shows legal actions only to the player whose turn it is", async () => {
+    const { gameId } = await started()
+
+    const bob = getPlayerView(gameId, "b")
+    const cara = getPlayerView(gameId, "c")
+
+    if (!bob.ok || !cara.ok) throw new Error("view failed")
+    expect(bob.value.you.legalActions.map(a => a.type)).toEqual(["fold", "check", "bet"])
+    expect(cara.value.you.legalActions).toEqual([])
+    gameDAO.delete(gameId)
+  })
+
+  it("leaves the stored game unchanged when the action is refused", async () => {
+    const { gameId } = await started()
+
+    expect(takeAction(gameId, "c", { type: "check" })).toEqual({ ok: false, error: "not-your-turn" })
+    expect(gameDAO.get(gameId)?.toActIndex).toBe(1)
+    gameDAO.delete(gameId)
+  })
+
+  it("reports a game that doesn't exist", () => {
+    expect(takeAction("no-such-game", "b", { type: "check" })).toEqual({ ok: false, error: "game-not-found" })
   })
 })

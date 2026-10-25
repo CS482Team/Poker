@@ -1,11 +1,14 @@
 "use client"
 
+import ActionBar from "@/component/ActionBar"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
+import { act } from "@/service/GameService"
 import { watchHand, watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 import PlayerHand from "@/component/PlayerHand"
-import type { Card } from "@shared/Card"
+import type { ActionType } from "@shared/Actions"
+import type { PlayerView } from "@shared/PlayerView"
 import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -23,8 +26,10 @@ const seatPositions = [
 export default function GameTable({ id }: { id: string }) {
   const router = useRouter()
   const [table, setTable] = useState<Table | null>(null)
-  const [hand, setHand] = useState<Card[]>([])
+  const [view, setView] = useState<PlayerView | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     fetchTable(id)
@@ -34,7 +39,7 @@ export default function GameTable({ id }: { id: string }) {
       })
       .catch((err: Error) => setError(err.message))
     const stopTable = watchTable(id, setTable)
-    const stopHand = watchHand(id, getCurrentUserId(), (view) => setHand(view.you.hand))
+    const stopHand = watchHand(id, getCurrentUserId(), setView)
     return () => {
       stopTable()
       stopHand()
@@ -48,6 +53,19 @@ export default function GameTable({ id }: { id: string }) {
       router.push("/")
     } catch (err) {
       setError((err as Error).message)
+    }
+  }
+
+  async function handleAction(type: ActionType, amount?: number) {
+    if (!view) return
+    setBusy(true)
+    setActionError(null)
+    try {
+      await act(view.gameId, getCurrentUserId(), type, amount)
+    } catch (err) {
+      setActionError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -76,8 +94,19 @@ export default function GameTable({ id }: { id: string }) {
         })}
       </div>
       <div className="mt-6">
-        <PlayerHand cards={hand} />
+        <PlayerHand cards={view?.you.hand ?? []} />
       </div>
+      {view && (
+        <div className="mt-6">
+          <ActionBar
+            key={`${view.toActSeat}-${view.round?.currentBet}`}
+            legalActions={view.you.legalActions}
+            busy={busy}
+            status={actionError ?? statusText(view)}
+            onAction={handleAction}
+          />
+        </div>
+      )}
       <div className="mt-6 text-center">
         <button type="button" onClick={leave} className="secondary-action">
           Leave table
@@ -85,4 +114,12 @@ export default function GameTable({ id }: { id: string }) {
       </div>
     </div>
   )
+}
+
+function statusText(view: PlayerView): string {
+  if (view.phase === "draw") return "Betting round over: the draw is next"
+  if (view.phase === "showdown") return "Betting over: showdown is next"
+  const toAct = view.toActSeat === null ? undefined : view.players[view.toActSeat]
+  if (!toAct) return "Waiting for the next round"
+  return toAct.seat === view.you.seat ? "Your turn" : `${toAct.name} to act`
 }
