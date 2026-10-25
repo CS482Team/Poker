@@ -42,7 +42,9 @@ const DRAW_ERROR_STATUS: Record<DrawCardsError, number> = {
 }
 
 function isDiscardList(discard: unknown): discard is number[] {
-  return Array.isArray(discard) && discard.every(i => Number.isInteger(i) && i >= 0 && i <= 4)
+  return Array.isArray(discard)
+    && discard.every(i => Number.isInteger(i) && i >= 0 && i <= 4)
+    && new Set(discard).size === discard.length
 }
 
 // TODO take playerId from the auth token once auth exists
