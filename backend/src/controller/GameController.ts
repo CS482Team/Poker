@@ -1,8 +1,22 @@
 import type { Request, Response } from "express"
 import type { ActionType, PlayerAction } from "../../../shared/Actions"
-import { drawCards, takeAction } from "../services/GameService"
+import type { GameState } from "../../../shared/GameState"
+import { drawCards, nextHand, takeAction } from "../services/GameService"
 import type { ActError, DrawCardsError } from "../services/GameService"
 import { sendViews } from "../socket/io"
+
+const NEXT_HAND_DELAY = 5000
+
+export function sendGame(game: GameState) {
+  sendViews(game.tableId, game.players.map(p => p.id))
+  if (game.phase === "hand-complete") {
+    setTimeout(() => dealNextHand(game.tableId).catch(console.error), NEXT_HAND_DELAY)
+  }
+}
+
+async function dealNextHand(tableId: string) {
+  sendViews(tableId, await nextHand(tableId))
+}
 
 const ACTION_TYPES: ActionType[] = ["fold", "check", "call", "bet", "raise"]
 
@@ -31,7 +45,7 @@ export function actionController(req: Request, res: Response): void {
     res.status(ACT_ERROR_STATUS[result.error]).json({ error: result.error })
     return
   }
-  sendViews(result.value.tableId, result.value.players.map(p => p.id))
+  sendGame(result.value)
   res.status(204).end()
 }
 
@@ -61,6 +75,6 @@ export function drawController(req: Request, res: Response): void {
     res.status(DRAW_ERROR_STATUS[result.error]).json({ error: result.error })
     return
   }
-  sendViews(result.value.tableId, result.value.players.map(p => p.id))
+  sendGame(result.value)
   res.status(204).end()
 }

@@ -1,4 +1,4 @@
-import { addPlayer, countPlayers, removePlayer } from "../../src/dao/TablePlayersDAO"
+import { addPlayer, countPlayers, removePlayer, updateStack } from "../../src/dao/TablePlayersDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -28,6 +28,11 @@ describe("TablePlayersDAO", () => {
   it("seats a player", async () => {
     await addPlayer("t1", "u1", 2, 100)
     expect(calls).toContainEqual(["insert", [{ table_id: "t1", user_id: "u1", seat_number: 2, stack: 100 }]])
+  })
+
+  it("saves a player's stack", async () => {
+    await updateStack("t1", "u1", 120)
+    expect(calls).toContainEqual(["update", [{ stack: 120 }]])
   })
 
   it("throws when the database fails", async () => {

@@ -13,7 +13,7 @@ function listen(joins: [string, unknown][], handlers: Record<string, (data: any)
 }
 
 /* gives live updates for one table and this user's view of its game */
-export function watchTable(tableId: string, userId: string, onTable: (table: Table) => void, onView: (view: PlayerView) => void) {
+export function watchTable(tableId: string, userId: string, onTable: (table: Table) => void, onView: (view: PlayerView | null) => void) {
   return listen([["watch", tableId], ["watchHand", { tableId, userId }]], { table: onTable, view: onView })
 }
 

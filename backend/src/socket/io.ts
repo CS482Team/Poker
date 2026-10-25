@@ -42,8 +42,7 @@ export async function broadcastChange(tableId: string) {
 /* sends the latest game state to watchers */
 export function sendViews(tableId: string, userIds: string[]) {
   for (const id of userIds) {
-    const view = getTableView(tableId, id)
-    if (view) io?.to(handTable(tableId, id)).emit("view", view)
+    io?.to(handTable(tableId, id)).emit("view", getTableView(tableId, id))
   }
 }
 
