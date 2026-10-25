@@ -23,4 +23,5 @@ export interface PlayerView {
   round: BettingRound | null
   you: { seat: number; hand: Card[]; legalActions: LegalAction[] }
   players: PublicPlayer[]
+  winners: PlayerId[]
 }

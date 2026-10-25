@@ -5,8 +5,9 @@ import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, setBalance } from "../dao/UserDAO"
-import { endGame, startIfReady } from "../services/GameService"
+import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, sendViews } from "../socket/io"
+import { sendGame } from "./GameController"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -38,12 +39,16 @@ export async function addTable(req: Request<{}, {}, NewTable>, res: Response) {
 /* handles leaving, deletes an empty table and tells watchers */
 export async function leaveTable(req: Request<{ id: string; userId: string }>, res: Response) {
   const { id, userId } = req.params
+  const game = leaveGame(id, userId)
   const stack = await removePlayer(id, userId)
-  if (stack !== null) await changeBalance(userId, stack, "cash_out")
-  endGame(id)
-  if ((await countPlayers(id)) === 0) await deleteTable(id)
+  const gameStack = game?.players.find((p) => p.id === userId)?.stack
+  if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
+  if ((await countPlayers(id)) === 0) {
+    endGame(id)
+    await deleteTable(id)
+  }
   await broadcastChange(id)
-  await dealIfReady(id)
+  if (game) sendGame(game)
   res.status(204).end()
 }
 

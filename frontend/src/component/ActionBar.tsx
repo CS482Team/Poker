@@ -27,8 +27,8 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
 
   let aggressiveLabel = "Raise"
   if (aggressive?.type === "bet" || aggressive?.type === "raise") {
-    if (amount === aggressive.max) aggressiveLabel = `All-in ${amount}`
-    else aggressiveLabel = aggressive.type === "bet" ? `Bet ${amount}` : `Raise to ${amount}`
+    if (amount === aggressive.max) aggressiveLabel = `All-in $${amount}`
+    else aggressiveLabel = aggressive.type === "bet" ? `Bet $${amount}` : `Raise to $${amount}`
   }
 
   return (
@@ -43,7 +43,7 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
           </button>
         ) : (
           <button disabled={busy || !call} onClick={() => onAction("call")} className={BUTTON}>
-            {call?.type === "call" ? `Call ${call.amount}` : "Call"}
+            {call?.type === "call" ? `Call $${call.amount}` : "Call"}
           </button>
         )}
         <input

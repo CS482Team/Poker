@@ -23,6 +23,8 @@ export function createGame(
     status: "active",
     betThisRound: 0,
     totalContributed: 0,
+    winCond: 0,
+    winningRanks: [],
     hasActed: false,
   }))
 
@@ -40,6 +42,7 @@ export function createGame(
       pot: 0,
       round: null,
       handNumber: 0,
+      winners: [],
     },
   }
 }
@@ -57,6 +60,8 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
     status: p.stack > 0 ? "active" : "sitting-out",
     betThisRound: 0,
     totalContributed: 0,
+    winCond: 0,
+    winningRanks: [],
     hasActed: false,
   }))
   const inHand = (p: PlayerState) => p.status !== "sitting-out"
@@ -99,6 +104,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
       pot,
       round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
       handNumber: state.handNumber + 1,
+      winners: [],
     },
   }
 }
