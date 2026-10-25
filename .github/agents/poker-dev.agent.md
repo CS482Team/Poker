@@ -87,6 +87,25 @@ Dependencies only point downward: `route → controller → services → game` a
 6. **app.ts** only configures middleware and mounts routers. **No inline or anonymous route handlers, no logic** (handlers live in `controller/`). Flag violations immediately. `app.ts`/`index.ts` wiring needs only an integration smoke test.
 7. **Front end:** components in `component/` are presentational and receive data and callbacks as props. State lives in the `view/` (or `context/` for app-wide state); backend calls live in `service/`. The back end decides outcomes; the front end only displays them.
 
+### Game Engine (what's built, and the hand-off points)
+**Rules:** five-card draw, antes, **no-limit** betting. Bets/raises go from the minimum to all-in; minimum bet = `TableConfig.minBet` (from `table.minimum_bet`, at least 1); minimum raise = the last full bet/raise (`BettingRound.minRaise`); bet/raise amounts are **"to" amounts** (total bet this round); a short all-in must be matched but doesn't reopen raising for players who already acted.
+
+**State:** one plain `GameState` object per hand (`shared/GameState.d.ts`): players (hand, stack, status, `betThisRound`, `totalContributed`, `hasActed`), `deck` (remaining cards; the **end of the array is the top**), `pot`, `phase`, `toActIndex`, `round`. Engine functions take a state and return a new one (never mutate); the service keeps the latest in `dao/GameDAO.ts` between requests.
+
+**Phases and who owns them:**
+`waiting` → `startHand` (S1, `Dealer.ts`) → `predraw-betting` (S2, `Betting.ts`) → `draw` (S3) → `postdraw-betting` (S2) → `showdown` (S4) → `hand-complete`. Folding down to one player jumps to `showdown`.
+
+| Module | Provides |
+|---|---|
+| `game/Dealer.ts` | `createGame`, `startHand` (antes, deal, first to act) |
+| `game/Turn.ts` | `nextSeat`, `firstToAct`, `advanceTurn`, `isPlayersTurn`, `isInHand`: shared by betting and the draw, each takes a `canAct` rule |
+| `game/Betting.ts` | `startBettingRound(state, street)`, `getLegalActions`, `applyAction`; when pre-draw betting ends it sets `phase: "draw"`, resets `hasActed`, and sets `toActIndex` to the first drawer |
+| `services/GameService.ts` | `startGame`, `startIfReady`, `getPlayerView` / `getTableView` (only that player's cards + `legalActions`), `takeAction` |
+
+**Hand-offs:** the draw (S3) should be a pure `applyDraw(state, playerId, discard: number[])` in `game/` (discard = card **positions** 0–4; copy `state.deck`, `pop()` replacements, `advanceTurn(state, p => isInHand(p) && !p.hasActed)`, and call `startBettingRound(state, "postdraw")` when `toActIndex` is null), plus `POST /game/:gameId/draw` next to the routes in `route/GameRouter.ts`. Showdown (S4) starts from `phase: "showdown"`; `totalContributed` supports side pots; results go to `match_players.hand_rank` / `net_result`.
+
+**REST + Socket.IO:** `GET /game/:gameId/view/:playerId`, `POST /game/:gameId/action` (see README). Games start when a second player joins a table; each player gets their view over the socket (`watchHand` / `view`), re-sent after every action. `playerId` comes from the request body until auth exists (S7).
+
 ### Data Model (Supabase)
 Tables and columns use **singular snake_case**. Essential columns from the design doc:
 

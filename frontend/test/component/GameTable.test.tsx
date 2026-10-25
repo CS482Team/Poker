@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
-import { watchTable } from "@/service/SocketService"
+import { act as playAction } from "@/service/GameService"
+import { watchHand, watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 
@@ -20,6 +21,8 @@ jest.mock("@/service/SocketService", () => ({
   watchHand: jest.fn(() => jest.fn()),
 }))
 
+jest.mock("@/service/GameService", () => ({ act: jest.fn() }))
+
 jest.mock("@/service/CurrentTableService", () => ({
   clearCurrentTableId: jest.fn(),
 }))
@@ -37,6 +40,19 @@ const table = {
     { userId: getCurrentUserId(), username: "Alex", seatNumber: 0, stack: 2450 },
     { userId: "u2", username: "Maya", seatNumber: 1, stack: 1840 },
   ],
+}
+
+const view = {
+  gameId: "g1",
+  toActSeat: 0,
+  players: [{ seat: 0, name: "Alex" }],
+  you: { seat: 0, hand: [], legalActions: [{ type: "check" }] },
+}
+
+async function showView() {
+  render(<GameTable id="t1" />)
+  await screen.findByText("Maya")
+  act(() => jest.mocked(watchHand).mock.calls[0][2](view as never))
 }
 
 beforeEach(() => {
@@ -71,5 +87,18 @@ describe("GameTable", () => {
     await screen.findByText("Maya")
     expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
     expect(mockPush).toHaveBeenCalledWith("/")
+  })
+
+  it("sends an action from the action bar", async () => {
+    await showView()
+    fireEvent.click(screen.getByRole("button", { name: "Check" }))
+    expect(playAction).toHaveBeenCalledWith("g1", getCurrentUserId(), "check", undefined)
+  })
+
+  it("shows a refused action", async () => {
+    jest.mocked(playAction).mockRejectedValue(new Error("Failed to act (409)"))
+    await showView()
+    fireEvent.click(screen.getByRole("button", { name: "Check" }))
+    expect(await screen.findByText("Failed to act (409)")).toBeInTheDocument()
   })
 })

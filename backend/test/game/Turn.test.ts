@@ -2,7 +2,7 @@ import { advanceTurn, firstToAct, isInHand, isPlayersTurn, nextSeat } from "../.
 import { createGame, startHand } from "../../src/game/Dealer"
 import type { GameState, PlayerState, PlayerStatus, SeatInput, TableConfig } from "../../../shared/GameState"
 
-const config: TableConfig = { ante: 1, smallBet: 2, bigBet: 4, maxBetsPerRound: 4 }
+const config: TableConfig = { ante: 1, minBet: 2 }
 const seats: SeatInput[] = [
   { id: "a", name: "Alice", stack: 100 },
   { id: "b", name: "Bob", stack: 100 },

@@ -97,7 +97,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
       phase: "predraw-betting",
       deck,
       pot,
-      round: { street: "predraw", betSize: state.config.smallBet, currentBet: 0, betsMade: 0 },
+      round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
       handNumber: state.handNumber + 1,
     },
   }
