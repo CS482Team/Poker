@@ -30,10 +30,14 @@ export function scoreHands(state: GameState) {
             ranks.sort((r1,r2) => r2 - r1);
             //CHECKING CARDS FOR WIN CONDITION
             //Check If All are In Row (Straight)
-            //TODO: A-2-3-4-5 straight
             let straight = false;
             if(ranks.every((r, i) => i === 0 || ranks[i-1]! - r === 1)) {
                 straight = true;
+            }
+            if(ranks.join() === "14,5,4,3,2") {
+                straight = true;
+                ranks.shift();
+                ranks.push(1);
             }
             //Check If All Are Same Suit (Flush)
             let flush = false;
@@ -101,6 +105,11 @@ export function scoreHands(state: GameState) {
                         p.winningRanks.push(matcher2);
                     }
                 }
+                for(const r of ranks) {
+                    if(r !== matcher1 && r !== matcher2) {
+                        p.winningRanks.push(r);
+                    }
+                }
                 //4 Match
                 if(matchval === 3) {
                     //Four Of A Kind (8)
@@ -130,22 +139,38 @@ export function scoreHands(state: GameState) {
                 else {
                     //High Card (1)
                     p.winCond = 1;
-                    p.winningRanks.push(ranks[0]!);
                 }
             }
         }
     }
-    declareWinner(state);
+    const total_pot = state.pot;
+    let paid = 0;
+    let prev_level = 0;
+    const levels = [...new Set(players.filter(isInHand).map(p => p.totalContributed))].sort((a, b) => a - b);
+    for(let i = 0; i < levels.length; i++) {
+        const level = levels[i]!;
+        let side_pot = 0;
+        for(const p of players) {
+            side_pot += Math.min(p.totalContributed, level) - Math.min(p.totalContributed, prev_level);
+        }
+        if(i === levels.length - 1) {
+            side_pot = total_pot - paid;
+        }
+        paid += side_pot;
+        state.pot = side_pot;
+        declareWinner(state, level);
+        prev_level = level;
+    }
 }
 
-function declareWinner(state: GameState) {
+function declareWinner(state: GameState, level: number) {
     const players = state.players;
     let maxWinCond = 0;
     let winners: PlayerState[] = [];
     //Search For Player With Highest WINCOND
     for (let step = 1; step <= players.length; step++) {
         const p = players[(state.dealerIndex + step) % players.length]!
-        if(isInHand(p)) {
+        if(isInHand(p) && p.totalContributed >= level) {
             if(p.winCond > maxWinCond) {
                 maxWinCond = p.winCond;
                 //Empty the winner array
@@ -210,10 +235,19 @@ function declareWinner(state: GameState) {
                 state.pot = 0;
                 break;
             }
+            //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins
+            case 9:
+            case 5:
+            //3: Check Highest Pair, If Same: Check Other Pair, If Still Same: Split Pot
+            case 3:
+            //2: Check Which Pair Is Higher, If Same: Split Pot, otherwise highest wins
+            case 2:
+            //1: Check Which Card Is Higher, If Same: Split Pot
+            case 1:
             //6: Check Highest Card, If Same Check 2nd Highest Card Until Lowest, If Still Same Split Pot
             case 6: {
                 let new_winners: PlayerState[] = winners;
-                for(let k = 0; k < 5 && new_winners.length > 1; k++) {
+                for(let k = 0; k < new_winners[0]!.winningRanks.length && new_winners.length > 1; k++) {
                     let next_winners: PlayerState[] = [];
                     let max_win = 0;
                     for(let i = 0; i < new_winners.length; i++) {
@@ -227,108 +261,6 @@ function declareWinner(state: GameState) {
                         }
                     }
                     new_winners = next_winners;
-                }
-                if(new_winners.length > 1) {
-                    splitPot(state, new_winners);
-                }
-                else {
-                    new_winners[0]!.stack += state.pot;
-                    state.pot = 0;
-                }
-                break;
-            }
-            //3: Check Highest Pair, If Same: Check Other Pair, If Still Same: Split Pot
-            case 3: {
-                let new_winners: PlayerState[] = [];
-                let max_win = 0;
-                for(let i = 0; i < winners.length; i++) {
-                    let val_check = winners[i]!.winningRanks[0]!;
-                    let other_val = 0;
-                    let count = 1;
-                    for(let j = 1; j < winners[i]!.winningRanks.length; j++) {
-                        if(val_check === winners[i]!.winningRanks[j]) {
-                            count++;
-                        }
-                        else {
-                            other_val = winners[i]!.winningRanks[j]!;
-                        }
-                    }
-                    if(val_check < other_val) {
-                        let temp = val_check;
-                        val_check = other_val;
-                        other_val = temp;
-                    }
-                    if(val_check > max_win) {
-                        new_winners = [];
-                        new_winners.push(winners[i]!);
-                        max_win = val_check;
-                    }
-                    else if(val_check === max_win) {
-                        new_winners.push(winners[i]!);
-                    }
-                }
-                if(new_winners.length > 1) {
-                    let new_new_winners: PlayerState[] = [];
-                    let max_win = 0;
-                    for(let i = 0; i < new_winners.length; i++) {
-                        let val_check = new_winners[i]!.winningRanks[0]!;
-                        let other_val = 0;
-                        let count = 1;
-                        for(let j = 1; j < new_winners[i]!.winningRanks.length; j++) {
-                            if(val_check === new_winners[i]!.winningRanks[j]) {
-                                count++;
-                            }
-                            else {
-                                other_val = new_winners[i]!.winningRanks[j]!;
-                            }
-                        }
-                        if(val_check > other_val) {
-                            let temp = val_check;
-                            val_check = other_val;
-                            other_val = temp;
-                        }
-                        if(val_check > max_win) {
-                            new_new_winners = [];
-                            new_new_winners.push(new_winners[i]!);
-                            max_win = val_check;
-                        }
-                        else if(val_check === max_win) {
-                            new_new_winners.push(new_winners[i]!);
-                        }
-                    }
-                    if(new_new_winners.length > 1) {
-                        splitPot(state, new_new_winners);
-                    }
-                    else {
-                        new_new_winners[0]!.stack += state.pot;
-                        state.pot = 0;
-                    }
-                }
-                else {
-                    new_winners[0]!.stack += state.pot;
-                    state.pot = 0;
-                }
-                break;
-            }
-            //9, 5: Check Highest Card Rank, If Same: split pot, otherwise highest wins
-            case 9:
-            case 5:
-            //2: Check Which Pair Is Higher, If Same: Split Pot, otherwise highest wins
-            case 2:
-            //1: Check Which Card Is Higher, If Same: Split Pot
-            //TODO: compare kickers before splitting a pair or high card
-            case 1: {
-                let new_winners: PlayerState[] = [];
-                let max_win = 0;
-                for(let i = 0; i < winners.length; i++) {
-                    if(winners[i]!.winningRanks[0]! > max_win) {
-                        new_winners = [];
-                        new_winners.push(winners[i]!);
-                        max_win = winners[i]!.winningRanks[0]!;
-                    }
-                    else if(winners[i]!.winningRanks[0] === max_win) {
-                        new_winners.push(winners[i]!);
-                    }
                 }
                 if(new_winners.length > 1) {
                     splitPot(state, new_winners);
