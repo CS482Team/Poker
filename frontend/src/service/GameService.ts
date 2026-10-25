@@ -11,3 +11,12 @@ export async function act(gameId: string, playerId: string, type: ActionType, am
   })
   if (!res.ok) throw new Error(`Failed to act (${res.status})`)
 }
+
+export async function draw(gameId: string, playerId: string, discard: number[]): Promise<void> {
+  const res = await fetch(`${API_URL}/game/${gameId}/draw`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerId, discard }),
+  })
+  if (!res.ok) throw new Error(`Failed to draw (${res.status})`)
+}

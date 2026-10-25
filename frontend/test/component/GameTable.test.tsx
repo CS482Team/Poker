@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
-import { act as playAction } from "@/service/GameService"
+import { act as playAction, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
@@ -20,7 +20,7 @@ jest.mock("@/service/SocketService", () => ({
   watchTable: jest.fn(() => jest.fn()),
 }))
 
-jest.mock("@/service/GameService", () => ({ act: jest.fn() }))
+jest.mock("@/service/GameService", () => ({ act: jest.fn(), draw: jest.fn() }))
 
 jest.mock("@/service/CurrentTableService", () => ({
   clearCurrentTableId: jest.fn(),
@@ -48,10 +48,10 @@ const view = {
   you: { seat: 0, hand: [], legalActions: [{ type: "check" }] },
 }
 
-async function showView() {
+async function showView(shown: object = view) {
   render(<GameTable id="t1" />)
   await screen.findByText("Maya")
-  act(() => jest.mocked(watchTable).mock.calls[0][3](view as never))
+  act(() => jest.mocked(watchTable).mock.calls[0][3](shown as never))
 }
 
 beforeEach(() => {
@@ -99,5 +99,13 @@ describe("GameTable", () => {
     await showView()
     fireEvent.click(screen.getByRole("button", { name: "Check" }))
     expect(await screen.findByText("Failed to act (409)")).toBeInTheDocument()
+  })
+
+  it("draws the selected cards", async () => {
+    const hand = [{ rank: 14, suit: "spades" }, { rank: 13, suit: "hearts" }]
+    await showView({ ...view, phase: "draw", you: { seat: 0, hand, legalActions: [] } })
+    fireEvent.click(screen.getAllByRole("button", { pressed: false })[1]!)
+    fireEvent.click(screen.getByRole("button", { name: "Draw" }))
+    expect(draw).toHaveBeenCalledWith("g1", getCurrentUserId(), [1])
   })
 })

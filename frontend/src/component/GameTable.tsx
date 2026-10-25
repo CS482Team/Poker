@@ -2,7 +2,7 @@
 
 import ActionBar from "@/component/ActionBar"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
-import { act } from "@/service/GameService"
+import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
@@ -30,6 +30,8 @@ export default function GameTable({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [selected, setSelected] = useState<number[]>([])
+  const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
 
   useEffect(() => {
     fetchTable(id)
@@ -40,6 +42,10 @@ export default function GameTable({ id }: { id: string }) {
       .catch((err: Error) => setError(err.message))
     return watchTable(id, getCurrentUserId(), setTable, setView)
   }, [id])
+
+  useEffect(() => {
+    if (!canDraw) setSelected([])
+  }, [canDraw])
 
   async function leave() {
     try {
@@ -57,6 +63,25 @@ export default function GameTable({ id }: { id: string }) {
     setActionError(null)
     try {
       await act(view.gameId, getCurrentUserId(), type, amount)
+    } catch (err) {
+      setActionError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function toggleCard(i: number) {
+    if (selected.includes(i)) setSelected(selected.filter((x) => x !== i))
+    else setSelected([...selected, i])
+  }
+
+  async function handleDraw() {
+    if (!view) return
+    setBusy(true)
+    setActionError(null)
+    try {
+      await draw(view.gameId, getCurrentUserId(), selected)
+      setSelected([])
     } catch (err) {
       setActionError((err as Error).message)
     } finally {
@@ -89,8 +114,20 @@ export default function GameTable({ id }: { id: string }) {
         })}
       </div>
       <div className="mt-6">
-        <PlayerHand cards={view?.you.hand ?? []} />
+        <PlayerHand
+          cards={view?.you.hand ?? []}
+          selected={selected}
+          canSelect={canDraw && !busy}
+          onToggle={toggleCard}
+        />
       </div>
+      {canDraw && (
+        <div className="mt-6 text-center">
+          <button type="button" onClick={handleDraw} disabled={busy} className="secondary-action">
+            Draw
+          </button>
+        </div>
+      )}
       {view && (
         <div className="mt-6">
           <ActionBar
@@ -112,7 +149,9 @@ export default function GameTable({ id }: { id: string }) {
 }
 
 function statusText(view: PlayerView): string {
-  if (view.phase === "draw") return "Betting round over: the draw is next"
+  if (view.phase === "draw") {
+    return view.toActSeat === view.you.seat ? "Pick cards to discard, then draw" : "Waiting for others to draw"
+  }
   if (view.phase === "showdown") return "Betting over: showdown is next"
   const toAct = view.toActSeat === null ? undefined : view.players[view.toActSeat]
   if (!toAct) return "Waiting for the next round"

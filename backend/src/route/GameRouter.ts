@@ -1,6 +1,7 @@
 import { Router } from "express"
-import { actionController } from "../controller/GameController"
+import { actionController, drawController } from "../controller/GameController"
 
 export const gameRouter = Router()
 
 gameRouter.post("/game/:gameId/action", actionController)
+gameRouter.post("/game/:gameId/draw", drawController)
