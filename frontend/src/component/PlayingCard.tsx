@@ -1,5 +1,5 @@
 import Image from "next/image"
-import type { Card } from "@/util/Card"
+import type { Card } from "@shared/Card"
 import { CARD_BACK_IMAGE, cardImage, cardLabel } from "@/util/Card"
 
 const SIZES = {

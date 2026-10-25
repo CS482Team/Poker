@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { ActionType, LegalAction } from "@/service/Game"
+import type { ActionType, LegalAction } from "@shared/Actions"
 
 const BUTTON =
   "rounded-md border border-black/40 bg-gradient-to-b from-neutral-700 to-neutral-900 px-6 py-3 text-lg font-semibold shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
@@ -34,7 +34,7 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex items-center gap-3">
-        <button disabled={busy || !fold} onClick={() => onAction("fold")} className={`${BUTTON} text-fold`}>
+        <button disabled={busy || !fold} onClick={() => onAction("fold")} className={`${BUTTON} text-[#f0503c]`}>
           Fold
         </button>
         {check ? (
@@ -55,12 +55,12 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
           step={1}
           value={amount}
           onChange={e => setChosen(Number(e.target.value))}
-          className="w-36 accent-raise"
+          className="w-36 accent-[#3fd94f]"
         />
         <button
           disabled={busy || !aggressive}
           onClick={() => aggressive && onAction(aggressive.type, amount)}
-          className={`${BUTTON} text-raise`}
+          className={`${BUTTON} text-[#3fd94f]`}
         >
           {aggressiveLabel}
         </button>
