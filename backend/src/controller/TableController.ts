@@ -1,15 +1,12 @@
 import { Request, Response } from "express"
 import type { NewTable, Table } from "../../../shared/Table"
+import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, setBalance } from "../dao/UserDAO"
 import { endGame, startIfReady } from "../services/GameService"
 import { broadcastChange, sendViews } from "../socket/io"
-
-/* TODO maybe make an env config? */
-const MIN_PLAYERS = 2
-const MAX_PLAYERS = 6
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {

@@ -3,11 +3,10 @@
 import { setCurrentTableId } from "@/service/CurrentTableService"
 import { createTable, joinTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
+import { MAX_PLAYERS, MIN_PLAYERS } from "@shared/Rules"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-const MIN_PLAYERS = 2
-const MAX_PLAYERS = 6
 const seatOptions = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => MIN_PLAYERS + i)
 
 const labelClass = "grid gap-1.5 text-sm text-[#b5a9a9]"
