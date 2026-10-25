@@ -1,22 +1,9 @@
-import type { GameState, PlayerId, PlayerState, Result, Street } from "./GameState"
+import type { LegalAction, PlayerAction } from "../../../shared/Actions"
+import type { GameState, PlayerId, PlayerState, Result, Street } from "../../../shared/GameState"
 import { advanceTurn, firstToAct, isInHand, isPlayersTurn } from "./Turn"
 
 // No-limit betting (S2). Players choose how much to bet or raise, from the minimum up to their whole stack.
 // Bet/raise amounts are "to" amounts: the player's total bet for this round after the action.
-
-export type ActionType = "fold" | "check" | "call" | "bet" | "raise"
-
-export interface PlayerAction {
-  type: ActionType
-  amount?: number // required for bet and raise: the total to bet this round ("raise to 20")
-}
-
-// What a player may do right now
-export type LegalAction =
-  | { type: "fold" }
-  | { type: "check" }
-  | { type: "call"; amount: number } // chips the call costs (less than the bet if it puts the player all-in)
-  | { type: "bet" | "raise"; min: number; max: number } // allowed "to" amounts; max is all-in
 
 export type ActionError = "wrong-phase" | "unknown-player" | "not-your-turn" | "illegal-action"
 
