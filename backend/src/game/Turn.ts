@@ -1,4 +1,4 @@
-import type { GameState, PlayerId, PlayerState } from "./GameState"
+import type { GameState, PlayerId, PlayerState } from "../../../shared/GameState"
 
 // Turn order helpers shared by betting (S2) and the draw (S3).
 // Each takes a `canAct` rule, so the same helpers work for both:

@@ -22,7 +22,7 @@ Follow with a blank line.
 ### Architecture
 - **MVC, two servers:** a **front-end server** (Next.js) serving UI, graphics, menus, animations, and interface logic, and a **back-end server** (Express + Socket.IO) that is the **source of truth**: it validates every request, updates game state, and is the only thing that talks to the database.
 - **The game engine is separated from the network and database layers** so 5-card draw mechanics can be unit tested in isolation.
-- **Modules:** Auth, Player, Profile, Friends, Admin, Lobby, Room, Chat, Game State, Hand Evaluator, Bot, Wallet, Shop, History, Leaderboard, Ads, Events. New code belongs to one of these; if it doesn't fit, ask whether a module is missing.
+- **Modules:** Auth, Player, Profile, Friends, Admin, Lobby, Table, Chat, Game State, Hand Evaluator, Bot, Wallet, Shop, History, Leaderboard, Ads, Events. New code belongs to one of these; if it doesn't fit, ask whether a module is missing.
 
 ### Technology
 | Concern | Choice |
@@ -30,7 +30,7 @@ Follow with a blank line.
 | Language | **TypeScript** front and back (`strict: true`), no `any` |
 | Front end | **React via Next.js** (file-based routing) |
 | Back end | **Node.js + Express**, REST API for accounts, friends, tables, adverts |
-| Real-time | **Socket.IO**: each poker table is a room; rely on its built-in reconnection for dropped players; use its TypeScript event types |
+| Real-time | **Socket.IO**: each poker table is a table; rely on its built-in reconnection for dropped players; use its TypeScript event types |
 | Database | **Supabase (Postgres)** |
 | Auth | **Supabase Auth** for sign up, login, and passwords. The back end **verifies the user's Supabase token** on REST requests and on socket connection. Do not hand-roll bcrypt/JWT. |
 | Hand evaluation | Open-source poker solver library (pokersolver), wrapped in our **Hand Evaluator** module |
@@ -53,7 +53,7 @@ This is the layout the repo actually uses. File names are **singular, capitalize
 │   │   ├── config/                 # Supabase client (Supabase.ts, service key, created lazily)
 │   │   ├── game/                   # PURE poker engine: Card, Deck, Dealer, GameState, Turn, Betting, Draw, HandEvaluator, Bot
 │   │   ├── dao/                    # ONLY layer that talks to Supabase (TableDao, MatchDao, MatchLogDao, BalanceLogDao…)
-│   │   ├── services/               # application logic: combines game/ with dao/ (Demo, Game, GameStore, Wallet, Room…)
+│   │   ├── services/               # application logic: combines game/ with dao/ (Demo, Game, GameStore, Wallet, Table…)
 │   │   ├── controller/             # REST request/response handling (lean)
 │   │   ├── route/                  # Express routers: URL → controller function
 │   │   ├── socket/                 # Socket.IO event handlers (lean, socket-side controllers)
@@ -65,7 +65,7 @@ This is the layout the repo actually uses. File names are **singular, capitalize
 │   ├── public/card/                # SVG card faces (AS.svg, TD.svg…) + back.png, served by URL
 │   └── src/
 │       ├── app/                    # Next.js routes (page.tsx, layout.tsx, globals.css) — thin, render a view
-│       ├── view/                   # page-level screens that hold state (e.g. Table.tsx = game room)
+│       ├── view/                   # page-level screens that hold state (e.g. Table.tsx = game table)
 │       ├── component/              # presentational components (PlayingCard, Seat, PokerTable, ActionBar…)
 │       ├── service/                # talking to the backend: fetch/REST calls, Socket.IO client, Supabase Auth client
 │       ├── context/                # React context providers (auth session, socket connection)
@@ -83,14 +83,14 @@ Dependencies only point downward: `route → controller → services → game` a
 2. **DAO** files are the only code that imports the Supabase client (`config/Supabase.ts`). Controllers, sockets, `game/`, and the frontend never query tables directly. Use the query builder or RPC with parameters; never concatenate SQL. Database errors are thrown; the controller turns them into a 5xx.
 3. **Services** coordinate: they call `game/` for rules and `dao/` for persistence, and hold live game state between requests (in-memory game store). Wallet, rewards, events, match_log and balance_log writes are orchestrated here.
 4. **Controllers** parse REST requests, call services, set status codes, and respond. No business logic, no DB access.
-5. **Socket handlers** validate payloads, call services, and emit results to the table's room. **The server is authoritative**: never trust client-sent hands, chip amounts, or turn state, and never emit a player's cards to anyone else (including admin spectate unless explicitly designed). Send each player their own view only. (The `/demo/deal` route returns every hand on purpose and is demo-only, marked TODO.)
+5. **Socket handlers** validate payloads, call services, and emit results to the table's table. **The server is authoritative**: never trust client-sent hands, chip amounts, or turn state, and never emit a player's cards to anyone else (including admin spectate unless explicitly designed). Send each player their own view only. (The `/demo/deal` route returns every hand on purpose and is demo-only, marked TODO.)
 6. **app.ts** only configures middleware and mounts routers. **No inline or anonymous route handlers, no logic** (handlers live in `controller/`). Flag violations immediately. `app.ts`/`index.ts` wiring needs only an integration smoke test.
 7. **Front end:** components in `component/` are presentational and receive data and callbacks as props. State lives in the `view/` (or `context/` for app-wide state); backend calls live in `service/`. The back end decides outcomes; the front end only displays them.
 
 ### Game Engine (what's built, and the hand-off points)
 **Rules:** five-card draw, antes, **no-limit** betting. Bets/raises go from the minimum to all-in; minimum bet = `TableConfig.minBet` (from `table.minimum_bet`, at least 1); minimum raise = the last full bet/raise (`BettingRound.minRaise`); bet/raise amounts are **"to" amounts** (total bet this round); a short all-in must be matched but doesn't reopen raising for players who already acted.
 
-**State:** one plain `GameState` object per hand (`game/GameState.ts`): players (hand, stack, status, `betThisRound`, `totalContributed`, `hasActed`), `deck` (remaining cards; the **end of the array is the top**), `pot`, `phase`, `toActIndex`, `round`. Engine functions take a state and return a new one (never mutate); the service keeps the latest in `services/GameStore.ts` between requests.
+**State:** one plain `GameState` object per hand (`shared/GameState.d.ts`): players (hand, stack, status, `betThisRound`, `totalContributed`, `hasActed`), `deck` (remaining cards; the **end of the array is the top**), `pot`, `phase`, `toActIndex`, `round`. Engine functions take a state and return a new one (never mutate); the service keeps the latest in `dao/GameDAO.ts` between requests.
 
 **Phases and who owns them:**
 `waiting` → `startHand` (S1, `Dealer.ts`) → `predraw-betting` (S2, `Betting.ts`) → `draw` (S3) → `postdraw-betting` (S2) → `showdown` (S4) → `hand-complete`. Folding down to one player jumps to `showdown`.
@@ -100,11 +100,11 @@ Dependencies only point downward: `route → controller → services → game` a
 | `game/Dealer.ts` | `createGame`, `startHand` (antes, deal, first to act) |
 | `game/Turn.ts` | `nextSeat`, `firstToAct`, `advanceTurn`, `isPlayersTurn`, `isInHand`: shared by betting and the draw, each takes a `canAct` rule |
 | `game/Betting.ts` | `startBettingRound(state, street)`, `getLegalActions`, `applyAction`; when pre-draw betting ends it sets `phase: "draw"`, resets `hasActed`, and sets `toActIndex` to the first drawer |
-| `services/Game.ts` | `startGame`, `getPlayerView` (only that player's cards + `legalActions`), `takeAction` |
+| `services/GameService.ts` | `startGame`, `startIfReady`, `getTableView` (only that player's cards + `legalActions`), `takeAction` |
 
-**Hand-offs:** the draw (S3) should be a pure `applyDraw(state, playerId, discard: number[])` in `game/` (discard = card **positions** 0–4; copy `state.deck`, `pop()` replacements, `advanceTurn(state, p => isInHand(p) && !p.hasActed)`, and call `startBettingRound(state, "postdraw")` when `toActIndex` is null), plus `POST /game/:gameId/draw` next to the routes in `route/Game.ts`. Showdown (S4) starts from `phase: "showdown"`; `totalContributed` supports side pots; results go to `match_players.hand_rank` / `net_result`.
+**Hand-offs:** the draw (S3) should be a pure `applyDraw(state, playerId, discard: number[])` in `game/` (discard = card **positions** 0–4; copy `state.deck`, `pop()` replacements, `advanceTurn(state, p => isInHand(p) && !p.hasActed)`, and call `startBettingRound(state, "postdraw")` when `toActIndex` is null), plus `POST /game/:gameId/draw` next to the routes in `route/GameRouter.ts`. Showdown (S4) starts from `phase: "showdown"`; `totalContributed` supports side pots; results go to `match_players.hand_rank` / `net_result`.
 
-**REST for now:** `POST /game`, `GET /game/:gameId/view/:playerId`, `POST /game/:gameId/action` (see README). `playerId` comes from the request body until auth exists (S7); live multiplayer updates move to Socket.IO per design doc 4.3, reusing the same service functions.
+**REST + Socket.IO:** `POST /game/:gameId/action` (see README). Games start when a second player joins a table; each player gets their view over the socket (`watchHand` / `view`), re-sent after every action. `playerId` comes from the request body until auth exists (S7).
 
 ### Data Model (Supabase)
 Tables and columns use **singular snake_case**. Essential columns from the design doc:
@@ -135,17 +135,17 @@ Data rules:
 
 ### Non-Functional Requirements to Respect
 - **NFR 1 Aesthetics:** mature red theme everywhere; the game page centers a red oval poker table. All pages reuse the theme tokens in `frontend/src/app/globals.css` (`bg-felt`, `bg-panel`, `font-display`…) and shared components; call out one-off styling.
-- **NFR 3 Time Outs:** the server kicks players who take too long on their turn and deletes inactive rooms. Make timers injectable so tests don't wait in real time.
+- **NFR 3 Time Outs:** the server kicks players who take too long on their turn and deletes inactive tables. Make timers injectable so tests don't wait in real time.
 - **NFR 4 Money:** see data rules above.
 - **NFR 6 Rate Limits:** rate-limit guest sign-in, lobby creation, ad clicks, and chat messages (middleware for REST, per-socket limits for events).
 - **NFR 8 Mobile:** pages must work at phone widths.
 - **NFR 10 Sound:** music and sound effects are client-side and respect the volume settings (S27).
 
 ### Pages (from the UI mocks)
-Player: Login, Sign Up, Lobby, Create a Room, Game Room, Profile, Settings, Leaderboard, Shop (stretch). Admin: Admin Settings, Admin Spectate Room, Other Players' Profiles, Shop. Admin-only pages and REST endpoints must check `role` on the server, not just hide buttons.
+Player: Login, Sign Up, Lobby, Create a Table, Game Table, Profile, Settings, Leaderboard, Shop (stretch). Admin: Admin Settings, Admin Spectate Table, Other Players' Profiles, Shop. Admin-only pages and REST endpoints must check `role` on the server, not just hide buttons.
 
 ### User Stories
-Stories are S1–S29 in the design doc (e.g., S1 Game Initialization, S2 Game Betting, S3 Card Draw, S4 Game Ending, S6 Sign Up, S7 Sign In/Out, S9 Guest Player, S12 Room Creation, S14 Room Joining, S15 Chat). Always tie work to a story ID; if work doesn't map to a story, it's a spike or technical task and should be tracked as one.
+Stories are S1–S29 in the design doc (e.g., S1 Game Initialization, S2 Game Betting, S3 Card Draw, S4 Game Ending, S6 Sign Up, S7 Sign In/Out, S9 Guest Player, S12 Table Creation, S14 Table Joining, S15 Chat). Always tie work to a story ID; if work doesn't map to a story, it's a spike or technical task and should be tracked as one.
 
 ---
 
@@ -193,7 +193,7 @@ Applies even when the student asks for a complete feature, provides a full spec,
 - **Services:** unit tests with `dao/` mocked (`jest.mock`), checking the right rows are written and errors propagate.
 - **DAO:** unit tests with the Supabase client mocked (a chainable fake query). Any tests against a real database use a separate **test or local (Docker) Supabase**, never production.
 - **Controllers / routes:** Supertest against `app`, with services mocked; include invalid/missing token, wrong role, validation errors, not found, and 500 paths.
-- **Sockets:** test clients against a test server instance (join room, deal, bet, draw, showdown, disconnect/reconnect, turn timeout).
+- **Sockets:** test clients against a test server instance (join table, deal, bet, draw, showdown, disconnect/reconnect, turn timeout).
 - **Frontend:** React Testing Library for views/components with `service/` mocked; plain Jest for `util/`. The student writes frontend tests after the UI works (test-first is for the backend).
 
 ### Response Format
