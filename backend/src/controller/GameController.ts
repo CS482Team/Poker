@@ -1,7 +1,7 @@
 import type { Request, Response } from "express"
 import type { ActionType, PlayerAction } from "../../../shared/Actions"
-import { takeAction } from "../services/GameService"
-import type { ActError } from "../services/GameService"
+import { drawCards, takeAction } from "../services/GameService"
+import type { ActError, DrawCardsError } from "../services/GameService"
 import { sendViews } from "../socket/io"
 
 const ACTION_TYPES: ActionType[] = ["fold", "check", "call", "bet", "raise"]
@@ -29,6 +29,36 @@ export function actionController(req: Request, res: Response): void {
   const result = takeAction(String(req.params.gameId), playerId, action)
   if (!result.ok) {
     res.status(ACT_ERROR_STATUS[result.error]).json({ error: result.error })
+    return
+  }
+  sendViews(result.value.tableId, result.value.players.map(p => p.id))
+  res.status(204).end()
+}
+
+const DRAW_ERROR_STATUS: Record<DrawCardsError, number> = {
+  "game-not-found": 404,
+  "not-your-turn": 409,
+  "wrong-phase": 409,
+}
+
+function isDiscardList(discard: unknown): discard is number[] {
+  return Array.isArray(discard)
+    && discard.every(i => Number.isInteger(i) && i >= 0 && i <= 4)
+    && new Set(discard).size === discard.length
+}
+
+// TODO take playerId from the auth token once auth exists
+export function drawController(req: Request, res: Response): void {
+  const playerId: unknown = req.body?.playerId
+  const discard: unknown = req.body?.discard
+  if (typeof playerId !== "string" || !isDiscardList(discard)) {
+    res.status(400).json({ error: "invalid-draw" })
+    return
+  }
+
+  const result = drawCards(String(req.params.gameId), playerId, discard)
+  if (!result.ok) {
+    res.status(DRAW_ERROR_STATUS[result.error]).json({ error: result.error })
     return
   }
   sendViews(result.value.tableId, result.value.players.map(p => p.id))

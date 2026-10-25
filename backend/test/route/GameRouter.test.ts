@@ -1,6 +1,6 @@
 import request from "supertest"
 import { app } from "../../src/app"
-import { takeAction } from "../../src/services/GameService"
+import { drawCards, takeAction } from "../../src/services/GameService"
 import { sendViews } from "../../src/socket/io"
 
 jest.mock("../../src/services/GameService")
@@ -29,5 +29,31 @@ describe("POST /game/:gameId/action", () => {
     expect(res.status).toBe(409)
     expect(res.body).toEqual({ error: "not-your-turn" })
     expect(sendViews).not.toHaveBeenCalled()
+  })
+})
+
+describe("POST /game/:gameId/draw", () => {
+  it("draws and sends everyone their view", async () => {
+    jest.mocked(drawCards).mockReturnValue({ ok: true, value: { tableId: "t1", players: [{ id: "a" }] } } as never)
+    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 2] })
+    expect(res.status).toBe(204)
+    expect(drawCards).toHaveBeenCalledWith("g1", "a", [0, 2])
+    expect(sendViews).toHaveBeenCalledWith("t1", ["a"])
+  })
+
+  it("rejects a bad discard list", async () => {
+    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [7] })
+    expect(res.status).toBe(400)
+  })
+
+  it("rejects duplicate discards", async () => {
+    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 0] })
+    expect(res.status).toBe(400)
+  })
+
+  it("maps a refused draw to its status", async () => {
+    jest.mocked(drawCards).mockReturnValue({ ok: false, error: "wrong-phase" })
+    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [] })
+    expect(res.status).toBe(409)
   })
 })

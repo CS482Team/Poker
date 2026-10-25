@@ -9,6 +9,8 @@ import { gameDAO } from "../dao/GameDAO"
 import { applyAction, getLegalActions } from "../game/Betting"
 import type { ActionError } from "../game/Betting"
 import type { PlayerAction } from "../../../shared/Actions"
+import { applyDraw } from "../game/Drawer"
+import type { DrawError } from "../game/Drawer"
 
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
@@ -94,6 +96,17 @@ export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAct
   if (!game) return { ok: false, error: "game-not-found" }
 
   const result = applyAction(game, playerId, action)
+  if (result.ok) gameDAO.save(result.value)
+  return result
+}
+
+export type DrawCardsError = "game-not-found" | DrawError
+
+export function drawCards(gameId: string, playerId: PlayerId, discard: number[]): Result<GameState, DrawCardsError> {
+  const game = gameDAO.get(gameId)
+  if (!game) return { ok: false, error: "game-not-found" }
+
+  const result = applyDraw(game, playerId, discard)
   if (result.ok) gameDAO.save(result.value)
   return result
 }
