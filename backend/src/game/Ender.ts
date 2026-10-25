@@ -1,18 +1,6 @@
 import type { GameState, PlayerState } from "../../../shared/GameState"
 import { isInHand } from "./Turn"
 
-const WINCONDS: Record<string, number> =
-    {"Royal Flush": 10,
-    "Straight Flush": 9,
-    "Four of a Kind": 8,
-    "Full House": 7,
-    "Flush": 6,
-    "Straight": 5,
-    "Three of a Kind": 4,
-    "Two Pair": 3,
-    "Pair": 2,
-    "High Card": 1};
-
 export function scoreHands(state: GameState) {
     const players = state.players;
     //Run through each player
@@ -143,6 +131,7 @@ export function scoreHands(state: GameState) {
             }
         }
     }
+    const stacks_before = players.map(p => p.stack);
     const total_pot = state.pot;
     let paid = 0;
     let prev_level = 0;
@@ -161,6 +150,7 @@ export function scoreHands(state: GameState) {
         declareWinner(state, level);
         prev_level = level;
     }
+    state.winners = players.filter((p, i) => p.stack > stacks_before[i]!).map(p => p.id);
 }
 
 function declareWinner(state: GameState, level: number) {
