@@ -46,7 +46,7 @@ export default function GameTable({ id }: { id: string }) {
     try {
       await leaveTable(id, getCurrentUserId())
       clearCurrentTableId()
-      router.push("/")
+      router.push("/dashboard")
     } catch (err) {
       setError((err as Error).message)
     }

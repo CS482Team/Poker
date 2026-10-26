@@ -12,13 +12,13 @@ describe("Nav", () => {
   beforeEach(() => jest.mocked(getCurrentTableId).mockReturnValue(null))
 
   it("hides the table link in the lobby", () => {
-    jest.mocked(usePathname).mockReturnValue("/")
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
     render(<Nav />)
     expect(screen.queryByRole("link", { name: "Table" })).not.toBeInTheDocument()
   })
 
   it("links back to your table from the lobby", () => {
-    jest.mocked(usePathname).mockReturnValue("/")
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
     jest.mocked(getCurrentTableId).mockReturnValue("abc")
     render(<Nav />)
     expect(screen.getByRole("link", { name: "Table" })).toHaveAttribute("href", "/table/abc")

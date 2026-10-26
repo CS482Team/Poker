@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Starts the whole game for testing or a class demo, in one command:
-# a local Supabase with clean seed data, the backend, the frontend,
-# and an empty 2-player "Class Demo" table to join from the lobby.
+# a local Supabase with clean seed data, two demo logins (Alice and Bob),
+# the backend, the frontend, and an empty 2-player "Class Demo" table to join from the lobby.
 #
 # Usage: scripts/demo.sh [--keep-data]
 #   --keep-data  keep the current local database instead of resetting it to the seed data
@@ -17,8 +17,8 @@ API_PORT=4000
 WEB_PORT=3000
 API="http://localhost:$API_PORT"
 WEB="http://localhost:$WEB_PORT"
-# Test user from backend/supabase/seed.sql (User 1 in the dev user switcher), listed as the table's host
-HOST_ID="00000000-0000-0000-0000-000000000001" # Maya
+# Demo logins, created fresh each run (the seeded users have no passwords, so they can't sign in)
+DEMO_PASSWORD="password123"
 
 KEEP_DATA=false
 [[ "${1:-}" == "--keep-data" ]] && KEEP_DATA=true
@@ -59,12 +59,28 @@ if ! $KEEP_DATA; then
   say "Resetting the database to the seed data..."
   supabase db reset >/dev/null
 fi
-eval "$(supabase status -o env 2>/dev/null | grep -E '^(API_URL|SERVICE_ROLE_KEY|STUDIO_URL)=')"
+eval "$(supabase status -o env 2>/dev/null | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY|STUDIO_URL)=')"
 
 # Real environment variables win over .env files (dotenv and Next.js both skip ones already set),
 # so the demo uses the local database without touching anyone's .env
 export SUPABASE_URL="$API_URL" SUPABASE_SERVICE_KEY="$SERVICE_ROLE_KEY"
 export FRONTEND_URL="$WEB" PORT="$API_PORT" NEXT_PUBLIC_API_URL="$API"
+export NEXT_PUBLIC_SUPABASE_URL="$API_URL" NEXT_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY"
+
+# Creates a confirmed login and prints its id. The sign-up trigger gives it a user row and starting chips.
+# If the account already exists (--keep-data), it just looks the id up.
+demo_account() {
+  local name=$1 email=$2
+  curl -s -o /dev/null -X POST "$API_URL/auth/v1/admin/users" \
+    -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" -H "Content-Type: application/json" \
+    -d "{\"email\":\"$email\",\"password\":\"$DEMO_PASSWORD\",\"email_confirm\":true,\"user_metadata\":{\"username\":\"$name\"}}"
+  curl -s "$API_URL/rest/v1/user?username=eq.$name&select=id" \
+    -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" | sed -nE 's/.*"id":"([^"]+)".*/\1/p'
+}
+say "Creating the demo logins..."
+ALICE_ID=$(demo_account Alice alice@demo.local)
+BOB_ID=$(demo_account Bob bob@demo.local)
+[[ -n "$ALICE_ID" && -n "$BOB_ID" ]] || fail "Couldn't create the demo logins. Is the sign-up trigger fix in backend/supabase/migrations?"
 
 # 3. Servers
 mkdir -p "$LOGS"
@@ -102,18 +118,24 @@ wait_for "$WEB/" "The frontend" frontend.log
 # 4. An empty demo table. Players join it from the lobby; the hand deals once two are seated.
 say "Creating the demo table..."
 TABLE_ID=$(curl -sf -X POST "$API/tables" -H "Content-Type: application/json" \
-  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1,\"hostId\":\"$HOST_ID\"}" |
+  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1,\"hostId\":\"$ALICE_ID\"}" |
   sed -E 's/.*"id":"([^"]+)".*/\1/') || fail "Couldn't create the demo table. See .demo/backend.log"
-curl -s -o /dev/null --max-time 60 "$WEB/table/$TABLE_ID" # compiles the table page now so it opens fast
+# Compile the pages now so they open fast during the demo
+for page in / /dashboard "/table/$TABLE_ID"; do curl -s -o /dev/null --max-time 60 "$WEB$page"; done
 
 say "Ready!"
 cat <<EOF
-  Lobby:     $WEB
+  Sign in:   $WEB
   Database:  $STUDIO_URL  (Supabase Studio)
 
-  Tab 1: open the lobby and join "Class Demo". You play as User 1 (Maya).
-  Tab 2: open the lobby, choose User 2 (Theo) in the top-right menu, then join "Class Demo".
-  The first hand deals as soon as both players are seated. Act in whichever tab says "Your turn".
+  Logins:    alice@demo.local / $DEMO_PASSWORD
+             bob@demo.local   / $DEMO_PASSWORD
+             or "Play as Guest"
+
+  1. Normal window: sign in as Alice. You land in the lobby; join "Class Demo".
+  2. Private/incognito window (logins are shared between tabs of the same window):
+     sign in as Bob, or play as a guest, and join "Class Demo".
+  3. The first hand deals as soon as both players are seated. Act in whichever window says "Your turn".
   (Skip the seeded "Dummy" tables: their players were added straight to the database, so they never deal.)
 
   Press Ctrl+C to stop.

@@ -12,9 +12,12 @@ export default function Nav() {
 
   useEffect(() => setTableId(getCurrentTableId()), [pathname])
 
+  // The sign-in and sign-up pages have their own full-screen layout
+  if (pathname === "/" || pathname === "/signup") return null
+
   return (
     <nav className="site-header relative flex justify-center gap-2 py-3">
-      <Link href="/" className={pathname === "/" ? "nav-tab active" : "nav-tab"}>
+      <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
         Lobby
       </Link>
       {tableId ? (
