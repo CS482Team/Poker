@@ -38,23 +38,14 @@ cd backend && npm run dev  # http://localhost:4000
 
 ## Demo
 
-Command for demo on local machine
+Starts everything for testing or demo. Uses local database with seed data.
 
 ```bash
-scripts/demo.sh              #starts servers, runs install, supabase and docker init, frontend and backend
+scripts/demo.sh # starts servers, runs install, supabase reset and docker init, frontend and backend
 ```
 
-It needs Docker running and ports 3000 and 4000 free. It uses the local database even if your `.env` files point at the hosted one, and doesn't change them.
-
-When it prints **Ready**:
-
-1. Open http://localhost:3000 in two browser tabs. In the second tab, switch to User 2 (Theo) in the top-right menu.
-2. Join "Class Demo" from the lobby in both tabs. The first hand deals as soon as both players are seated.
-3. Play in whichever tab says "Your turn". After each showdown the next hand deals itself 5 seconds later.
-
-Skip the seeded "Dummy" tables: their players are added straight to the database, so they never deal a hand.
-
-Ctrl+C stops the servers. Logs are in `.demo/`. The database keeps running; stop it with `cd backend && npx supabase stop`.
+It needs Docker running in background and ports 3000 and 4000 free. It uses local database even if `.env` files point at hosted one.
+Stop database with `cd backend && npx supabase stop`.
 
 ## Test
 
@@ -66,18 +57,21 @@ cd frontend && npm test            # or: npm run test:coverage
 ```
 
 ## Implemented
-
+- Create accounts and log in as user or guest
 - List of tables shown live as people create, join and leave them
 - Betting, the draw, a second betting round, and showdown done
 
-#### Details
-- The winner is shown at rounds end, and the next hand is dealt a few seconds later
-- Leaving mid-hand folds you and cashes out the chips you have left
-- The game ends when only one player can still play
-- Table is deleted when the last player leaves
+### Details
 
-## TODO
-- User accounts and sign in
-- Games still only exist in memory
-- Players with no chips still stay seated
-- Need to show the name of the winning hand
+#### Accounts
+- Users can create and log into their accounts, but accounts and auth are not wired to any other parts
+- Dev toggle still exists to allow simulating actions from different users
+
+#### Gameplay
+- The winner is shown at round end, and the next hand is dealt a few seconds later
+- Leaving mid-hand folds you and cashes out the chips you have left
+- The game ends if only one player remains in room and it is deleted when last player leaves
+
+## TODO 
+- Connect user accounts to tables and gameplay
+- Players with no chips should spectate instead of stay seated
