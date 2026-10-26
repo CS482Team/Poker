@@ -86,7 +86,7 @@ describe("GameTable", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Leave table" }))
     await screen.findByText("Maya")
     expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
-    expect(mockPush).toHaveBeenCalledWith("/")
+    expect(mockPush).toHaveBeenCalledWith("/dashboard")
   })
 
   it("sends an action from the action bar", async () => {
