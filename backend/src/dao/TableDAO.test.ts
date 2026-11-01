@@ -1,4 +1,4 @@
-import { createTable, deleteTable, getAllTables, getTable } from "../../src/dao/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -13,7 +13,7 @@ describe("TableDAO", () => {
       data: [{ id: "t1", name: "One", status: 0, variant: "five_card_draw", buy_in: 100, minimum_bet: 5, ante: 1, max_players: 6, table_players: [{ user_id: "u1", seat_number: 0, stack: 100, user: { username: "Maya" } }, { user_id: "u2", seat_number: 1, stack: 100, user: { username: "Sam" } }] }],
     }
     const tables = await getAllTables()
-    expect(tables[0].seats).toHaveLength(2)
+    expect(tables[0]!.seats).toHaveLength(2)
   })
 
   it("gets a table with its seats", async () => {
@@ -21,7 +21,7 @@ describe("TableDAO", () => {
       data: { id: "t1", name: "One", max_players: 6, buy_in: 100, table_players: [{ user_id: "u1", seat_number: 2, stack: 100, user: { username: "Maya" } }] },
     }
     const table = await getTable("t1")
-    expect(table?.seats[0].username).toBe("Maya")
+    expect(table?.seats[0]!.username).toBe("Maya")
   })
 
   it("returns null for a missing table", async () => {

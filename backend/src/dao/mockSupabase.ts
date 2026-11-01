@@ -29,5 +29,5 @@ export const supabaseMock = {
 export function resetMock() {
   calls.length = 0
   mockState.result = {}
-  mockState.awaited = undefined
+  delete mockState.awaited
 }

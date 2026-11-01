@@ -1,5 +1,5 @@
-import { createGameDAO } from "../../src/dao/GameDAO"
-import { createGame } from "../../src/game/Dealer"
+import { createGameDAO } from "../dao/GameDAO"
+import { createGame } from "../game/Dealer"
 import type { GameState, SeatInput, TableConfig } from "../../../shared/GameState"
 
 const config: TableConfig = { ante: 1, minBet: 2 }

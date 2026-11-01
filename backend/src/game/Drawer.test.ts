@@ -1,6 +1,6 @@
-import { applyAction } from "../../src/game/Betting"
-import { createGame, startHand } from "../../src/game/Dealer"
-import { applyDraw } from "../../src/game/Drawer"
+import { applyAction } from "../game/Betting"
+import { createGame, startHand } from "../game/Dealer"
+import { applyDraw } from "../game/Drawer"
 import type { GameState } from "../../../shared/GameState"
 
 function atDraw(): GameState {

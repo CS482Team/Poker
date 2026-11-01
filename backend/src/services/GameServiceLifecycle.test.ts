@@ -1,12 +1,12 @@
-import { endGame, getTableView, nextHand, startIfReady } from "../../src/services/GameService"
-import { gameDAO } from "../../src/dao/GameDAO"
-import { getTable } from "../../src/dao/TableDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
-import { updateStack } from "../../src/dao/TablePlayersDAO"
+import { endGame, getTableView, nextHand, startIfReady } from "../services/GameService"
+import { gameDAO } from "../dao/GameDAO"
+import { getTable } from "../dao/TableDAO"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { updateStack } from "../dao/TablePlayersDAO"
 
-jest.mock("../../src/dao/MatchDAO")
-jest.mock("../../src/dao/TablePlayersDAO")
-jest.mock("../../src/dao/TableDAO", () => ({ getTable: jest.fn() }))
+jest.mock("../dao/MatchDAO")
+jest.mock("../dao/TablePlayersDAO")
+jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
 
 const seat = (userId: string, seatNumber: number) => ({ userId, username: userId, seatNumber, stack: 100 })
 const table = (seats: ReturnType<typeof seat>[]) => ({ id: "t1", ante: 1, minimumBet: 2, seats })

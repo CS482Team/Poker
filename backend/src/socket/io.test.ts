@@ -1,16 +1,16 @@
 import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
-import { getAllTables, getTable } from "../../src/dao/TableDAO"
-import { broadcastChange, initSocket, sendViews } from "../../src/socket/io"
-import { getTableView } from "../../src/services/GameService"
+import { getAllTables, getTable } from "../dao/TableDAO"
+import { broadcastChange, initSocket, sendViews } from "../socket/io"
+import { getTableView } from "../services/GameService"
 
-jest.mock("../../src/dao/TableDAO", () => ({
+jest.mock("../dao/TableDAO", () => ({
   getAllTables: jest.fn(),
   getTable: jest.fn(),
 }))
 
-jest.mock("../../src/services/GameService", () => ({ getTableView: jest.fn() }))
+jest.mock("../services/GameService", () => ({ getTableView: jest.fn() }))
 
 const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 100, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [] }
 
