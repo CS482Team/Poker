@@ -1,5 +1,5 @@
-import { scoreHands } from "../../src/game/Ender"
-import { createGame } from "../../src/game/Dealer"
+import { scoreHands } from "../game/Ender"
+import { createGame } from "../game/Dealer"
 import type { Card, Rank, Suit } from "../../../shared/Card"
 import type { GameState } from "../../../shared/GameState"
 
@@ -9,14 +9,14 @@ const mixed = (...ranks: Rank[]): Card[] => ranks.map((rank, i) => ({ rank, suit
 function showdown(...hands: Card[][]): GameState {
   const created = createGame("room-1", hands.map((_, i) => ({ id: `p${i}`, name: `P${i}`, stack: 100 })), { ante: 1, minBet: 2 })
   if (!created.ok) throw new Error(created.error)
-  created.value.players.forEach((p, i) => { p.hand = hands[i] })
+  created.value.players.forEach((p, i) => { p.hand = hands[i]! })
   return { ...created.value, phase: "showdown", pot: 30 }
 }
 
 function winCondOf(hand: Card[]): number {
   const state = showdown(hand, mixed(2, 3, 4, 5, 7))
   scoreHands(state)
-  return state.players[0].winCond
+  return state.players[0]!.winCond
 }
 
 function stacksAfter(...hands: Card[][]): number[] {
@@ -139,7 +139,7 @@ describe("endGame", () => {
 
     it("pays side pots to the best hand that could win them", () => {
         const state = showdown(suited("spades", 14, 13, 12, 11, 10), mixed(9, 9, 6, 5, 2), mixed(13, 10, 8, 6, 3))
-        state.players[0].status = "all-in"
+        state.players[0]!.status = "all-in"
         state.players.forEach((p, i) => { p.totalContributed = i === 0 ? 10 : 30 })
         state.pot = 70
         scoreHands(state)

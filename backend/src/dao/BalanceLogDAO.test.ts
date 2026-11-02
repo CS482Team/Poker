@@ -1,4 +1,4 @@
-import { logBalanceChange } from "../../src/dao/BalanceLogDAO"
+import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)

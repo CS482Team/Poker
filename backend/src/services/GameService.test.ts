@@ -1,10 +1,10 @@
-import { configForTable, getTableView, leaveGame, startGame, takeAction } from "../../src/services/GameService"
-import { gameDAO } from "../../src/dao/GameDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
+import { configForTable, getTableView, leaveGame, startGame, takeAction } from "../services/GameService"
+import { gameDAO } from "../dao/GameDAO"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
 
-jest.mock("../../src/dao/MatchDAO")
-jest.mock("../../src/dao/TableDAO", () => ({ getTable: jest.fn() }))
+jest.mock("../dao/MatchDAO")
+jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
 
 const table = { id: "t1", ante: 1, minimumBet: 2 }
 const seats: SeatInput[] = [

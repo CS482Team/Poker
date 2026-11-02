@@ -1,10 +1,10 @@
 import request from "supertest"
-import { app } from "../../src/app"
-import { drawCards, takeAction } from "../../src/services/GameService"
-import { sendViews } from "../../src/socket/io"
+import { app } from "../app"
+import { drawCards, takeAction } from "../services/GameService"
+import { sendViews } from "../socket/io"
 
-jest.mock("../../src/services/GameService")
-jest.mock("../../src/socket/io")
+jest.mock("../services/GameService")
+jest.mock("../socket/io")
 
 beforeEach(() => jest.clearAllMocks())
 

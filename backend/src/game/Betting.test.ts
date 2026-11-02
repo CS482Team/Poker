@@ -1,6 +1,6 @@
-import { applyAction, getLegalActions, startBettingRound } from "../../src/game/Betting"
+import { applyAction, getLegalActions, startBettingRound } from "../game/Betting"
 import type { ActionType, PlayerAction } from "../../../shared/Actions"
-import { createGame, startHand } from "../../src/game/Dealer"
+import { createGame, startHand } from "../game/Dealer"
 import type { GameState, PlayerState, SeatInput, TableConfig } from "../../../shared/GameState"
 
 // No-limit: bets and raises can be any amount from the minimum up to the player's whole stack

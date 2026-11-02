@@ -1,26 +1,26 @@
 import request from "supertest"
-import { app } from "../../src/app"
-import { logBalanceChange } from "../../src/dao/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../../src/dao/TableDAO"
-import { addPlayer, countPlayers, removePlayer } from "../../src/dao/TablePlayersDAO"
-import { getBalance, setBalance } from "../../src/dao/UserDAO"
+import { app } from "../app"
+import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
+import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
+import { getBalance, setBalance } from "../dao/UserDAO"
 
-jest.mock("../../src/dao/TableDAO", () => ({
+jest.mock("../dao/TableDAO", () => ({
   getAllTables: jest.fn(),
   getTable: jest.fn(),
   createTable: jest.fn(),
   deleteTable: jest.fn(),
 }))
-jest.mock("../../src/dao/TablePlayersDAO", () => ({
+jest.mock("../dao/TablePlayersDAO", () => ({
   addPlayer: jest.fn(),
   removePlayer: jest.fn(),
   countPlayers: jest.fn(),
 }))
-jest.mock("../../src/dao/UserDAO", () => ({
+jest.mock("../dao/UserDAO", () => ({
   getBalance: jest.fn(),
   setBalance: jest.fn(),
 }))
-jest.mock("../../src/dao/BalanceLogDAO", () => ({
+jest.mock("../dao/BalanceLogDAO", () => ({
   logBalanceChange: jest.fn(),
 }))
 

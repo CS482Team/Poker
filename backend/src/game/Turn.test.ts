@@ -1,5 +1,5 @@
-import { advanceTurn, firstToAct, isInHand, isPlayersTurn, nextSeat } from "../../src/game/Turn"
-import { createGame, startHand } from "../../src/game/Dealer"
+import { advanceTurn, firstToAct, isInHand, isPlayersTurn, nextSeat } from "../game/Turn"
+import { createGame, startHand } from "../game/Dealer"
 import type { GameState, PlayerState, PlayerStatus, SeatInput, TableConfig } from "../../../shared/GameState"
 
 const config: TableConfig = { ante: 1, minBet: 2 }

@@ -1,4 +1,4 @@
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../../src/dao/MatchDAO"
+import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
