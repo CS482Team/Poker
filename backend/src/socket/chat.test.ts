@@ -30,7 +30,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   jest.resetAllMocks()
   client = connect(`http://localhost:${(http.address() as AddressInfo).port}`)
-  await new Promise((resolve) => client.once("connect", resolve))
+  await new Promise<void>((resolve) => client.once("connect", () => resolve()))
 })
 
 afterEach(() => {
