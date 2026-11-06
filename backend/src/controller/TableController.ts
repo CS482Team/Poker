@@ -4,9 +4,10 @@ import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
-import { getBalance, setBalance } from "../dao/UserDAO"
+import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
+import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
-import { broadcastChange, sendViews } from "../socket/io"
+import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
 import { sendGame } from "./GameController"
 
 /* handles GET /tables */
@@ -45,7 +46,9 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
   if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
   if ((await countPlayers(id)) === 0) {
     endGame(id)
-    await deleteTable(id)
+    await deleteTable(id) // its chat is deleted with it, so there's no one to tell
+  } else if (stack !== null) {
+    await announce(id, userId, "left the table")
   }
   await broadcastChange(id)
   if (game) sendGame(game)
@@ -79,6 +82,7 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
   }
   await addPlayer(table.id, userId, seatNumber, table.buyIn)
   await changeBalance(userId, -table.buyIn, "buy_in")
+  await announce(table.id, userId, "joined the table")
   await broadcastChange(table.id)
   await dealIfReady(table.id)
   res.status(204).end()
@@ -89,6 +93,16 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
 async function dealIfReady(tableId: string) {
   const playerIds = await startIfReady(tableId)
   if (playerIds) sendViews(tableId, playerIds)
+}
+
+/* posts a system line in the table's chat, like "Maya joined the table"
+   chat is extra, so a failure here is logged and never blocks joining or leaving */
+async function announce(tableId: string, userId: string, event: string) {
+  try {
+    broadcastChat(await sendSystemMessage(tableId, `${await getUsername(userId)} ${event}`))
+  } catch (err) {
+    console.error("chat announcement failed", err)
+  }
 }
 
 /* changes a user's balance and logs it */

@@ -3,7 +3,8 @@ import { app } from "../app"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
-import { getBalance, setBalance } from "../dao/UserDAO"
+import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
+import { sendSystemMessage } from "../services/ChatService"
 
 jest.mock("../dao/TableDAO", () => ({
   getAllTables: jest.fn(),
@@ -18,10 +19,15 @@ jest.mock("../dao/TablePlayersDAO", () => ({
 }))
 jest.mock("../dao/UserDAO", () => ({
   getBalance: jest.fn(),
+  getUsername: jest.fn(),
   setBalance: jest.fn(),
 }))
 jest.mock("../dao/BalanceLogDAO", () => ({
   logBalanceChange: jest.fn(),
+}))
+jest.mock("../services/ChatService", () => ({
+  ...jest.requireActual("../services/ChatService"),
+  sendSystemMessage: jest.fn(),
 }))
 
 const validTable = { hostId: "u1", name: "Table", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
@@ -125,5 +131,62 @@ describe("players", () => {
     jest.mocked(countPlayers).mockResolvedValue(0)
     await request(app).delete("/tables/t1/players/u1")
     expect(deleteTable).toHaveBeenCalledWith("t1")
+  })
+})
+
+describe("chat announcements", () => {
+  it("announces a player joining", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    jest.mocked(getBalance).mockResolvedValue(1000)
+    jest.mocked(getUsername).mockResolvedValue("Cara")
+    await request(app).post("/tables/t1/players").send({ userId: "me" })
+    expect(getUsername).toHaveBeenCalledWith("me")
+    expect(sendSystemMessage).toHaveBeenCalledWith("t1", "Cara joined the table")
+  })
+
+  it("announces a player leaving when others remain", async () => {
+    jest.mocked(removePlayer).mockResolvedValue(200)
+    jest.mocked(getBalance).mockResolvedValue(800)
+    jest.mocked(countPlayers).mockResolvedValue(1)
+    jest.mocked(getUsername).mockResolvedValue("Maya")
+    await request(app).delete("/tables/t1/players/u1")
+    expect(sendSystemMessage).toHaveBeenCalledWith("t1", "Maya left the table")
+  })
+
+  it("says nothing when the last player leaves, since the chat is deleted with the table", async () => {
+    jest.mocked(removePlayer).mockResolvedValue(200)
+    jest.mocked(getBalance).mockResolvedValue(800)
+    jest.mocked(countPlayers).mockResolvedValue(0)
+    await request(app).delete("/tables/t1/players/u1")
+    expect(sendSystemMessage).not.toHaveBeenCalled()
+  })
+
+  it("says nothing when someone who wasn't seated leaves", async () => {
+    jest.mocked(removePlayer).mockResolvedValue(null)
+    jest.mocked(countPlayers).mockResolvedValue(1)
+    await request(app).delete("/tables/t1/players/u1")
+    expect(sendSystemMessage).not.toHaveBeenCalled()
+  })
+
+  it("still seats the player when the chat message fails", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    jest.mocked(getBalance).mockResolvedValue(1000)
+    jest.mocked(getUsername).mockResolvedValue("Cara")
+    jest.mocked(sendSystemMessage).mockRejectedValue(new Error("db down"))
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const res = await request(app).post("/tables/t1/players").send({ userId: "me" })
+    expect(res.status).toBe(204)
+    expect(addPlayer).toHaveBeenCalled()
+  })
+
+  it("still lets the player leave when the chat message fails", async () => {
+    jest.mocked(removePlayer).mockResolvedValue(200)
+    jest.mocked(getBalance).mockResolvedValue(800)
+    jest.mocked(countPlayers).mockResolvedValue(1)
+    jest.mocked(getUsername).mockRejectedValue(new Error("db down"))
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const res = await request(app).delete("/tables/t1/players/u1")
+    expect(res.status).toBe(204)
+    expect(setBalance).toHaveBeenCalledWith("u1", 1000)
   })
 })

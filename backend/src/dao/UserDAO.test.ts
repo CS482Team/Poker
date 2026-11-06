@@ -1,4 +1,4 @@
-import { getBalance, setBalance } from "../dao/UserDAO"
+import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -9,6 +9,13 @@ describe("UserDAO", () => {
   it("reads a balance", async () => {
     mockState.result = { data: { chip_balance: 500 } }
     expect(await getBalance("u1")).toBe(500)
+  })
+
+  it("reads a username", async () => {
+    mockState.result = { data: { username: "Maya" } }
+    expect(await getUsername("u1")).toBe("Maya")
+    expect(calls).toContainEqual(["select", ["username"]])
+    expect(calls).toContainEqual(["eq", ["id", "u1"]])
   })
 
   it("saves the new balance on the user", async () => {
@@ -22,5 +29,6 @@ describe("UserDAO", () => {
     mockState.result = failure
     await expect(getBalance("u1")).rejects.toThrow("db down")
     await expect(setBalance("u1", 400)).rejects.toThrow("db down")
+    await expect(getUsername("u1")).rejects.toThrow("db down")
   })
 })
