@@ -6,7 +6,7 @@ import { ChatError, getHistory, sendMessage, sendSystemMessage } from "./ChatSer
 jest.mock("../dao/ChatDAO", () => ({ insertMessage: jest.fn(), recentMessages: jest.fn() }))
 jest.mock("../dao/TablePlayersDAO", () => ({ isSeated: jest.fn() }))
 
-const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", body: "hi", createdAt: "" }
+const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
 
 beforeEach(() => {
   jest.resetAllMocks()

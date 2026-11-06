@@ -3,6 +3,7 @@ import type { ChatMessage, ChatReply, ChatSend } from "../../../shared/Chat"
 import { ChatError, getHistory, sendMessage } from "../services/ChatService"
 import { RateLimiter } from "./RateLimiter"
 
+// TODO limits live in memory, so they reset on restart and only work with one backend server
 const limiter = new RateLimiter(5, 10_000) // 5 messages per 10 seconds per socket
 
 /* the room a table's chat is sent to */

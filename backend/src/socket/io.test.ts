@@ -90,7 +90,7 @@ describe("socket", () => {
     expect(await received).toEqual({ id: "g1" })
   })
   it("sends chat messages to that table's chat", async () => {
-    const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", body: "hi", createdAt: "" }
+    const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
     await join("chat:join", "t1")
     const received = next("chat:message")
     broadcastChat(message)

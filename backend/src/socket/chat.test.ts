@@ -11,7 +11,7 @@ jest.mock("../services/ChatService", () => ({
   sendMessage: jest.fn(),
 }))
 
-const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", body: "hi", createdAt: "" }
+const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
 const hi = { tableId: "t1", userId: "u1", body: "hi" }
 
 let http: HttpServer

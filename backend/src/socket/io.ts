@@ -28,7 +28,7 @@ export function initSocket(server: HttpServer) {
       await socket.join(LOBBY)
       ack?.()
     })
-    registerChat(socket, broadcastChat)
+    registerChat(socket, broadcastChat) // passed in so chat.ts doesn't import io.ts (avoids a circular import)
   })
 }
 

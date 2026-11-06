@@ -22,6 +22,7 @@ export function sendSystemMessage(tableId: string, text: string): Promise<ChatMe
 }
 
 /* gets the messages a new watcher should see */
+// TODO only the last 50 load; add "load older" paging if long chats need it
 export function getHistory(tableId: string): Promise<ChatMessage[]> {
   return recentMessages(tableId, CHAT_HISTORY_SIZE)
 }

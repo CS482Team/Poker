@@ -1,7 +1,7 @@
 import type { ChatMessage } from "../../../shared/Chat"
 import { getSupabase } from "../config/Supabase"
 
-const COLUMNS = "id, table_id, user_id, body, created_at, user(username)"
+const COLUMNS = "id, table_id, user_id, body, created_at, user(username, avatar_url)"
 
 type ChatRow = {
   id: number
@@ -9,7 +9,7 @@ type ChatRow = {
   user_id: string | null
   body: string
   created_at: string
-  user: { username: string } | null
+  user: { username: string; avatar_url: string | null } | null
 }
 
 /* saves a message, a null user means a system message */
@@ -22,6 +22,7 @@ export async function insertMessage(tableId: string, userId: string | null, body
 
   if (error) throw error
 
+  // Supabase can't type the joined user(...) columns, so we cast to our row shape
   return toMessage(data as unknown as ChatRow)
 }
 
@@ -36,6 +37,7 @@ export async function recentMessages(tableId: string, limit: number): Promise<Ch
 
   if (error) throw error
 
+  // newest first uses the (table_id, id DESC) index; reverse so the chat reads top to bottom
   return (data as unknown as ChatRow[]).map(toMessage).reverse()
 }
 
@@ -45,6 +47,7 @@ function toMessage(row: ChatRow): ChatMessage {
     tableId: row.table_id,
     userId: row.user_id,
     name: row.user?.username ?? null,
+    avatarUrl: row.user?.avatar_url ?? null,
     body: row.body,
     createdAt: row.created_at,
   }

@@ -1,4 +1,5 @@
-/* allows at most `limit` hits per key in any `windowMs` window */
+/* allows at most `limit` hits per key in any `windowMs` window (a sliding window)
+   `now` can be swapped out so tests don't have to wait */
 export class RateLimiter {
   private hits = new Map<string, number[]>()
 
