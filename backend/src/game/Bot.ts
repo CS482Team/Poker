@@ -13,20 +13,53 @@ function botScore(b: PlayerState) {
 	let score = returnScore(b, ranks, suits);
 	let highCardVal = b.winningRanks[0];
 	let happiness = ((score - 1) x 14) + highCardVal;
-	return happiness + drawPotential(ranks, suits);
+	//IF ROUND IS FIRST BETTING ROUND {
+		happiness = happiness + drawPotential(ranks, suits, b);
+	//}
+	return happiness;
 	//Random number generator 10% chance bluff score
 }
 
 /*Evaluate draw potential function:
 - High card and Pair further check for straight and flush potential (2 off or less of either results in discarding those in hope)
 - Kept separate as this is only needed for first scoring*/
-function drawPotential(ranks: number[], suits: Set<string>()) {
+function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
+	let bonus = 0;
 	//Close to flush: 4 of same suit
-	
+	let breaks = 0;
+	//Currently ignores ace having the ability to be 1
+	for(let i = 0; i < ranks.length-1; i++) {
+		if(ranks[i] !== ranks[i+1]) {
+			breaks = breaks + 1;
+		}
+	}
+	if(breaks === 1) {
+		bonus = bonus + 14;
+	}
 	//Close to straight: 4 in row
-
-	//TODO: Make a bonus system that "ranks up" for being close to flush or straight
-	return 0;
+	if(suits.size == 2) {
+		let sc1 = 0; //Suit count 1
+		let sc2 = 0; //Suit count 2
+		let suitbase = [...suits][0];
+		for(const c of p.hand) {
+			if(c.suit === suitbase) {
+				sc1 = sc1 + 1;
+			}
+			else {
+				sc2 = sc2 + 1;
+			}
+		}
+		if(sc1 === 4 || sc2 === 4) {
+			bonus = bonus + 14;
+		}
+	}
+	//10%ish chance for bot to bluff, adding a rank up of confidence
+	let bluffScore = Math.Random();
+	if(bluffScore > .9) {
+		bonus = bonus + 14;
+		b.botBluff = true;
+	}
+	return bonus;
 }
 
 /*Discard:

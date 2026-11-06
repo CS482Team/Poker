@@ -138,7 +138,6 @@ export function scoreHands(state: GameState) {
             const ranks: number[] = suitRanks[1];
             //CHECKING CARDS FOR WIN CONDITION
             p.winCond = returnScore(p, ranks, suits);
-            }
         }
     }
     const stacks_before = players.map(p => p.stack);
