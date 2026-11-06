@@ -1,5 +1,6 @@
 "use client"
 
+import AdminMenu from "@/component/AdminMenu"
 import DevUserSwitch from "@/component/DevUserSwitch"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
@@ -27,7 +28,10 @@ export default function Nav() {
       ) : (
         <span className="nav-tab opacity-40">Table</span>
       )}
-      <DevUserSwitch />
+      <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3">
+        <DevUserSwitch />
+        <AdminMenu />
+      </div>
     </nav>
   )
 }

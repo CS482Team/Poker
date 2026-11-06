@@ -2,7 +2,7 @@ import { useState } from "react"
 import type { ActionType, LegalAction } from "@shared/Actions"
 
 const BUTTON =
-  "rounded-md border border-black/40 bg-gradient-to-b from-neutral-700 to-neutral-900 px-6 py-3 text-lg font-semibold shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+  "rounded-md border border-black/40 bg-gradient-to-b from-[#454545] to-[#2e2e2e] px-6 py-3 text-lg font-medium shadow disabled:cursor-not-allowed disabled:opacity-50"
 
 interface ActionBarProps {
   legalActions: LegalAction[] // empty when it isn't the viewer's turn

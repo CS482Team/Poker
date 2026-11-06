@@ -15,7 +15,7 @@ export default function DevUserSwitch() {
   }
 
   return (
-    <select value={userId} onChange={(e) => change(e.target.value)} aria-label="Dev user" className="absolute right-4 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-sm text-[#f5f2ef]">
+    <select value={userId} onChange={(e) => change(e.target.value)} aria-label="Dev user" className="rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-sm text-[#f5f2ef]">
       {DEV_USERS.map((user) => (
         <option key={user.id} value={user.id} className="bg-[#181414]">
           {user.name}
