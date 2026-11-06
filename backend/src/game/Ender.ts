@@ -1,7 +1,7 @@
 import type { GameState, PlayerState } from "../../../shared/GameState"
 import { isInHand } from "./Turn"
 
-export function returnScore(p: PlayerState, ranks: number[]) {
+export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>()) {
     //Check If All are In Row (Straight)
     let straight = false;
     if(ranks.every((r, i) => i === 0 || ranks[i-1]! - r === 1)) {
@@ -114,23 +114,30 @@ export function returnScore(p: PlayerState, ranks: number[]) {
     }
 }
 
+export function setRanks(PlayerState: p) {
+    p.winningRanks = [];
+    const ranks: number[] = [];
+    let suits = new Set<string>();
+    //Make a set of card ranks and suits in each hand
+    for(const c of p.hand) {
+        suits.add(c.suit);
+        ranks.push(c.rank);
+    }
+    ranks.sort((r1,r2) => r2 - r1);
+    return [suits, ranks];
+}
+
 export function scoreHands(state: GameState) {
     const players = state.players;
     //Run through each player
     for (let step = 1; step <= players.length; step++) {
         const p = players[(state.dealerIndex + step) % players.length]!
         if(isInHand(p)) {
-            p.winningRanks = [];
-            let suits = new Set<string>();
-            const ranks: number[] = [];
-            //Make a set of card ranks and suits in each hand
-            for(const c of p.hand) {
-                suits.add(c.suit);
-                ranks.push(c.rank);
-            }
-            ranks.sort((r1,r2) => r2 - r1);
+            let suitRanks = setRanks(p);
+            let suits = suitRanks[0];
+            const ranks: number[] = suitRanks[1];
             //CHECKING CARDS FOR WIN CONDITION
-            p.winCond = returnScore(p, ranks);
+            p.winCond = returnScore(p, ranks, suits);
             }
         }
     }
