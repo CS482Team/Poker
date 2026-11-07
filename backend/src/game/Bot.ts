@@ -1,23 +1,27 @@
-import type { GameState, PlayerState } from "../../../shared/GameState"
+import type { GameState, PlayerState, Phase } from "../../../shared/GameState"
 import { returnScore, setRanks } from "./Ender"
 import { advanceTurn, isInHand, isPlayersTurn } from "./Turn"
+import type { Card } from "./Card"
 	
 /*Score function:
 - Use Ender.ts function to evaluate this hand's current wincond
 - From there, Straight or higher does not draw and has a high score for betting
 - High values are then further accounted for (except royal flush which has highest score)*/
-function botScore(b: PlayerState) {
+function botScore(b: PlayerState, state: GameState) {
 	let suitRanks = setRanks(p);
     let suits = suitRanks[0];
     const ranks: number[] = suitRanks[1];
 	let score = returnScore(b, ranks, suits);
 	let highCardVal = b.winningRanks[0];
 	let happiness = ((score - 1) x 14) + highCardVal;
-	//IF ROUND IS FIRST BETTING ROUND {
+	//MUST DECLARE DEFAULT BOTBLUFF AS FALSE IN SAME PLACE WHERE BOTFLAG IS DECLARED
+	if(botBluff) {
+		happiness = happiness + 14;
+	}
+	if(state.Phase === "predraw-betting") {
 		happiness = happiness + drawPotential(ranks, suits, b);
-	//}
+	}
 	return happiness;
-	//Random number generator 10% chance bluff score
 }
 
 /*Evaluate draw potential function:
@@ -40,17 +44,26 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 	if(suits.size == 2) {
 		let sc1 = 0; //Suit count 1
 		let sc2 = 0; //Suit count 2
+		let cards1 = Card[];
+		let cards2 = Card[];
 		let suitbase = [...suits][0];
-		for(const c of p.hand) {
+		for(const c of b.hand) {
 			if(c.suit === suitbase) {
 				sc1 = sc1 + 1;
+				cards1.push(c);
 			}
 			else {
 				sc2 = sc2 + 1;
+				cards2.push(c);
 			}
 		}
-		if(sc1 === 4 || sc2 === 4) {
+		if(sc1 === 4) {
 			bonus = bonus + 14;
+			b.botDiscard.push(cards2[0]);
+		}
+		else if(sc2 === 4) {
+			bonus = bonus + 14;
+			b.botDiscard.push(cards1[0]);
 		}
 	}
 	//10%ish chance for bot to bluff, adding a rank up of confidence
@@ -68,14 +81,98 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 - Two pair discards the odd card out
 - Pair and High Card will be harder, this will be based on prior evaluation, especially since these are likely to result in fold*/
 export function botDiscard(b: PlayerState) {
-	//Bluff mode: always hold at least 2 cards
-	//4 of a kind: chance of discarding or drawing
+	//Maybe change this later to have happiness be part of the PlayerState interface?
+	let happiness = botScore(b);
+	//Happiness being under 56 means straight or higher (with one special exception)
+	if(happiness <= 56) {
+		switch (b.winningRanks.length){
+			//Two Pair
+			case 4:
+			//and Three of a Kind
+			case 3:
+				for(const c of b.hand) {
+					if(!(b.winningRanks.includes(c))) {
+						//Discard and draw
+					}
+				}
+			break;
+			//Pair
+			case 2:
+			//and High Card
+			case 1:
+				if(b.botDiscard.length > 0) {
+					//Discard that card, only draw one card, reset botDiscard
+				}
+				else if(bluff) {
+					//Bluff mode: discard only lowest 2 cards
+				}
+				else {
+					//Discard 3 lowest cards
+				}
+			break;
+		}
+
+	}
+	//Special case: bluffing with three cards
+	else if(bluff && happiness <= 70) {
+		for(const c of b.hand) {
+			if(!(b.winningRanks.includes(c))) {
+				//Discard and draw
+			}
+		}
+	}
+	//4 of a kind: chance of discarding and drawing
+	else if(b.winningRanks.length === 4) {
+		let discChance = Math.Random();
+		if(discChance > .5) {
+			//Discard and draw
+		}
+	}
 }
 
 /*Betting:
 - Use score from scoring to 
 - For first bet: take into account bonus from potential
 - For second bet: take into account whether the score improved or not maybe.*/
-export function botBet(b: PlayerState) {
+export function botBet(b: PlayerState, state: GameState) {
 	let happiness = botScore(b);
+	let happinessRand = Math.Random();
+	//Currently 10% chance to rank up or down, may want more random
+	let increment = 14;
+	if(happinessRand <= .1) {
+		happiness = happiness - increment;
+	}
+	else if(happinessRand >= .9) {
+		happiness = happiness + increment;
+	}
+	let firstRoundBonusChance = Math.Random(); //Chance of a bonus for first round only
+	if(state.phase == "predraw-betting" && firstRoundBonusChance >= .85) {
+		happiness = happiness + increment;
+	}
+	if(state.currentBet > stack) {
+		//Fold
+	}
+	else {
+		//TODO: Account for would be bet being over stack when raising
+		if(state.currentBet >= state.minBet * 5) {
+			//Raise - Happiness greater than/equal to 84
+			//Call - Happiness greater than/equal to 42 or bluff
+			//Fold - Else
+		}
+		else if(state.currentBet >= state.minBet * 3) {
+			//Raise - Happiness greater than/equal to 56
+			//Call - Happiness greater than/equal to 28 or bluff
+			//Fold - Else
+		}
+		else if(state.currentBet >= state.minBet) {
+			//Raise - Happiness greater than/equal to 42
+			//Call - Happiness greater than/equal to 25 or bluff
+			//Fold - Else
+		}
+		else {
+			//Raise - Happiness greater than/equal to 42
+			//Call - Happiness greater than/equal to 12 (if first round) or bluff
+			//Fold - Else
+		}
+	}
 }
