@@ -28,6 +28,10 @@ export interface PlayerState {
   winCond: number          // win condition met, filled in at ending
   winningRanks: number[]   // the winning cards of the hand, filled in at ending
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
+  //Bot parameters: should we have a BotState interface inheriting from PlayerState?
+  botFlag: boolean		   //is this player a bot?
+  botBluff: boolean		   //is the bot bluffing?
+  botToDiscard: number[]	   //Card indexes the bot should discard
 }
 
 export type Street = "predraw" | "postdraw"

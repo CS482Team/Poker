@@ -46,26 +46,26 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 	if(suits.size == 2) {
 		let sc1 = 0; //Suit count 1
 		let sc2 = 0; //Suit count 2
-		let cards1 = Card[];
-		let cards2 = Card[];
+		let cards1: number[] = [];
+		let cards2: number[] = [];
 		let suitbase = [...suits][0];
-		for(const c of b.hand) {
-			if(c.suit === suitbase) {
+		for(let i = 0; i < b.hand.length; i++) {
+			if(b.hand[i].suit === suitbase) {
 				sc1 = sc1 + 1;
-				cards1.push(c);
+				cards1.push(i);
 			}
 			else {
 				sc2 = sc2 + 1;
-				cards2.push(c);
+				cards2.push(i);
 			}
 		}
 		if(sc1 === 4) {
 			bonus = bonus + 14;
-			b.botDiscard.push(cards2[0]);
+			b.botToDiscard.push(cards2[0]);
 		}
 		else if(sc2 === 4) {
 			bonus = bonus + 14;
-			b.botDiscard.push(cards1[0]);
+			b.botToDiscard.push(cards1[0]);
 		}
 	}
 	//10%ish chance for bot to bluff, adding a rank up of confidence
@@ -82,7 +82,7 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 - Three of a kind either discards 2 out cards or the lower of the two (unsure which direction to go or make it a chance)
 - Two pair discards the odd card out
 - Pair and High Card will be harder, this will be based on prior evaluation, especially since these are likely to result in fold*/
-export function botDiscard(b: PlayerState) {
+export function botDiscard(b: PlayerState): void {
 	//Maybe change this later to have happiness be part of the PlayerState interface?
 	let happiness = botScore(b);
 	//Happiness being under 56 means lower than straight (with one special exception)
@@ -92,9 +92,10 @@ export function botDiscard(b: PlayerState) {
 			case 4:
 			//and Three of a Kind
 			case 3:
-				for(const c of b.hand) {
-					if(!(b.winningRanks.includes(c))) {
-						//Discard and draw
+				for(let i = 0; i < b.hand.length; i++) {
+					//Discard everything not present in the winning hand
+					if(!(b.winningRanks.includes(b.hand[i]))) {
+						b.botToDiscard.push(i);
 					}
 				}
 			break;
@@ -102,24 +103,34 @@ export function botDiscard(b: PlayerState) {
 			case 2:
 			//and High Card
 			case 1:
-				if(b.botDiscard.length > 0) {
-					//Discard that card, only draw one card, reset botDiscard
-				}
-				else if(bluff) {
-					//Bluff mode: discard only lowest 2 cards
-				}
-				else {
-					//Discard 3 lowest cards
+				//Checks if botToDiscard  
+				if(b.botToDiscard.length === 0) {
+					//Set up array of indexes of potential cards to discard with their values
+					let losingRanks: number[][] = [];
+					for(let i = 0; i < b.hand.length; i++) {
+						if(!(b.winningRanks.includes(b.hand[i]))) {
+							losingRanks.push([i, b.hand[i].rank]);
+						}
+					}
+					//Sorting losing ranks by value
+					losingRanks.sort((r1,r2) => r1[1] - r2[1]);
+					//If bluffing, discard lowest 2, otherwise discard lowest 3
+					let maxDisc = 3;
+					if(bluff) {
+						maxDisc = 2;
+					}
+					for(let j = 0; j < maxDisc; j++) {
+						b.botToDiscard.push(losingRanks[j][0]);
+					}
 				}
 			break;
 		}
-
 	}
-	//Special case: bluffing with three cards
-	else if(bluff && happiness <= 70) {
-		for(const c of b.hand) {
-			if(!(b.winningRanks.includes(c))) {
-				//Discard and draw
+	//Special case: bluffing/has bonus with three cards (if both, it does not discard at the moment)
+	else if(b.winningRanks.length === 3 && happiness <= 70) {
+		for(let i = 0; i < b.hand.length; i++) {
+			if(!(b.winningRanks.includes(b.hand[i]))) {
+				b.botToDiscard.push(i);
 			}
 		}
 	}
@@ -127,8 +138,17 @@ export function botDiscard(b: PlayerState) {
 	else if(b.winningRanks.length === 4) {
 		let discChance = Math.Random();
 		if(discChance > .5) {
-			//Discard and draw
+			for(let i = 0; i < b.hand.length; i++) {
+				if(!(b.winningRanks.includes(b.hand[i]))) {
+					b.botToDiscard.push(i);
+				}
+			}
 		}
+	}
+	const result = drawCards(state, b.id, b.botToDiscard);
+	if (!result.ok) {
+		res.status(DRAW_ERROR_STATUS[result.error]).json({ error: result.error });
+		return;
 	}
 }
 

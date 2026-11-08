@@ -26,6 +26,8 @@ export function createGame(
     winCond: 0,
     winningRanks: [],
     hasActed: false,
+    botBluff: false,
+    botToDiscard: [],
   }))
 
   return {
@@ -63,6 +65,8 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
     winCond: 0,
     winningRanks: [],
     hasActed: false,
+    botBluff: false,
+    botToDiscard: [],
   }))
   const inHand = (p: PlayerState) => p.status !== "sitting-out"
   if (players.filter(inHand).length < MIN_PLAYERS) return { ok: false, error: "too-few-players" }

@@ -33,6 +33,7 @@ export async function createTable(input: NewTable): Promise<string> {
       minimum_bet: input.minimumBet,
       ante: input.ante,
       host_id: input.hostId,
+      bot_count: input.bot_count,
     })
     .select("id")
     .single()

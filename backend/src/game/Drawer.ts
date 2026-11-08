@@ -12,11 +12,12 @@ export function applyDraw(state: GameState, playerId: PlayerId, discard: number[
   const players = state.players.map(p => ({ ...p }))
   const me = players.find(p => p.id === playerId)!
 
-  //if player is a player
   me.hand = me.hand.map((card, i) => (discard.includes(i) ? deck.pop()! : card))
-  //if player is a bot do something else
   me.hasActed = true
-
+  //Reset bot discard
+  if(me.botToDiscard.length > 0) {
+	  me.botToDiscard = [];
+  }
   const next = advanceTurn({ ...state, deck, players }, p => isInHand(p) && !p.hasActed)
   if (next.toActIndex === null) return { ok: true, value: startBettingRound(next, "postdraw") }
   return { ok: true, value: next }
