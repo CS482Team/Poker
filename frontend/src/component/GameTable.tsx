@@ -37,7 +37,10 @@ export default function GameTable({ id }: { id: string }) {
         setTable(loaded)
         setError(null)
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: Error) => {
+        clearCurrentTableId()
+        setError(err.message)
+      })
     return watchTable(id, getCurrentUserId(), setTable, setView)
   }, [id])
 

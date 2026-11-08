@@ -4,7 +4,7 @@ import type { GameState, PlayerId, Result, SeatInput, StartError, TableConfig } 
 import type { PlayerView } from "../../../shared/PlayerView"
 import type { Table } from "../../../shared/Table"
 import { getTable } from "../dao/TableDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { finishMatch, insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { gameDAO } from "../dao/GameDAO"
 import { applyAction, getLegalActions } from "../game/Betting"
 import type { ActionError } from "../game/Betting"
@@ -14,6 +14,8 @@ import type { DrawError } from "../game/Drawer"
 import { scoreHands } from "../game/Ender"
 import { isInHand, isPlayersTurn } from "../game/Turn"
 import { updateStack } from "../dao/TablePlayersDAO"
+
+const matches = new Map<string, { matchId: string; stacks: number[] }>()
 
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
@@ -25,7 +27,7 @@ export function configForTable(table: Pick<Table, "ante" | "minimumBet">): Table
 
 // Creates a game at a table, deals the first hand, keeps it in the game store,
 // and saves the match rows.
-export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<GameState, StartError>> {
+export async function startGame(table: Pick<Table, "id" | "name" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<GameState, StartError>> {
   const created = createGame(table.id, seats, configForTable(table))
   if (!created.ok) return created
   const started = startHand(created.value, rng)
@@ -35,9 +37,10 @@ export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">
   gameDAO.save(game)
 
   const matchNumber = await nextMatchNumber(table.id)
-  const matchId = await insertMatch({ tableId: table.id, matchNumber, pot: game.pot, dealerSeat: game.dealerIndex })
+  const matchId = await insertMatch({ tableId: table.id, tableName: table.name, matchNumber, pot: game.pot, dealerSeat: game.dealerIndex })
   // TODO bots need a name, not a user id
   await insertMatchPlayers(matchId, game.players.map((p, seat) => ({ seatNumber: seat, userId: p.id, botName: null })))
+  matches.set(game.id, { matchId, stacks: game.players.map(p => p.stack + p.totalContributed) })
 
   return started
 }
@@ -92,8 +95,18 @@ export async function nextHand(tableId: string): Promise<PlayerId[]> {
   const game = gameDAO.findByTable(tableId)
   if (!game || game.phase !== "hand-complete") return []
   await Promise.all(game.players.map(p => updateStack(tableId, p.id, p.stack)))
+  await saveResult(game)
   endGame(tableId)
   return (await startIfReady(tableId, game.players[game.dealerIndex]?.id)) ?? game.players.map(p => p.id)
+}
+
+async function saveResult(game: GameState) {
+  const match = matches.get(game.id)
+  if (!match) return
+  matches.delete(game.id)
+  const results = game.players.map((p, seat) => ({ seatNumber: seat, netResult: p.stack - match.stacks[seat]! }))
+  const pot = game.players.reduce((sum, p) => sum + p.totalContributed, 0)
+  await finishMatch(match.matchId, game.winners[0] ?? null, pot, results)
 }
 
 export function leaveGame(tableId: string, playerId: PlayerId): GameState | null {

@@ -23,12 +23,10 @@ export default function Nav() {
           <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
             Lobby
           </Link>
-          {tableId ? (
+          {tableId && (
             <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
               Table
             </Link>
-          ) : (
-            <span className="nav-tab opacity-40">Table</span>
           )}
         </div>
         <div className="flex justify-end">

@@ -1,4 +1,5 @@
 import { getSupabase } from "../config/Supabase"
+import type { PlayerSummary } from "../../../shared/PlayerHistory"
 
 /* gets a user's chips */
 export async function getBalance(userId: string): Promise<number> {
@@ -37,4 +38,21 @@ export async function getUserIdFromToken(token: string): Promise<string | null> 
   const { data } = await getSupabase().auth.getUser(token)
 
   return data.user?.id ?? null
+}
+
+export async function getAllPlayers(): Promise<PlayerSummary[]> {
+  const { data, error } = await getSupabase()
+    .from("user")
+    .select("id, username, chip_balance, match_players(count)")
+    .eq("role", 0)
+    .order("username")
+
+  if (error) throw error
+
+  return data.map((row: any) => ({
+    id: row.id,
+    username: row.username,
+    balance: row.chip_balance,
+    handsPlayed: row.match_players[0]?.count ?? 0,
+  }))
 }
