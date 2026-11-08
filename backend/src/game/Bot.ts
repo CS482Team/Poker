@@ -16,7 +16,6 @@ function botScore(b: PlayerState, state: GameState) {
 	let score = returnScore(b, ranks, suits);
 	let highCardVal = b.winningRanks[0];
 	let happiness = ((score - 1) x 14) + highCardVal;
-	//MUST DECLARE DEFAULT BOTBLUFF AS FALSE IN SAME PLACE WHERE BOTFLAG IS DECLARED
 	if(botBluff) {
 		happiness = happiness + 14;
 	}
@@ -187,7 +186,7 @@ export function botBet(playerId: PlayerId, state: GameState): Result<GameState, 
 		}
 		//check - Happiness greater than/equal to 12 (if first round) or bluff
 		else if(happiness >= 12) {
-			applyAction(state, b.id, check);
+			return applyAction(state, b.id, check);
 		}
 		//Fold - Else
 		else {
