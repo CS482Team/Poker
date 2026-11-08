@@ -161,11 +161,12 @@ export function botBet(b: PlayerState, state: GameState) {
 	if(check) {
 		//bet - Happiness greater than/equal to 42
 		if(bet && happiness >= 42) {
-
+			b.betThisRound = state.minBet + Math.Random()*happiness*.5;
+			applyAction(state, b.id, raise);
 		}
 		//check - Happiness greater than/equal to 12 (if first round) or bluff
 		else if(happiness >= 12) {
-
+			applyAction(state, b.id, check);
 		}
 		//Fold - Else
 		else {
@@ -175,12 +176,15 @@ export function botBet(b: PlayerState, state: GameState) {
 	else {
 		const raise = legalActs.find((a) a is BetRaise => a.type === "raise");
 		const call = legalActs.find(a => a.type === "call");
-		//TODO: Account for would be bet being over stack when raising
+		//TODO: Check if we want more complexity/shift values
 		if(state.currentBet >= state.minBet * 5) {
 			//Raise - Happiness greater than/equal to 84
 			if(happiness >= 84 && raise) {
 				//not sure how to handle min and max at the moment
 				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.75;
+				if(b.betThisRound > raise.max) {
+					b.betThisRound = raise.max;
+				}
 				applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 42 or bluff
@@ -196,6 +200,9 @@ export function botBet(b: PlayerState, state: GameState) {
 			//Raise - Happiness greater than/equal to 56
 			if(happiness >= 56 && raise) {
 				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.5;
+				if(b.betThisRound > raise.max) {
+					b.betThisRound = raise.max;
+				}
 				applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 28 or bluff
@@ -212,6 +219,9 @@ export function botBet(b: PlayerState, state: GameState) {
 			//Raise - Happiness greater than/equal to 42
 			if(happiness >= 42 && raise) {
 				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.25;
+				if(b.betThisRound > raise.max) {
+					b.betThisRound = raise.max;
+				}
 				applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 25 or bluff
@@ -227,6 +237,9 @@ export function botBet(b: PlayerState, state: GameState) {
 			//Raise - Happiness greater than/equal to 42
 			if(happiness >= 42 && raise) {
 				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.25;
+				if(b.betThisRound > raise.max) {
+					b.betThisRound = raise.max;
+				}
 				applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 12 (if first round) or bluff
