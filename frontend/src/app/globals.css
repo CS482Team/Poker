@@ -1,6 +1,17 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,500;0,700;1,700&display=swap");
 @import "tailwindcss";
 
+/* Solid panel colours as Tailwind tokens (bg-panel, border-panel-edge...); all text on them passes WCAG AA */
+@theme {
+  --color-panel: #151213;
+  --color-panel-raised: #262122;
+  --color-panel-sunken: #0e0b0c;
+  --color-panel-edge: #3a3233;
+  --color-panel-mine: #5a1a1e;
+  --color-ink: #f5f2ef;
+  --color-ink-muted: #a8a0a1;
+}
+
 :root {
   font-family: "Roboto Condensed", "Arial Narrow", sans-serif;
   color: #f5f2ef;

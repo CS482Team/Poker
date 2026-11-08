@@ -2,7 +2,7 @@ import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
 import { getAllTables, getTable } from "../dao/TableDAO"
-import { broadcastChange, initSocket, sendViews } from "../socket/io"
+import { broadcastChange, broadcastChat, initSocket, sendViews } from "../socket/io"
 import { getTableView } from "../services/GameService"
 
 jest.mock("../dao/TableDAO", () => ({
@@ -11,6 +11,7 @@ jest.mock("../dao/TableDAO", () => ({
 }))
 
 jest.mock("../services/GameService", () => ({ getTableView: jest.fn() }))
+jest.mock("../services/ChatService", () => ({ getHistory: jest.fn().mockResolvedValue([]) }))
 
 const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 100, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [] }
 
@@ -87,5 +88,12 @@ describe("socket", () => {
     const received = next("view")
     sendViews("t1", ["a", "b"])
     expect(await received).toEqual({ id: "g1" })
+  })
+  it("sends chat messages to that table's chat", async () => {
+    const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
+    await join("chat:join", "t1")
+    const received = next("chat:message")
+    broadcastChat(message)
+    expect(await received).toEqual(message)
   })
 })
