@@ -10,12 +10,15 @@ export async function getAllAds(): Promise<Ad[]> {
 
   if (error) throw error
 
-  return data.map((row) => ({
-    id: row.id,
-    title: row.title,
-    rewardAmount: row.reward_amount,
-    active: row.active,
-  }))
+  return data.map(toAd)
+}
+
+export async function getActiveAds(): Promise<Ad[]> {
+  const { data, error } = await getSupabase().from("advert").select("id, title, reward_amount, active").eq("active", true)
+
+  if (error) throw error
+
+  return data.map(toAd)
 }
 
 export async function createAd(input: NewAd, createdBy: string): Promise<string> {
@@ -35,6 +38,15 @@ export async function createAd(input: NewAd, createdBy: string): Promise<string>
   return data.id
 }
 
+export async function editAd(id: string, input: NewAd): Promise<void> {
+  const { error } = await getSupabase()
+    .from("advert")
+    .update({ title: input.title, reward_amount: input.rewardAmount })
+    .eq("id", id)
+
+  if (error) throw error
+}
+
 export async function setAdActive(id: string, active: boolean): Promise<void> {
   const { error } = await getSupabase().from("advert").update({ active }).eq("id", id)
 
@@ -45,4 +57,13 @@ export async function deleteAd(id: string): Promise<void> {
   const { error } = await getSupabase().from("advert").delete().eq("id", id)
 
   if (error) throw error
+}
+
+function toAd(row: { id: string; title: string; reward_amount: number; active: boolean }): Ad {
+  return {
+    id: row.id,
+    title: row.title,
+    rewardAmount: row.reward_amount,
+    active: row.active,
+  }
 }

@@ -1,4 +1,4 @@
-import { createAd, deleteAd, getAllAds, setAdActive } from "../dao/AdDAO"
+import { createAd, deleteAd, editAd, getActiveAds, getAllAds, setAdActive } from "../dao/AdDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -13,10 +13,22 @@ describe("AdDAO", () => {
     expect(await getAllAds()).toEqual([{ id: "a1", title: "Bonus", rewardAmount: 500, active: true }])
   })
 
+  it("lists only active ads", async () => {
+    mockState.awaited = { data: [{ id: "a1", title: "Bonus", reward_amount: 500, active: true }] }
+    expect(await getActiveAds()).toHaveLength(1)
+    expect(calls).toContainEqual(["eq", ["active", true]])
+  })
+
   it("creates an inactive ad", async () => {
     mockState.result = { data: { id: "a1" } }
     expect(await createAd(newAd, "u1")).toBe("a1")
     expect(calls).toContainEqual(["insert", [{ title: "Bonus", reward_amount: 500, active: false, created_by: "u1" }]])
+  })
+
+  it("edits an ad", async () => {
+    await editAd("a1", newAd)
+    expect(calls).toContainEqual(["update", [{ title: "Bonus", reward_amount: 500 }]])
+    expect(calls).toContainEqual(["eq", ["id", "a1"]])
   })
 
   it("sets an ad active", async () => {
@@ -34,7 +46,9 @@ describe("AdDAO", () => {
   it("throws when the database fails", async () => {
     mockState.result = failure
     await expect(getAllAds()).rejects.toThrow("db down")
+    await expect(getActiveAds()).rejects.toThrow("db down")
     await expect(createAd(newAd, "u1")).rejects.toThrow("db down")
+    await expect(editAd("a1", newAd)).rejects.toThrow("db down")
     await expect(setAdActive("a1", true)).rejects.toThrow("db down")
     await expect(deleteAd("a1")).rejects.toThrow("db down")
   })

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import AdManager from "@/component/AdManager"
-import { createAd, deleteAd, fetchAds, setAdActive } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
 
 const mockRouter = { replace: jest.fn() }
 
@@ -11,6 +11,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/service/AdminService", () => ({
   createAd: jest.fn(),
   deleteAd: jest.fn(),
+  editAd: jest.fn(),
   fetchAds: jest.fn(),
   setAdActive: jest.fn(),
 }))
@@ -32,48 +33,75 @@ describe("AdManager", () => {
   it("lists ads", async () => {
     render(<AdManager />)
     expect(await screen.findByText("Weekend bonus")).toBeInTheDocument()
-    expect(screen.getByText("Active")).toBeInTheDocument()
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true")
   })
 
-  it("saves an ad", async () => {
+  it("shows an empty state", async () => {
+    jest.mocked(fetchAds).mockResolvedValue([])
     render(<AdManager />)
-    fireEvent.change(await screen.findByLabelText("Title"), { target: { value: "New ad" } })
-    fireEvent.change(screen.getByLabelText("Reward (chips)"), { target: { value: "250" } })
+    expect(await screen.findByText("No ads yet.")).toBeInTheDocument()
+  })
+
+  it("creates an ad in a modal", async () => {
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("button", { name: "New Ad" }))
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "New ad" } })
+    fireEvent.click(screen.getByRole("button", { name: "Create" }))
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Create" })).not.toBeInTheDocument())
+    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 500 })
+  })
+
+  it("edits an ad in place", async () => {
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("button", { name: "Edit ad" }))
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Better bonus" } })
+    fireEvent.change(screen.getByLabelText("Reward"), { target: { value: "750" } })
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
-    await waitFor(() => expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 250 }))
-    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue(""))
+    await waitFor(() => expect(editAd).toHaveBeenCalledWith("a1", { title: "Better bonus", rewardAmount: 750 }))
   })
 
-  it("pauses an active ad", async () => {
+  it("saves with enter and cancels with escape", async () => {
     render(<AdManager />)
-    fireEvent.click(await screen.findByRole("button", { name: "Pause" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Edit ad" }))
+    fireEvent.keyDown(screen.getByLabelText("Title"), { key: "Enter" })
+    await waitFor(() => expect(editAd).toHaveBeenCalled())
+    fireEvent.click(await screen.findByRole("button", { name: "Edit ad" }))
+    fireEvent.keyDown(screen.getByLabelText("Title"), { key: "Escape" })
+    expect(screen.queryByLabelText("Title")).not.toBeInTheDocument()
+  })
+
+  it("cancels an edit", async () => {
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("button", { name: "Edit ad" }))
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
+    expect(screen.queryByLabelText("Title")).not.toBeInTheDocument()
+  })
+
+  it("toggles an ad", async () => {
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("switch"))
     await waitFor(() => expect(setAdActive).toHaveBeenCalledWith("a1", false))
   })
 
-  it("activates an inactive ad", async () => {
-    jest.mocked(fetchAds).mockResolvedValue([{ ...activeAd, active: false }])
+  it("asks before deleting", async () => {
     render(<AdManager />)
-    fireEvent.click(await screen.findByRole("button", { name: "Activate" }))
-    await waitFor(() => expect(setAdActive).toHaveBeenCalledWith("a1", true))
-  })
-
-  it("deletes an ad", async () => {
-    render(<AdManager />)
-    fireEvent.click(await screen.findByRole("button", { name: "Delete" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Delete ad" }))
+    expect(deleteAd).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }))
     await waitFor(() => expect(deleteAd).toHaveBeenCalledWith("a1"))
   })
 
-  it("shows save, update and delete errors", async () => {
-    jest.mocked(createAd).mockRejectedValue(new Error("Save failed"))
-    jest.mocked(setAdActive).mockRejectedValue(new Error("Update failed"))
-    jest.mocked(deleteAd).mockRejectedValue(new Error("Delete failed"))
+  it("can back out of a delete", async () => {
     render(<AdManager />)
-    fireEvent.change(await screen.findByLabelText("Title"), { target: { value: "New ad" } })
-    fireEvent.click(screen.getByRole("button", { name: "Save" }))
-    expect(await screen.findByText("Save failed")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: "Pause" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Delete ad" }))
+    fireEvent.click(screen.getByRole("button", { name: "Keep ad" }))
+    expect(screen.getByRole("button", { name: "Delete ad" })).toBeInTheDocument()
+  })
+
+  it("shows errors", async () => {
+    jest.mocked(setAdActive).mockRejectedValue(new Error("Update failed"))
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("switch"))
     expect(await screen.findByText("Update failed")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: "Delete" }))
-    expect(await screen.findByText("Delete failed")).toBeInTheDocument()
   })
 })

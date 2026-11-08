@@ -1,4 +1,4 @@
-import { createAd, deleteAd, fetchAds, isAdmin, setAdActive } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, isAdmin, setAdActive } from "@/service/AdminService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
@@ -26,9 +26,10 @@ describe("adminService", () => {
   it("creates, updates and deletes ads", async () => {
     respond(true)
     await createAd(ad)
+    await editAd("a1", ad)
     await setAdActive("a1", true)
     await deleteAd("a1")
-    expect(global.fetch).toHaveBeenCalledTimes(3)
+    expect(global.fetch).toHaveBeenCalledTimes(4)
   })
 
   it("throws when a request fails", async () => {
@@ -36,6 +37,7 @@ describe("adminService", () => {
     expect(await isAdmin()).toBe(false)
     await expect(fetchAds()).rejects.toThrow("500")
     await expect(createAd(ad)).rejects.toThrow("500")
+    await expect(editAd("a1", ad)).rejects.toThrow("500")
     await expect(setAdActive("a1", true)).rejects.toThrow("500")
     await expect(deleteAd("a1")).rejects.toThrow("500")
   })

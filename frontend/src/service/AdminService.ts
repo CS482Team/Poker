@@ -28,6 +28,15 @@ export async function createAd(ad: NewAd): Promise<void> {
   if (!res.ok) throw new Error(`Failed to save ad (${res.status})`);
 }
 
+export async function editAd(id: string, ad: NewAd): Promise<void> {
+  const res = await fetch(`${API_URL}/ads/${id}`, {
+    method: "PUT",
+    headers: await authHeaders(),
+    body: JSON.stringify(ad),
+  });
+  if (!res.ok) throw new Error(`Failed to save ad (${res.status})`);
+}
+
 export async function setAdActive(id: string, active: boolean): Promise<void> {
   const res = await fetch(`${API_URL}/ads/${id}`, {
     method: "PATCH",

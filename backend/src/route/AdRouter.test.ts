@@ -1,13 +1,15 @@
 import request from "supertest"
 import { app } from "../app"
-import { createAd, deleteAd, getAllAds, setAdActive } from "../dao/AdDAO"
+import { createAd, deleteAd, editAd, getActiveAds, getAllAds, setAdActive } from "../dao/AdDAO"
 import { getRole, getUserIdFromToken } from "../dao/UserDAO"
 
 jest.mock("../dao/AdDAO", () => ({
   getAllAds: jest.fn(),
+  getActiveAds: jest.fn(),
   createAd: jest.fn(),
   setAdActive: jest.fn(),
   deleteAd: jest.fn(),
+  editAd: jest.fn(),
 }))
 jest.mock("../dao/UserDAO", () => ({
   getRole: jest.fn(),
@@ -51,6 +53,15 @@ describe("admin access", () => {
   })
 })
 
+describe("active ads", () => {
+  it("lists active ads without signing in", async () => {
+    jest.mocked(getActiveAds).mockResolvedValue([])
+    const res = await request(app).get("/ads/active")
+    expect(res.status).toBe(200)
+    expect(getUserIdFromToken).not.toHaveBeenCalled()
+  })
+})
+
 describe("ads", () => {
   it("lists ads", async () => {
     jest.mocked(getAllAds).mockResolvedValue([])
@@ -68,6 +79,18 @@ describe("ads", () => {
   it("rejects an invalid ad", async () => {
     const res = await asAdmin(request(app).post("/ads")).send({ title: " ", rewardAmount: -1 })
     expect(res.status).toBe(400)
+  })
+
+  it("edits an ad", async () => {
+    const res = await asAdmin(request(app).put("/ads/a1")).send(validAd)
+    expect(res.status).toBe(204)
+    expect(editAd).toHaveBeenCalledWith("a1", { title: "Bonus", rewardAmount: 500 })
+  })
+
+  it("rejects an invalid edit", async () => {
+    const res = await asAdmin(request(app).put("/ads/a1")).send({ title: "", rewardAmount: 5 })
+    expect(res.status).toBe(400)
+    expect(editAd).not.toHaveBeenCalled()
   })
 
   it("pauses an ad", async () => {
