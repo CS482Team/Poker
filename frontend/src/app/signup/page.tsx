@@ -37,6 +37,7 @@ export default function SignupPage() {
 
     return (
     <main className="auth-page">
+      <title>Sign up</title>
     <AuthBrand />
     <div className="auth-panel">
         <div className="auth-card">

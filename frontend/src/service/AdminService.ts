@@ -1,12 +1,7 @@
-import { supabase } from "@/app/supabaseClient";
+import { authHeaders } from "@/service/AuthService";
 import type { Ad, NewAd } from "@shared/Ad";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-async function authHeaders() {
-  const { data } = await supabase.auth.getSession();
-  return { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token}` };
-}
 
 export async function isAdmin(): Promise<boolean> {
   const res = await fetch(`${API_URL}/admin`, { headers: await authHeaders() });

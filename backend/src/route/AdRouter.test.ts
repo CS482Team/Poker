@@ -1,11 +1,15 @@
 import request from "supertest"
 import { app } from "../app"
-import { createAd, deleteAd, editAd, getActiveAds, getAllAds, setAdActive } from "../dao/AdDAO"
-import { getRole, getUserIdFromToken } from "../dao/UserDAO"
+import { createAdClaim } from "../dao/AdClaimDAO"
+import { createAd, deleteAd, editAd, getActiveAds, getAd, getAllAds, setAdActive } from "../dao/AdDAO"
+import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { getBalance, getRole, getUserIdFromToken, setBalance } from "../dao/UserDAO"
+import { finishWatch, startWatch } from "../services/AdWatchService"
 
 jest.mock("../dao/AdDAO", () => ({
   getAllAds: jest.fn(),
   getActiveAds: jest.fn(),
+  getAd: jest.fn(),
   createAd: jest.fn(),
   setAdActive: jest.fn(),
   deleteAd: jest.fn(),
@@ -14,7 +18,14 @@ jest.mock("../dao/AdDAO", () => ({
 jest.mock("../dao/UserDAO", () => ({
   getRole: jest.fn(),
   getUserIdFromToken: jest.fn(),
+  getBalance: jest.fn(),
+  setBalance: jest.fn(),
 }))
+jest.mock("../dao/AdClaimDAO", () => ({ createAdClaim: jest.fn() }))
+jest.mock("../dao/BalanceLogDAO", () => ({ logBalanceChange: jest.fn() }))
+jest.mock("../services/AdWatchService", () => ({ startWatch: jest.fn(), finishWatch: jest.fn() }))
+
+const liveAd = { id: "a1", title: "Bonus", rewardAmount: 500, active: true }
 
 const validAd = { title: " Bonus ", rewardAmount: 500 }
 
@@ -50,6 +61,46 @@ describe("admin access", () => {
     const res = await asAdmin(request(app).post("/ads")).send(validAd)
     expect(res.status).toBe(403)
     expect(createAd).not.toHaveBeenCalled()
+  })
+})
+
+describe("watching ads", () => {
+  it("starts watching for a signed in player", async () => {
+    jest.mocked(getAd).mockResolvedValue(liveAd)
+    const res = await asAdmin(request(app).post("/ads/a1/watch"))
+    expect(res.status).toBe(204)
+    expect(startWatch).toHaveBeenCalledWith("admin", "a1")
+    expect(getRole).not.toHaveBeenCalled()
+  })
+
+  it("rejects watching without signing in", async () => {
+    const res = await request(app).post("/ads/a1/watch")
+    expect(res.status).toBe(401)
+  })
+
+  it("rejects a missing or paused ad", async () => {
+    jest.mocked(getAd).mockResolvedValue({ ...liveAd, active: false })
+    expect((await asAdmin(request(app).post("/ads/a1/watch"))).status).toBe(404)
+    expect((await asAdmin(request(app).post("/ads/a1/claim"))).status).toBe(404)
+  })
+
+  it("pays the reward after a full watch", async () => {
+    jest.mocked(getAd).mockResolvedValue(liveAd)
+    jest.mocked(finishWatch).mockReturnValue(true)
+    jest.mocked(getBalance).mockResolvedValue(1000)
+    const res = await asAdmin(request(app).post("/ads/a1/claim"))
+    expect(res.body).toEqual({ reward: 500 })
+    expect(setBalance).toHaveBeenCalledWith("admin", 1500)
+    expect(logBalanceChange).toHaveBeenCalledWith("admin", 500, "ad_reward")
+    expect(createAdClaim).toHaveBeenCalledWith("admin", "a1")
+  })
+
+  it("refuses to pay before the watch is done", async () => {
+    jest.mocked(getAd).mockResolvedValue(liveAd)
+    jest.mocked(finishWatch).mockReturnValue(false)
+    const res = await asAdmin(request(app).post("/ads/a1/claim"))
+    expect(res.status).toBe(409)
+    expect(setBalance).not.toHaveBeenCalled()
   })
 })
 

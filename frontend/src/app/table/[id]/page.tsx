@@ -2,6 +2,8 @@ import AdBanner from "@/component/AdBanner"
 import GameTable from "@/component/GameTable"
 import { Suspense } from "react"
 
+export const metadata = { title: "Game" }
+
 async function Content({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   return (

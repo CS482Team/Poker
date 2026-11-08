@@ -49,6 +49,7 @@ export default function HomePage() {
 
   return (
     <main className="auth-page">
+      <title>Log in</title>
       <AuthBrand />
       <div className="auth-panel">
         <div className="auth-card">                

@@ -6,6 +6,7 @@ export const CROSS = "M18 6 6 18M6 6l12 12"
 export const JOIN = "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"
 export const LEAVE = "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M8 7l-5 5 5 5M3 12h12"
 export const RETURN = "M5 12h14M13 6l6 6-6 6"
+export const PLAY = "M7 4v16l13-8z"
 export const LOCK = "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"
 
 export default function Icon({ d, size = 16 }: { d: string; size?: number }) {

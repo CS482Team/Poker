@@ -2,11 +2,10 @@ import type { Ad, NewAd } from "../../../shared/Ad"
 
 import { getSupabase } from "../config/Supabase"
 
+const AD_COLUMNS = "id, title, reward_amount, active"
+
 export async function getAllAds(): Promise<Ad[]> {
-  const { data, error } = await getSupabase()
-    .from("advert")
-    .select("id, title, reward_amount, active")
-    .order("created_at", { ascending: false })
+  const { data, error } = await getSupabase().from("advert").select(AD_COLUMNS).order("created_at", { ascending: false })
 
   if (error) throw error
 
@@ -14,11 +13,19 @@ export async function getAllAds(): Promise<Ad[]> {
 }
 
 export async function getActiveAds(): Promise<Ad[]> {
-  const { data, error } = await getSupabase().from("advert").select("id, title, reward_amount, active").eq("active", true)
+  const { data, error } = await getSupabase().from("advert").select(AD_COLUMNS).eq("active", true)
 
   if (error) throw error
 
   return data.map(toAd)
+}
+
+export async function getAd(id: string): Promise<Ad | null> {
+  const { data, error } = await getSupabase().from("advert").select(AD_COLUMNS).eq("id", id).maybeSingle()
+
+  if (error) throw error
+
+  return data ? toAd(data) : null
 }
 
 export async function createAd(input: NewAd, createdBy: string): Promise<string> {
