@@ -1,7 +1,9 @@
 import type { GameState, PlayerState, Phase } from "../../../shared/GameState"
 import { returnScore, setRanks } from "./Ender"
 import { advanceTurn, isInHand, isPlayersTurn } from "./Turn"
+import { getLegalActions, applyAction } from "./Betting"
 import type { Card } from "./Card"
+import type { LegalAction, PlayerAction } from "../../../shared/Actions"
 	
 /*Score function:
 - Use Ender.ts function to evaluate this hand's current wincond
@@ -83,7 +85,7 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 export function botDiscard(b: PlayerState) {
 	//Maybe change this later to have happiness be part of the PlayerState interface?
 	let happiness = botScore(b);
-	//Happiness being under 56 means straight or higher (with one special exception)
+	//Happiness being under 56 means lower than straight (with one special exception)
 	if(happiness <= 56) {
 		switch (b.winningRanks.length){
 			//Two Pair
@@ -149,30 +151,92 @@ export function botBet(b: PlayerState, state: GameState) {
 	if(state.phase == "predraw-betting" && firstRoundBonusChance >= .85) {
 		happiness = happiness + increment;
 	}
-	if(state.currentBet > stack) {
-		//Fold
+
+	type BetRaise = Extract<LegalAction, { min: number, max: number }>;
+
+	const legalActs: LegalAction[] = getLegalActions(state, b.id);
+	const fold = legalActs.find(a => a.type === "fold");
+	const bet = legalActs.find((a) a is BetRaise => a.type === "bet");
+	const check = legalActs.find(a => a.type === "check");
+	if(check) {
+		//bet - Happiness greater than/equal to 42
+		if(bet && happiness >= 42) {
+
+		}
+		//check - Happiness greater than/equal to 12 (if first round) or bluff
+		else if(happiness >= 12) {
+
+		}
+		//Fold - Else
+		else {
+			applyAction(state, b.id, fold);
+		}
 	}
 	else {
+		const raise = legalActs.find((a) a is BetRaise => a.type === "raise");
+		const call = legalActs.find(a => a.type === "call");
 		//TODO: Account for would be bet being over stack when raising
 		if(state.currentBet >= state.minBet * 5) {
 			//Raise - Happiness greater than/equal to 84
+			if(happiness >= 84 && raise) {
+				//not sure how to handle min and max at the moment
+				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.75;
+				applyAction(state, b.id, raise);
+			}
 			//Call - Happiness greater than/equal to 42 or bluff
+			else if(happiness >= 42 && call) {
+				applyAction(state, b.id, call);
+			}
 			//Fold - Else
+			else {
+				applyAction(state, b.id, fold);
+			}
 		}
 		else if(state.currentBet >= state.minBet * 3) {
 			//Raise - Happiness greater than/equal to 56
+			if(happiness >= 56 && raise) {
+				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.5;
+				applyAction(state, b.id, raise);
+			}
 			//Call - Happiness greater than/equal to 28 or bluff
+			else if(happiness >= 28 && call) {
+				applyAction(state, b.id, call);
+			}
 			//Fold - Else
+			else {
+				applyAction(state, b.id, fold);
+			}
 		}
+		//CHECK PLEASE: Is this even necessary?
 		else if(state.currentBet >= state.minBet) {
 			//Raise - Happiness greater than/equal to 42
+			if(happiness >= 42 && raise) {
+				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.25;
+				applyAction(state, b.id, raise);
+			}
 			//Call - Happiness greater than/equal to 25 or bluff
+			else if(happiness >= 25 && call) {
+				applyAction(state, b.id, call);
+			}
 			//Fold - Else
+			else {
+				applyAction(state, b.id, fold);
+			}
 		}
 		else {
 			//Raise - Happiness greater than/equal to 42
+			if(happiness >= 42 && raise) {
+				b.betThisRound = state.minRaise + state.currentBet + Math.Random()*happiness*.25;
+				applyAction(state, b.id, raise);
+			}
 			//Call - Happiness greater than/equal to 12 (if first round) or bluff
+			else if(happiness >= 12 && call) {
+				applyAction(state, b.id, call);
+			}
 			//Fold - Else
+			else {
+				applyAction(state, b.id, fold);
+			}
 		}
 	}
 }
