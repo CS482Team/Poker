@@ -1,7 +1,6 @@
 "use client"
 
-import AdminMenu from "@/component/AdminMenu"
-import DevUserSwitch from "@/component/DevUserSwitch"
+import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -17,20 +16,24 @@ export default function Nav() {
   if (pathname === "/" || pathname === "/signup") return null
 
   return (
-    <nav className="site-header relative flex justify-center gap-2 py-3">
-      <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
-        Lobby
-      </Link>
-      {tableId ? (
-        <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
-          Table
-        </Link>
-      ) : (
-        <span className="nav-tab opacity-40">Table</span>
-      )}
-      <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3">
-        <DevUserSwitch />
-        <AdminMenu />
+    <nav className="site-header py-3">
+      <div className="mx-auto grid max-w-[calc(1280px_-_2*var(--gutter))] grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <span />
+        <div className="flex gap-2">
+          <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
+            Lobby
+          </Link>
+          {tableId ? (
+            <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
+              Table
+            </Link>
+          ) : (
+            <span className="nav-tab opacity-40">Table</span>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <ProfileMenu />
+        </div>
       </div>
     </nav>
   )

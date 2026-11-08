@@ -1,6 +1,7 @@
 "use client"
 
 import type { Table } from "@shared/Table"
+import Icon, { JOIN, LOCK, PLUS, RETURN } from "@/component/Icon"
 import NewTableForm from "@/component/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 import { watchTables } from "@/service/SocketService"
@@ -16,6 +17,11 @@ function isTableFull(table: Table) {
 function actionLabel(isCurrent: boolean, isFull: boolean) {
   if (isCurrent) return "Return"
   return isFull ? "Full" : "Join"
+}
+
+function actionIcon(isCurrent: boolean, isFull: boolean) {
+  if (isCurrent) return RETURN
+  return isFull ? LOCK : JOIN
 }
 
 export default function TableList() {
@@ -56,8 +62,9 @@ export default function TableList() {
         <h1 className="page-title">
           Tables <small>{tables.length} tables</small>
         </h1>
-        <button type="button" onClick={() => setCreating(true)} className="primary-action">
-          New table
+        <button type="button" onClick={() => setCreating(true)} className="primary-action gap-2">
+          <Icon d={PLUS} size={18} />
+          New Table
         </button>
       </div>
 
@@ -90,7 +97,8 @@ export default function TableList() {
               <span className="hidden text-sm md:block">${table.buyIn}</span>
               <span className="hidden text-sm md:block">{stakes}</span>
               <div className="flex flex-wrap items-center gap-2 md:flex-row-reverse md:justify-start">
-                <button type="button" disabled={full && !current} onClick={() => enter(table, current)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
+                <button type="button" disabled={full && !current} onClick={() => enter(table, current)} className="secondary-action small min-w-24 gap-1.5 disabled:cursor-not-allowed disabled:opacity-40">
+                  <Icon d={actionIcon(current, full)} size={14} />
                   {actionLabel(current, full)}
                 </button>
               </div>

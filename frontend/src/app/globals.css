@@ -1043,16 +1043,16 @@ input[type="range"]::-moz-range-thumb {
   display: grid; 
   flex: 1; 
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); 
-  min-height: 100vh; 
+  min-height: 100vh;
+  background: linear-gradient(270deg, rgba(10, 2, 4, .72), transparent);
+  padding-inline: max(0px, calc(50% - 640px));
 }
 
-.auth-brand { 
+.auth-brand {
   display: flex; 
   flex-direction: column; 
   justify-content: center; 
-  padding: 56px clamp(32px, 6vw, 96px); 
-  background: linear-gradient(135deg, rgba(10, 2, 4, .72), rgba(10, 2, 4, .35)); 
-  border-right: 1px solid rgba(255, 255, 255, .06); 
+  padding: 56px clamp(32px, 6vw, 96px);
 }
 
 .auth-suits { 
@@ -1064,7 +1064,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .auth-title { 
-  font-size: clamp(48px, 7vw, 96px); 
+  font-size: clamp(3rem, 6vw, 5.5rem);
   line-height: .95; 
   letter-spacing: -.01em; 
   text-transform: uppercase; 
@@ -1099,9 +1099,9 @@ input[type="range"]::-moz-range-thumb {
 
 .auth-panel { 
   display: grid; 
-  place-items: center; 
-  padding: 40px 20px; 
-  background: rgba(8, 5, 5, .55); 
+  place-items: center;
+  padding: 40px 20px;
+  background: none;
 }
 
 .auth-link { 

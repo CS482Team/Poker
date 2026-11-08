@@ -7,13 +7,12 @@ const BUTTON =
 interface ActionBarProps {
   legalActions: LegalAction[] // empty when it isn't the viewer's turn
   busy: boolean
-  status: string
   onAction: (type: ActionType, amount?: number) => void
 }
 
 // Fold / Check-or-Call / Bet-or-Raise, built from what the backend says is legal (S2).
 // No-limit: the slider picks how much to bet or raise, between the allowed min and all-in.
-export default function ActionBar({ legalActions, busy, status, onAction }: ActionBarProps) {
+export default function ActionBar({ legalActions, busy, onAction }: ActionBarProps) {
   const fold = legalActions.find(a => a.type === "fold")
   const check = legalActions.find(a => a.type === "check")
   const call = legalActions.find(a => a.type === "call")
@@ -32,7 +31,7 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center">
       <div className="flex items-center gap-3">
         <button disabled={busy || !fold} onClick={() => onAction("fold")} className={`${BUTTON} text-[#f0503c]`}>
           Fold
@@ -65,7 +64,6 @@ export default function ActionBar({ legalActions, busy, status, onAction }: Acti
           {aggressiveLabel}
         </button>
       </div>
-      <p className="text-sm text-white/60">{status}</p>
     </div>
   )
 }

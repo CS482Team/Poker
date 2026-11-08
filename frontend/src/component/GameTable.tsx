@@ -1,6 +1,8 @@
 "use client"
 
 import ActionBar from "@/component/ActionBar"
+import Dots from "@/component/Dots"
+import Icon, { LEAVE } from "@/component/Icon"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
@@ -90,7 +92,13 @@ export default function GameTable({ id }: { id: string }) {
   return (
     <div className="relative isolate mx-auto my-16 w-[90%] max-w-[780px]">
       <div className="mb-12 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{table.name}</h1>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={leave} className="secondary-action small gap-1.5">
+            <Icon d={LEAVE} size={14} />
+            Leave
+          </button>
+          <h1 className="text-3xl font-bold">{table.name}</h1>
+        </div>
         <div className="flex gap-8 text-sm text-[#d8cfcf]">
           <span>Min bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
           <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
@@ -105,6 +113,12 @@ export default function GameTable({ id }: { id: string }) {
             <span className="text-lg text-[#d8cfcf]">Pot </span>
             <span className="text-3xl font-bold text-white">${view.pot}</span>
           </div>
+        )}
+        {view && (
+          <p className={`absolute bottom-[72px] left-1/2 -translate-x-1/2 whitespace-nowrap text-base ${actionError ? "text-red-300" : "text-white/75"}`}>
+            <span>{actionError ?? statusText(view)}</span>
+            {!actionError && view.toActSeat !== view.you.seat && <Dots />}
+          </p>
         )}
         {[...table.seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
           const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
@@ -156,16 +170,10 @@ export default function GameTable({ id }: { id: string }) {
             key={`${view.toActSeat}-${view.round?.currentBet}`}
             legalActions={view.you.legalActions}
             busy={busy}
-            status={actionError ?? statusText(view)}
             onAction={handleAction}
           />
         </div>
       )}
-      <div className="mt-6 text-center">
-        <button type="button" onClick={leave} className="secondary-action">
-          Leave table
-        </button>
-      </div>
     </div>
   )
 }
