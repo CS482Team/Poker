@@ -162,7 +162,10 @@ export function botBet(b: PlayerState, state: GameState) {
 		//bet - Happiness greater than/equal to 42
 		if(bet && happiness >= 42) {
 			b.betThisRound = state.minBet + Math.Random()*happiness*.5;
-			applyAction(state, b.id, raise);
+			if(b.betThisRound > bet.max) {
+				b.betThisRound = bet.max;
+			}
+			applyAction(state, b.id, bet);
 		}
 		//check - Happiness greater than/equal to 12 (if first round) or bluff
 		else if(happiness >= 12) {
