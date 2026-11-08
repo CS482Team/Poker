@@ -13,6 +13,7 @@ export interface TableConfig {
 export interface SeatInput { 
   id: PlayerId; name: 
   string; stack: number 
+  botFlag?: boolean
 } // what tables (Cyrus) hand to createGame
 
 export type PlayerStatus = "active" | "folded" | "all-in" | "sitting-out"
@@ -29,7 +30,7 @@ export interface PlayerState {
   winningRanks: number[]   // the winning cards of the hand, filled in at ending
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
   //Bot parameters: should we have a BotState interface inheriting from PlayerState?
-  botFlag: boolean		   //is this player a bot?
+  botFlag?: boolean		   //is this player a bot?
   botBluff: boolean		   //is the bot bluffing?
   botToDiscard: number[]	   //Card indexes the bot should discard
 }

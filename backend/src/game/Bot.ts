@@ -82,7 +82,8 @@ function drawPotential(ranks: number[], suits: Set<string>(), PlayerState: b) {
 - Three of a kind either discards 2 out cards or the lower of the two (unsure which direction to go or make it a chance)
 - Two pair discards the odd card out
 - Pair and High Card will be harder, this will be based on prior evaluation, especially since these are likely to result in fold*/
-export function botDiscard(b: PlayerState): void {
+export function botDiscard(playerId: PlayerId, state: GameState): Result<GameState, DrawError>  {
+	let b = players.find(b => b.id === playerId)!
 	//Maybe change this later to have happiness be part of the PlayerState interface?
 	let happiness = botScore(b);
 	//Happiness being under 56 means lower than straight (with one special exception)
@@ -126,7 +127,7 @@ export function botDiscard(b: PlayerState): void {
 			break;
 		}
 	}
-	//Special case: bluffing/has bonus with three cards (if both, it does not discard at the moment)
+	//Special case: bluffing with 3 of a kind
 	else if(b.winningRanks.length === 3 && happiness <= 70) {
 		for(let i = 0; i < b.hand.length; i++) {
 			if(!(b.winningRanks.includes(b.hand[i]))) {
@@ -145,18 +146,15 @@ export function botDiscard(b: PlayerState): void {
 			}
 		}
 	}
-	const result = drawCards(state, b.id, b.botToDiscard);
-	if (!result.ok) {
-		res.status(DRAW_ERROR_STATUS[result.error]).json({ error: result.error });
-		return;
-	}
+	return drawCards(state, b.id, b.botToDiscard);
 }
 
 /*Betting:
 - Use score from scoring to 
 - For first bet: take into account bonus from potential
 - For second bet: take into account whether the score improved or not maybe.*/
-export function botBet(b: PlayerState, state: GameState) {
+export function botBet(playerId: PlayerId, state: GameState): Result<GameState, ActionError> {
+	let b = players.find(b => b.id === playerId)!
 	let happiness = botScore(b);
 	let happinessRand = Math.Random();
 	//Currently 10% chance to rank up or down, may want more random
@@ -185,7 +183,7 @@ export function botBet(b: PlayerState, state: GameState) {
 			if(b.betThisRound > bet.max) {
 				b.betThisRound = bet.max;
 			}
-			applyAction(state, b.id, bet);
+			return applyAction(state, b.id, bet);
 		}
 		//check - Happiness greater than/equal to 12 (if first round) or bluff
 		else if(happiness >= 12) {
@@ -193,7 +191,7 @@ export function botBet(b: PlayerState, state: GameState) {
 		}
 		//Fold - Else
 		else {
-			applyAction(state, b.id, fold);
+			return applyAction(state, b.id, fold);
 		}
 	}
 	else {
@@ -208,15 +206,15 @@ export function botBet(b: PlayerState, state: GameState) {
 				if(b.betThisRound > raise.max) {
 					b.betThisRound = raise.max;
 				}
-				applyAction(state, b.id, raise);
+				return applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 42 or bluff
 			else if(happiness >= 42 && call) {
-				applyAction(state, b.id, call);
+				return applyAction(state, b.id, call);
 			}
 			//Fold - Else
 			else {
-				applyAction(state, b.id, fold);
+				return applyAction(state, b.id, fold);
 			}
 		}
 		else if(state.currentBet >= state.minBet * 3) {
@@ -226,15 +224,15 @@ export function botBet(b: PlayerState, state: GameState) {
 				if(b.betThisRound > raise.max) {
 					b.betThisRound = raise.max;
 				}
-				applyAction(state, b.id, raise);
+				return applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 28 or bluff
 			else if(happiness >= 28 && call) {
-				applyAction(state, b.id, call);
+				return applyAction(state, b.id, call);
 			}
 			//Fold - Else
 			else {
-				applyAction(state, b.id, fold);
+				return applyAction(state, b.id, fold);
 			}
 		}
 		//CHECK PLEASE: Is this even necessary?
@@ -245,15 +243,15 @@ export function botBet(b: PlayerState, state: GameState) {
 				if(b.betThisRound > raise.max) {
 					b.betThisRound = raise.max;
 				}
-				applyAction(state, b.id, raise);
+				return applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 25 or bluff
 			else if(happiness >= 25 && call) {
-				applyAction(state, b.id, call);
+				return applyAction(state, b.id, call);
 			}
 			//Fold - Else
 			else {
-				applyAction(state, b.id, fold);
+				return applyAction(state, b.id, fold);
 			}
 		}
 		else {
@@ -263,15 +261,15 @@ export function botBet(b: PlayerState, state: GameState) {
 				if(b.betThisRound > raise.max) {
 					b.betThisRound = raise.max;
 				}
-				applyAction(state, b.id, raise);
+				return applyAction(state, b.id, raise);
 			}
 			//Call - Happiness greater than/equal to 12 (if first round) or bluff
 			else if(happiness >= 12 && call) {
-				applyAction(state, b.id, call);
+				return applyAction(state, b.id, call);
 			}
 			//Fold - Else
 			else {
-				applyAction(state, b.id, fold);
+				return applyAction(state, b.id, fold);
 			}
 		}
 	}

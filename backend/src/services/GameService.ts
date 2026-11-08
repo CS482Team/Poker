@@ -14,6 +14,7 @@ import type { DrawError } from "../game/Drawer"
 import { scoreHands } from "../game/Ender"
 import { isInHand, isPlayersTurn } from "../game/Turn"
 import { updateStack } from "../dao/TablePlayersDAO"
+import ( botDiscard, botBet } from "../game/Dealer"
 
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
@@ -125,8 +126,12 @@ export type ActError = "game-not-found" | ActionError
 export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<GameState, ActError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-
-  const result = applyAction(game, playerId, action)
+  if (game.players[game.toActIndex].botFlag) {
+    const result = botBet(playerId, game)
+  }
+  else {
+    const result = applyAction(game, playerId, action)
+  }
   if (result.ok) gameDAO.save(finishIfShowdown(result.value))
   return result
 }
@@ -136,8 +141,12 @@ export type DrawCardsError = "game-not-found" | DrawError
 export function drawCards(gameId: string, playerId: PlayerId, discard: number[]): Result<GameState, DrawCardsError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-
-  const result = applyDraw(game, playerId, discard)
+  if (game.players[game.toActIndex].botFlag) {
+    const result = botDiscard(playerId, game)
+  }
+  else {
+    const result = applyDraw(game, playerId, discard)
+  }
   if (result.ok) gameDAO.save(finishIfShowdown(result.value))
   return result
 }
