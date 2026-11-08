@@ -11,6 +11,10 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
+jest.mock("@/service/ChatService", () => ({
+  watchChat: () => ({ send: jest.fn(), stop: jest.fn() }),
+}))
+
 jest.mock("@/service/TableService", () => ({
   fetchTable: jest.fn(),
   leaveTable: jest.fn(),

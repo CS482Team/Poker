@@ -1,4 +1,4 @@
-import { addPlayer, countPlayers, removePlayer, updateStack } from "../dao/TablePlayersDAO"
+import { addPlayer, countPlayers, isSeated, removePlayer, updateStack } from "../dao/TablePlayersDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -46,5 +46,11 @@ describe("TablePlayersDAO", () => {
     mockState.result = { data: { stack: 100 } }
     mockState.awaited = failure
     await expect(removePlayer("t1", "u1")).rejects.toThrow("db down")
+  })
+  it("knows if a player is seated", async () => {
+    mockState.result = { data: { user_id: "u1" } }
+    expect(await isSeated("t1", "u1")).toBe(true)
+    mockState.result = { data: null }
+    expect(await isSeated("t1", "u1")).toBe(false)
   })
 })
