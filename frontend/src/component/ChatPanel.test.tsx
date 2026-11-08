@@ -5,7 +5,7 @@ import type { ChatMessage } from "@shared/Chat"
 
 jest.mock("@/service/ChatService", () => ({ watchChat: jest.fn() }))
 
-const props = { tableId: "t1", tableName: "Room 1", handNumber: 1842, playerCount: 5, userId: "u1" }
+const props = { tableId: "t1", userId: "u1" }
 const hello: ChatMessage = {
   id: 1,
   tableId: "t1",
@@ -33,12 +33,11 @@ function type(text: string) {
 }
 
 describe("ChatPanel", () => {
-  it("shows the table details in the header", () => {
+  it("keeps the header to just the title, since the table shows its own details", () => {
     render(<ChatPanel {...props} seated />)
-    expect(screen.getByText("5 players online")).toBeInTheDocument()
-    expect(screen.getByText("Room 1")).toBeInTheDocument()
-    expect(screen.getByText("Hand #1842")).toBeInTheDocument()
-    expect(screen.queryByText(/5 Card Draw/)).not.toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Table chat" })).toBeInTheDocument()
+    expect(screen.queryByText(/online/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Hand #/)).not.toBeInTheDocument()
   })
 
   it("shows the chat history", () => {

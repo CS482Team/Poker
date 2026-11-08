@@ -5,9 +5,6 @@ import { type FormEvent, useEffect, useRef, useState } from "react"
 
 interface Props {
   tableId: string
-  tableName: string
-  handNumber: number | null
-  playerCount: number
   userId: string
   seated: boolean
 }
@@ -15,7 +12,7 @@ interface Props {
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e8a3a5]"
 
 /* Live table chat: history, new messages, quick chats and a capped input */
-export default function ChatPanel({ tableId, tableName, handNumber, playerCount, userId, seated }: Props) {
+export default function ChatPanel({ tableId, userId, seated }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -57,35 +54,17 @@ export default function ChatPanel({ tableId, tableName, handNumber, playerCount,
       aria-label="Table chat"
       className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-black bg-panel text-ink shadow-2xl"
     >
-      <header className="border-b border-panel-edge px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold leading-tight">Table chat</h2>
-          {/* shown for the mockup; contact admin comes in a later story */}
-          <button
-            type="button"
-            disabled
-            title="Coming soon"
-            className="rounded border border-panel-edge bg-panel-raised px-2.5 py-1 text-sm font-semibold text-ink-muted disabled:cursor-not-allowed"
-          >
-            Contact admin
-          </button>
-        </div>
-        <div className="mt-1 flex items-center justify-between gap-3 text-sm text-ink-muted">
-          <p className="min-w-0 truncate">
-            <span className="font-bold uppercase tracking-wider text-ink">{tableName}</span>
-            {!!handNumber && (
-              <>
-                <span aria-hidden> · </span>
-                <span>Hand #{handNumber}</span>
-              </>
-            )}
-          </p>
-          <p className="flex shrink-0 items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-green-400" />
-            {/* counts seated players, not who has the page open; TODO real presence if needed */}
-            {playerCount} {playerCount === 1 ? "player" : "players"} online
-          </p>
-        </div>
+      <header className="flex items-center justify-between gap-3 border-b border-panel-edge px-4 py-3">
+        <h2 className="text-lg font-bold leading-tight">Table chat</h2>
+        {/* shown for the mockup; contact admin comes in a later story */}
+        <button
+          type="button"
+          disabled
+          title="Coming soon"
+          className="rounded border border-panel-edge bg-panel-raised px-2.5 py-1 text-sm font-semibold text-ink-muted disabled:cursor-not-allowed"
+        >
+          Contact admin
+        </button>
       </header>
 
       <ul aria-label="Chat messages" aria-live="polite" className="flex-1 space-y-3 overflow-y-auto px-4 py-3">

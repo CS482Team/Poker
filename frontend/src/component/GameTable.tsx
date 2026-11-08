@@ -90,13 +90,10 @@ export default function GameTable({ id }: { id: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:items-start xl:gap-10">
-      {/* stacks under the table on small screens; on desktop it sits left and fills the viewport height */}
-      <div className="order-2 h-[28rem] w-full shrink-0 lg:sticky lg:top-6 lg:order-1 lg:h-[calc(100dvh-8rem)] lg:max-h-[880px] lg:min-h-[520px] lg:w-[320px] xl:w-[360px]">
+      {/* stacks under the table on small screens; on desktop it sits left at a fixed height (table title + table = 520px) so zoom doesn't stretch it */}
+      <div className="order-2 h-[28rem] w-full shrink-0 lg:sticky lg:top-6 lg:order-1 lg:h-[520px] lg:w-[320px] xl:w-[360px]">
         <ChatPanel
           tableId={table.id}
-          tableName={table.name}
-          handNumber={view?.handNumber ?? null}
-          playerCount={table.seats.length}
           userId={getCurrentUserId()}
           seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
         />
