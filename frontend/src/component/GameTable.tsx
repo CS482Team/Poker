@@ -2,6 +2,8 @@
 
 import ActionBar from "@/component/ActionBar"
 import ChatPanel from "@/component/ChatPanel"
+import Dots from "@/component/Dots"
+import Icon, { LEAVE } from "@/component/Icon"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
@@ -101,12 +103,18 @@ export default function GameTable({ id }: { id: string }) {
       </div>
       <div className="relative isolate order-1 mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:order-2">
         <div className="mb-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-2">
-          <h1 className="text-3xl font-bold">{table.name}</h1>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={leave} className="secondary-action small gap-1.5">
+              <Icon d={LEAVE} size={14} />
+              Leave
+            </button>
+            <h1 className="text-3xl font-bold">{table.name}</h1>
+          </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">
-            <span>Min bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
+            <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
             <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
             <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
-            <span>Max players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+            <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
           </div>
         </div>
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
@@ -116,6 +124,12 @@ export default function GameTable({ id }: { id: string }) {
               <span className="text-lg text-[#d8cfcf]">Pot </span>
               <span className="text-3xl font-bold text-white">${view.pot}</span>
             </div>
+          )}
+          {view && (
+            <p className={`absolute bottom-[72px] left-1/2 -translate-x-1/2 whitespace-nowrap text-base ${actionError ? "text-red-300" : "text-white/75"}`}>
+              <span>{actionError ?? statusText(view)}</span>
+              {!actionError && view.toActSeat !== view.you.seat && <Dots />}
+            </p>
           )}
           {[...table.seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
             const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
@@ -167,16 +181,10 @@ export default function GameTable({ id }: { id: string }) {
               key={`${view.toActSeat}-${view.round?.currentBet}`}
               legalActions={view.you.legalActions}
               busy={busy}
-              status={actionError ?? statusText(view)}
               onAction={handleAction}
             />
           </div>
         )}
-        <div className="mt-6 text-center">
-          <button type="button" onClick={leave} className="secondary-action">
-            Leave table
-          </button>
-        </div>
       </div>
     </div>
   )

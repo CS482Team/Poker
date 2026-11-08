@@ -19,6 +19,7 @@ for (const name of ["select", "insert", "update", "delete", "eq", "order", "limi
 
 export const supabaseMock = {
   createClient: () => ({
+    auth: { getUser: () => Promise.resolve(mockState.result) },
     from: (table: string) => {
       calls.push(["from", [table]])
       return mockQuery

@@ -87,7 +87,7 @@ describe("GameTable", () => {
 
   it("leaves and goes to the lobby", async () => {
     render(<GameTable id="t1" />)
-    fireEvent.click(await screen.findByRole("button", { name: "Leave table" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Leave" }))
     await screen.findByText("Maya")
     expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
     expect(mockPush).toHaveBeenCalledWith("/dashboard")

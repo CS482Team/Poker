@@ -38,14 +38,14 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onCancel}>
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <h2 className="text-xl font-bold">New table</h2>
+          <h2 className="text-xl font-bold">New Table</h2>
           <button type="button" onClick={onCancel} aria-label="Close" className="text-2xl text-[#b5a9a9]">
             ×
           </button>
         </div>
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <label className={`${labelClass} sm:col-span-2`}>
-            Table name
+            Table Name
             <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           </label>
           <label className={labelClass}>
@@ -59,7 +59,7 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
             </select>
           </label>
           <label className={labelClass}>
-            Buy in
+            Buy In
             <input type="number" min={1} required value={buyIn} onChange={(e) => setBuyIn(Number(e.target.value))} className={numberClass} />
           </label>
           <label className={labelClass}>
@@ -67,7 +67,7 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
             <input type="number" min={0} required value={ante} onChange={(e) => setAnte(Number(e.target.value))} className={numberClass} />
           </label>
           <label className={labelClass}>
-            Min bet
+            Min Bet
             <input type="number" min={0} required value={minimumBet} onChange={(e) => setMinimumBet(Number(e.target.value))} className={numberClass} />
           </label>
           {error && <p className="text-sm text-red-400 sm:col-span-2">{error}</p>}

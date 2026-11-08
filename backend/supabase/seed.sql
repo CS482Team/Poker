@@ -20,6 +20,36 @@ values
   ('00000000-0000-0000-0000-000000000004', 'Noah', 1560),
   ('00000000-0000-0000-0000-000000000005', 'Alex', 2450);
 
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, confirmation_token, recovery_token, email_change_token_new, email_change, created_at, updated_at)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-0000-0000-000000000006',
+  'authenticated',
+  'authenticated',
+  'test@admin.com',
+  extensions.crypt('admin123', extensions.gen_salt('bf')),
+  now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  '', '', '', '',
+  now(),
+  now()
+);
+
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values (
+  '00000000-0000-0000-0000-000000000006',
+  '00000000-0000-0000-0000-000000000006',
+  '{"sub":"00000000-0000-0000-0000-000000000006","email":"test@admin.com","email_verified":true}',
+  'email',
+  now(),
+  now(),
+  now()
+);
+
+insert into public."user" (id, username, role)
+values ('00000000-0000-0000-0000-000000000006', 'Admin', 1);
+
 set session_replication_role = origin;
 
 insert into public."table" (name, max_players, buy_in, status, minimum_bet, ante, bot_count)

@@ -3,6 +3,7 @@ import Nav from "@/component/NavBar"
 import { usePathname } from "next/navigation"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 
+jest.mock("@/component/ProfileMenu", () => () => null)
 jest.mock("@/service/CurrentTableService", () => ({ getCurrentTableId: jest.fn() }))
 jest.mock("next/navigation", () => ({
   usePathname: jest.fn(),
