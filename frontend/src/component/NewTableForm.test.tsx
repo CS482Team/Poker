@@ -18,7 +18,7 @@ jest.mock("@/service/CurrentTableService", () => ({
 }))
 
 function submit() {
-  fireEvent.change(screen.getByLabelText("Table name"), { target: { value: "My Table" } })
+  fireEvent.change(screen.getByLabelText("Table Name"), { target: { value: "My Table" } })
   fireEvent.click(screen.getByRole("button", { name: "Create" }))
 }
 

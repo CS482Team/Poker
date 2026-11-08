@@ -26,7 +26,7 @@ export default function NewAdForm({ onCancel, onCreated }: { onCancel: () => voi
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onCancel}>
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <h2 className="text-xl font-bold">New ad</h2>
+          <h2 className="text-xl font-bold">New Ad</h2>
           <button type="button" onClick={onCancel} aria-label="Close" className="text-2xl text-[#b5a9a9]">
             ×
           </button>

@@ -78,12 +78,7 @@ export default function AdManager() {
         {error && <p className="mb-3 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
 
         {ads.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-sm text-[#9e9393]">No ads yet.</p>
-            <button type="button" onClick={() => setCreating(true)} className="secondary-action small mt-4">
-              Create the first one
-            </button>
-          </div>
+          <p className="py-10 text-center text-sm text-[#9e9393]">No ads yet.</p>
         ) : (
           <>
             <div className={`${ROW} border-b border-white/10 pb-2 text-[13px] text-[#9e9393]`}>

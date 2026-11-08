@@ -111,10 +111,10 @@ export default function GameTable({ id }: { id: string }) {
             <h1 className="text-3xl font-bold">{table.name}</h1>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">
-            <span>Min bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
+            <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
             <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
             <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
-            <span>Max players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+            <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
           </div>
         </div>
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
