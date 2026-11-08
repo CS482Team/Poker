@@ -55,7 +55,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
       className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-black bg-panel text-ink shadow-2xl"
     >
       <header className="flex items-center justify-between gap-3 border-b border-panel-edge px-4 py-3">
-        <h2 className="text-lg font-bold leading-tight">Table chat</h2>
+        <h2 className="text-lg font-bold leading-tight">Chat</h2>
         {/* shown for the mockup; contact admin comes in a later story */}
         <button
           type="button"
@@ -129,7 +129,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
               disabled={!seated}
               maxLength={MAX_CHAT_LENGTH}
               aria-label="Chat message"
-              placeholder={seated ? "Message the table" : "Take a seat to chat"}
+              placeholder={seated ? "Message" : "Take a seat"}
               className={`h-11 w-full rounded-md border border-panel-edge bg-panel-sunken pl-3 pr-16 text-base text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:bg-panel ${FOCUS}`}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">

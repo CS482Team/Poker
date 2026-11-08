@@ -89,16 +89,17 @@ export default function GameTable({ id }: { id: string }) {
   if (!table) return <p className="p-8 text-center">Loading table…</p>
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:items-start xl:gap-10">
-      {/* stacks under the table on small screens; on desktop it sits left at a fixed height (table title + table = 520px) so zoom doesn't stretch it */}
-      <div className="order-2 h-[28rem] w-full shrink-0 lg:sticky lg:top-6 lg:order-1 lg:h-[520px] lg:w-[320px] xl:w-[360px]">
+    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-8 sm:px-6 md:flex-row md:items-start md:gap-12 xl:gap-14">
+      {/* sits left of the table from 768px wide (incl. half-screen windows) at a fixed height (table title + table = 520px)
+          so zoom doesn't stretch it; only stacks under the table on phones */}
+      <div className="order-2 h-[28rem] w-full shrink-0 md:sticky md:top-6 md:order-1 md:h-[520px] md:w-[260px] lg:w-[320px] xl:w-[360px]">
         <ChatPanel
           tableId={table.id}
           userId={getCurrentUserId()}
           seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
         />
       </div>
-      <div className="relative isolate order-1 mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 lg:order-2">
+      <div className="relative isolate order-1 mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:order-2">
         <div className="mb-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-2">
           <h1 className="text-3xl font-bold">{table.name}</h1>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">

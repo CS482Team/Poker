@@ -29,13 +29,13 @@ beforeEach(() => {
 })
 
 function type(text: string) {
-  fireEvent.change(screen.getByPlaceholderText("Message the table"), { target: { value: text } })
+  fireEvent.change(screen.getByPlaceholderText("Message"), { target: { value: text } })
 }
 
 describe("ChatPanel", () => {
   it("keeps the header to just the title, since the table shows its own details", () => {
     render(<ChatPanel {...props} seated />)
-    expect(screen.getByRole("heading", { name: "Table chat" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Chat" })).toBeInTheDocument()
     expect(screen.queryByText(/online/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Hand #/)).not.toBeInTheDocument()
   })
@@ -110,7 +110,7 @@ describe("ChatPanel", () => {
     type("hi")
     await act(async () => fireEvent.click(screen.getByText("Send")))
     expect(send).toHaveBeenCalledWith("hi")
-    expect(screen.getByPlaceholderText("Message the table")).toHaveValue("")
+    expect(screen.getByPlaceholderText("Message")).toHaveValue("")
   })
 
   it("sends a quick chat", async () => {
@@ -137,7 +137,7 @@ describe("ChatPanel", () => {
 
   it("only lets seated players chat", () => {
     render(<ChatPanel {...props} seated={false} />)
-    expect(screen.getByPlaceholderText("Take a seat to chat")).toBeDisabled()
+    expect(screen.getByPlaceholderText("Take a seat")).toBeDisabled()
     expect(screen.queryByText("Nice hand")).not.toBeInTheDocument()
   })
 

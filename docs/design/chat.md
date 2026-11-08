@@ -88,8 +88,9 @@ ChatReply   = { ok: true } | { ok: false, error }
 | `component/GameTable.tsx` | Puts the chat in a column beside the table |
 
 **Layout:**
-- Desktop: the chat sits left of the table at a fixed **520px** tall (table title + table), 320px wide, or 360px from 1280px screens. The fixed height keeps zoom from stretching it.
-- Mobile: it stacks under the table at full width, 448px tall.
+- From **768px** wide, including a half-screen window on a laptop, the chat sits left of the table at a fixed **520px** tall (table title + table). The fixed height keeps zoom from stretching it.
+  - Width: 260px from 768px, 320px from 1024px, 360px from 1280px. It's narrower on mid-size screens to leave the table room.
+- Phones (under 768px): it stacks under the table at full width, 448px tall.
 
 **Look:** solid panel colours (`panel`, `panel-raised`, `panel-sunken`, `panel-edge`, `panel-mine`, `ink`, `ink-muted` in `globals.css`). All text passes WCAG AA contrast on them. Your own messages sit on the right in red; everyone else's sit on the left. Avatars fall back to the sender's initial when there's no picture or it fails to load.
 
