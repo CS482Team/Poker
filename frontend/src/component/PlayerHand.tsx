@@ -22,7 +22,8 @@ export default function PlayerHand({ cards, selected = [], canSelect = false, on
             aria-pressed={isSelected}
             aria-label={cardLabel(card)}
             onClick={() => onToggle?.(i)}
-            className={`rounded-md transition-transform disabled:cursor-default ${isSelected ? "-translate-y-5 ring-4 ring-turn" : ""}`}
+            // picked to discard: lifted with a red border; the dark offset keeps it visible over the red table
+            className={`rounded-md transition-transform disabled:cursor-default ${isSelected ? "-translate-y-5 ring-4 ring-red-500 ring-offset-2 ring-offset-black" : ""}`}
           >
             <PlayingCard card={card} size="lg" index={i} />
           </button>

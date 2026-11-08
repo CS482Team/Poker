@@ -836,6 +836,9 @@ input[type="checkbox"]:checked::after {
   font-weight: 700;
 }
 .seat-portrait.winner { border-color: #e9c46a; box-shadow: 0 0 0 3px rgba(233, 196, 106, .3), 0 4px 10px rgba(0, 0, 0, .55); }
+/* Open seat: a dashed ring the same size as a portrait, so the table keeps its shape */
+.seat-portrait.empty { border-style: dashed; border-color: rgba(255, 255, 255, .45); background: rgba(0, 0, 0, .3); box-shadow: none; }
+.seat-label .open { font-weight: 400; color: #d8cfcf; }
 .your-seat { width: 84px; height: 84px; border-color: #f1f1f1; }
 .seat-label.you { margin-top: 6px; }
 .dealer-chip {
@@ -1388,3 +1391,9 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
 }
 .animate-turn-glow { animation: turn-glow 1.6s ease-in-out infinite; }
 .animate-deal-in { animation: deal-in 300ms ease-out both; }
+
+/* Players who ask their system for less motion get a steady glow and no card slide */
+@media (prefers-reduced-motion: reduce) {
+  .animate-turn-glow { animation: none; box-shadow: 0 0 12px 4px rgb(250 204 21 / 0.8); }
+  .animate-deal-in { animation: none; }
+}

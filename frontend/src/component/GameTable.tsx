@@ -1,7 +1,9 @@
 "use client"
 
 import ActionBar from "@/component/ActionBar"
+import CardFan from "@/component/CardFan"
 import ChatPanel from "@/component/ChatPanel"
+import EmptySeat from "@/component/EmptySeat"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
@@ -14,6 +16,7 @@ import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
+/* where seat `i` of `count` sits: spread along the top arc of the table, left to right */
 function seatPosition(i: number, count: number) {
   const angle = count === 1 ? Math.PI / 2 : Math.PI - (i * Math.PI) / (count - 1)
   return { left: `${50 + 43 * Math.cos(angle)}%`, top: `${55 - 41 * Math.sin(angle)}%` }
@@ -111,35 +114,80 @@ export default function GameTable({ id }: { id: string }) {
         </div>
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
           <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
-          {view && (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
-              <span className="text-lg text-[#d8cfcf]">Pot </span>
-              <span className="text-3xl font-bold text-white">${view.pot}</span>
+          <span className="table-mark select-none" aria-hidden>
+            {"H&D"}
+          </span>
+          {/* once the hand is paid out the winner takes the pot's place */}
+          {view && Object.keys(view.winnings ?? {}).length > 0 ? (
+            <div className="winner-callout" role="status">
+              <strong>{winnerText(view)}</strong>
             </div>
+          ) : (
+            view && (
+              <div className="pot">
+                <span className="pot-chip" aria-hidden />
+                <small>Pot</small>
+                <strong>${view.pot.toLocaleString()}</strong>
+              </div>
+            )
           )}
-          {[...table.seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
-            const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
+          {/* every seat has a fixed spot by seat number, so players don't move as others join or leave */}
+          {Array.from({ length: table.maxPlayers }, (_, seatNumber) => {
+            const seat = table.seats.find((s) => s.seatNumber === seatNumber)
+            const position = seatPosition(seatNumber, table.maxPlayers)
+            if (!seat) {
+              return (
+                <div key={`open-${seatNumber}`} className="absolute -translate-x-1/2 -translate-y-1/2" style={position}>
+                  <EmptySeat />
+                </div>
+              )
+            }
+            const mine = seat.userId === getCurrentUserId()
+            const name = mine ? "Me" : seat.username
+            // the game's view of this player; `live.seat` is their place in the game's turn order, not the table seat
             const live = view?.players.find((p) => p.id === seat.userId)
             const won = view?.winners.includes(seat.userId)
+            const folded = live?.status === "folded"
+            const toAct = live !== undefined && live.seat === view?.toActSeat
+            const dealer = live !== undefined && live.seat === view?.dealerSeat
+            const fanned = live && !mine && !folded && live.cardCount > 0 // your own hand is shown below the table
             return (
               <div
                 key={seat.userId}
-                className="absolute -translate-x-1/2 -translate-y-1/2 text-center"
-                style={seatPosition(i, table.seats.length)}
+                data-seat
+                className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition-opacity ${folded ? "opacity-50" : ""}`}
+                style={position}
               >
-                {won && (
-                  <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-6 left-1/2 h-5 w-7 -translate-x-1/2">
-                    <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
-                  </svg>
-                )}
-                <div className="seat-portrait" style={won ? { borderColor: "#e8b84a" } : undefined}>
-                  {name[0]}
+                {/* the fan sits above the portrait, which covers just the bottom of the cards (like the mockup) */}
+                <div className="relative">
+                  {fanned && (
+                    <div
+                      role="img"
+                      aria-label={`${name} has ${live.cardCount} cards`}
+                      className="absolute bottom-[calc(100%-26px)] left-1/2 -translate-x-1/2"
+                    >
+                      <CardFan count={live.cardCount} />
+                    </div>
+                  )}
+                  {won && (
+                    <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-6 left-1/2 z-10 h-5 w-7 -translate-x-1/2">
+                      <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
+                    </svg>
+                  )}
+                  <div className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""}`}>
+                    {name[0]}
+                    {dealer && (
+                      <span className="dealer-chip" aria-label="Dealer">
+                        D
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="seat-label">
                   <span>{name}</span>
                   <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
                 </div>
-                {live && live.betThisRound > 0 && <small>Bet ${live.betThisRound}</small>}
+                {folded ? <small>Folded</small> : live && live.betThisRound > 0 && <small>Bet ${live.betThisRound}</small>}
               </div>
             )
           })}
@@ -154,8 +202,11 @@ export default function GameTable({ id }: { id: string }) {
             />
           </div>
         )}
-        {canDraw && (
-          <div className="mt-6 text-center">
+        {canDraw && view && (
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <p aria-live="polite" className="text-sm text-[#d8cfcf]">
+              {discardText(selected.length, view.you.hand.length)}
+            </p>
             <button type="button" onClick={handleDraw} disabled={busy} className="secondary-action">
               Draw
             </button>
@@ -180,6 +231,23 @@ export default function GameTable({ id }: { id: string }) {
       </div>
     </div>
   )
+}
+
+/* who won the hand and how much: "You won 120 chips", "Maya won 120 chips"; a split pot lists each share */
+function winnerText(view: PlayerView): string {
+  const myId = view.players[view.you.seat]?.id
+  return Object.entries(view.winnings)
+    .map(([id, chips]) => {
+      const who = id === myId ? "You" : (view.players.find((p) => p.id === id)?.name ?? "A player")
+      return `${who} won ${chips.toLocaleString()} ${chips === 1 ? "chip" : "chips"}`
+    })
+    .join(" · ")
+}
+
+/* tells the player what pressing Draw will do, e.g. "Discarding 2 cards" */
+function discardText(discarding: number, handSize: number): string {
+  if (discarding === 0) return `Keeping all ${handSize} cards`
+  return `Discarding ${discarding} ${discarding === 1 ? "card" : "cards"}`
 }
 
 function statusText(view: PlayerView): string {

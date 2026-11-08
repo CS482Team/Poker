@@ -24,4 +24,5 @@ export interface PlayerView {
   you: { seat: number; hand: Card[]; legalActions: LegalAction[] }
   players: PublicPlayer[]
   winners: PlayerId[]
+  winnings: Record<PlayerId, number> // chips each winner took from the pot; empty until the hand ends
 }

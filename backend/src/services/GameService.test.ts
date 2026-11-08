@@ -100,6 +100,7 @@ describe("takeAction", () => {
     const ended = leaveGame("t1", "c")!
     expect(ended.phase).toBe("hand-complete")
     expect(ended.players[0]!.stack).toBe(102)
+    expect(ended.winnings).toEqual({ a: 3 })
   })
 
   it("pays the pot when the hand reaches showdown", async () => {
@@ -109,5 +110,25 @@ describe("takeAction", () => {
     const ended = gameDAO.get(game.id)!
     expect(ended.phase).toBe("hand-complete")
     expect(ended.players[0]!.stack).toBe(102)
+  })
+})
+
+describe("winnings", () => {
+  it("starts each hand with nobody having won anything", async () => {
+    expect((await started()).winnings).toEqual({})
+  })
+
+  it("records how many chips the winner took from the pot", async () => {
+    const game = await started() // pot is 3: everyone anted 1
+    takeAction(game.id, "b", { type: "fold" })
+    takeAction(game.id, "c", { type: "fold" })
+    expect(gameDAO.get(game.id)!.winnings).toEqual({ a: 3 })
+  })
+
+  it("shows every player who won and how much", async () => {
+    const game = await started()
+    takeAction(game.id, "b", { type: "fold" })
+    takeAction(game.id, "c", { type: "fold" })
+    expect(getTableView("t1", "b")!.winnings).toEqual({ a: 3 })
   })
 })

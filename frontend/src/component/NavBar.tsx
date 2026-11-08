@@ -1,6 +1,5 @@
 "use client"
 
-import DevUserSwitch from "@/component/DevUserSwitch"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -16,18 +15,33 @@ export default function Nav() {
   if (pathname === "/" || pathname === "/signup") return null
 
   return (
-    <nav className="site-header relative flex justify-center gap-2 py-3">
-      <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
-        Lobby
+    // three columns: logo on the left, tabs centred, an empty right column to balance it
+    <nav className="site-header grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-3">
+      {/* small version of the sign-in page's brand */}
+      <Link
+        href="/dashboard"
+        aria-label="Hearts & Diamonds, back to the lobby"
+        className="flex items-center gap-2 justify-self-start rounded-md focus-visible:outline-2 focus-visible:outline-[#e5484d]"
+      >
+        <span aria-hidden className="text-2xl leading-none text-[#e5484d]">
+          &hearts;&diams;
+        </span>
+        <span aria-hidden className="font-display hidden text-lg leading-none sm:inline">
+          Hearts &amp; Diamonds
+        </span>
       </Link>
-      {tableId ? (
-        <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
-          Table
+      <div className="flex gap-2">
+        <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
+          Lobby
         </Link>
-      ) : (
-        <span className="nav-tab opacity-40">Table</span>
-      )}
-      <DevUserSwitch />
+        {tableId ? (
+          <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
+            Table
+          </Link>
+        ) : (
+          <span className="nav-tab opacity-40">Table</span>
+        )}
+      </div>
     </nav>
   )
 }

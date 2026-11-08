@@ -24,6 +24,18 @@ describe("Nav", () => {
     expect(screen.getByRole("link", { name: "Table" })).toHaveAttribute("href", "/table/abc")
   })
 
+  it("shows the Hearts & Diamonds logo, linking to the lobby", () => {
+    jest.mocked(usePathname).mockReturnValue("/table/abc")
+    render(<Nav />)
+    expect(screen.getByRole("link", { name: "Hearts & Diamonds, back to the lobby" })).toHaveAttribute("href", "/dashboard")
+  })
+
+  it("no longer has the dev user switch, now that people sign in", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    render(<Nav />)
+    expect(screen.queryByLabelText("Dev user")).not.toBeInTheDocument()
+  })
+
   it("shows the table link on a table page", () => {
     jest.mocked(usePathname).mockReturnValue("/table/abc")
     jest.mocked(getCurrentTableId).mockReturnValue("abc")
