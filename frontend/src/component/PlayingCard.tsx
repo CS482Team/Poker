@@ -4,7 +4,7 @@ import { CARD_BACK_IMAGE, cardImage, cardLabel } from "@/util/Card"
 
 const SIZES = {
   sm: { width: 44, height: 62 },
-  md: { width: 52, height: 73 }, // opponents' card fans
+  md: { width: 40, height: 56 }, // opponents' card fans
   lg: { width: 100, height: 140 },
 }
 

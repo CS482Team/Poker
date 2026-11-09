@@ -12,8 +12,10 @@ function renderBet(min: number, max: number) {
   render(<ActionBar legalActions={legal} busy={false} status="" onAction={onAction} />)
 }
 
-function slide(step: number) {
-  fireEvent.change(screen.getByLabelText("Bet size"), { target: { value: String(step) } })
+/* presses + or - a number of times */
+function press(direction: "up" | "down", times = 1) {
+  const button = screen.getByRole("button", { name: direction === "up" ? "Increase bet amount" : "Decrease bet amount" })
+  for (let i = 0; i < times; i++) fireEvent.click(button)
 }
 
 function typeAmount(text: string) {
@@ -29,35 +31,46 @@ describe("ActionBar", () => {
     expect(onAction).toHaveBeenCalledWith("raise", 10)
   })
 
-  it("bets all-in from the end of the slider", () => {
+  it("bets all-in after pressing + up to the top", () => {
     renderBet(5, 20) // steps: 5, 10, 15, 20
-    slide(3)
+    press("up", 3)
     fireEvent.click(screen.getByRole("button", { name: "All-in $20" }))
     expect(onAction).toHaveBeenCalledWith("bet", 20)
   })
 
-  it("moves the slider in $5 steps, keeping the minimum and all-in reachable", () => {
+  it("moves up and down in $5 steps, keeping the minimum and all-in reachable", () => {
     renderBet(2, 63) // steps: 2, 5, 10, ... 60, 63
     expect(screen.getByRole("button", { name: "Bet $2" })).toBeInTheDocument()
-    slide(1)
+    press("up")
     expect(screen.getByRole("button", { name: "Bet $5" })).toBeInTheDocument()
-    slide(2)
+    press("up")
     expect(screen.getByRole("button", { name: "Bet $10" })).toBeInTheDocument()
-    slide(12)
-    expect(screen.getByRole("button", { name: "Bet $60" })).toBeInTheDocument()
-    slide(13)
+    press("down", 2)
+    expect(screen.getByRole("button", { name: "Bet $2" })).toBeInTheDocument()
+    press("up", 13)
     expect(screen.getByRole("button", { name: "All-in $63" })).toBeInTheDocument()
   })
 
-  it("tells screen readers the slider's amount, not its step number", () => {
-    renderBet(2, 63)
-    slide(2)
-    expect(screen.getByLabelText("Bet size")).toHaveAttribute("aria-valuetext", "$10")
+  it("can't go below the minimum or above all-in", () => {
+    renderBet(5, 20)
+    expect(screen.getByRole("button", { name: "Decrease bet amount" })).toBeDisabled()
+    press("up", 3)
+    expect(screen.getByRole("button", { name: "Increase bet amount" })).toBeDisabled()
   })
 
-  it("keeps the amount box in step with the slider", () => {
+  it("steps to the nearest $5 from a typed amount", () => {
     renderBet(2, 63)
-    slide(3)
+    typeAmount("23")
+    press("up")
+    expect(screen.getByLabelText("Bet amount")).toHaveValue(25)
+    typeAmount("23")
+    press("down")
+    expect(screen.getByLabelText("Bet amount")).toHaveValue(20)
+  })
+
+  it("keeps the amount box in step with the buttons", () => {
+    renderBet(2, 63)
+    press("up", 3)
     expect(screen.getByLabelText("Bet amount")).toHaveValue(15)
   })
 
@@ -104,6 +117,8 @@ describe("ActionBar", () => {
     render(<ActionBar legalActions={[]} busy={false} status="Maya to act" onAction={onAction} />)
     expect(screen.getByRole("button", { name: "Fold" })).toBeDisabled()
     expect(screen.getByLabelText("Bet amount")).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Increase bet amount" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Decrease bet amount" })).toBeDisabled()
     expect(screen.getByText("Maya to act")).toBeInTheDocument()
   })
 })

@@ -125,9 +125,8 @@ describe("GameTable", () => {
     expect(screen.getByText("Round over, waiting for next round")).toBeInTheDocument()
   })
 
-  it("shows the H&D mark and the pot", async () => {
+  it("shows the pot", async () => {
     await showView({ ...view, pot: 1200 })
-    expect(screen.getByText("H&D")).toBeInTheDocument()
     expect(screen.getByText("Pot")).toBeInTheDocument()
     expect(screen.getByText("$1,200")).toBeInTheDocument()
   })
@@ -151,6 +150,23 @@ describe("GameTable", () => {
     await showView({ ...view, pot: 40, players: [alex, maya] })
     expect(screen.queryByRole("status")).not.toBeInTheDocument()
     expect(screen.getByText("$40")).toBeInTheDocument()
+    expect(document.querySelector("[data-pot-slide]")).not.toBeInTheDocument()
+  })
+
+  it("slides the pot to the winner's seat instead of writing who won", async () => {
+    await showView({ ...view, players: [alex, maya], winners: ["u2"], winnings: { u2: 1200 } })
+    const slide = document.querySelector("[data-pot-slide]") as HTMLElement
+    expect(slide).toHaveTextContent("$1,200")
+    expect(slide.style.getPropertyValue("--to-left")).toBe(seatOf("Maya").style.left)
+    expect(slide.style.getPropertyValue("--to-top")).toBe(seatOf("Maya").style.top)
+    // the words are still there for screen readers, just not on screen
+    expect(screen.getByRole("status")).toHaveClass("sr-only")
+  })
+
+  it("slides each share of a split pot to its own winner", async () => {
+    await showView({ ...view, players: [alex, maya], winners: [alex.id, "u2"], winnings: { [alex.id]: 15, u2: 15 } })
+    const slides = [...document.querySelectorAll<HTMLElement>("[data-pot-slide]")]
+    expect(slides.map((s) => s.style.getPropertyValue("--to-left"))).toEqual([seatOf("Me").style.left, seatOf("Maya").style.left])
   })
 
   it("shows an open seat for every empty seat at the table", async () => {

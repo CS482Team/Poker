@@ -114,18 +114,33 @@ export default function GameTable({ id }: { id: string }) {
         </div>
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
           <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
-          <span className="table-mark select-none" aria-hidden>
-            {"H&D"}
-          </span>
-          {/* once the hand is paid out the winner takes the pot's place */}
+          {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
+              the words stay for screen readers */}
           {view && Object.keys(view.winnings ?? {}).length > 0 ? (
-            <div className="winner-callout" role="status">
-              <strong>{winnerText(view)}</strong>
-            </div>
+            <>
+              <p className="sr-only" role="status">{winnerText(view)}</p>
+              {Object.entries(view.winnings).map(([winnerId, chips]) => {
+                const seat = table.seats.find((s) => s.userId === winnerId)
+                if (!seat) return null
+                const to = seatPosition(seat.seatNumber, table.maxPlayers)
+                return (
+                  <div
+                    key={winnerId}
+                    data-pot-slide
+                    aria-hidden
+                    className="pot pot-slide"
+                    style={{ "--to-left": to.left, "--to-top": to.top } as React.CSSProperties}
+                  >
+                    <span className="chip" />
+                    <strong>${chips.toLocaleString()}</strong>
+                  </div>
+                )
+              })}
+            </>
           ) : (
             view && (
               <div className="pot">
-                <span className="pot-chip" aria-hidden />
+                <span className="chip" aria-hidden />
                 <small>Pot</small>
                 <strong>${view.pot.toLocaleString()}</strong>
               </div>
@@ -164,7 +179,7 @@ export default function GameTable({ id }: { id: string }) {
                     <div
                       role="img"
                       aria-label={`${name} has ${live.cardCount} cards`}
-                      className="absolute bottom-[calc(100%-26px)] left-1/2 -translate-x-1/2"
+                      className="absolute bottom-[calc(100%-18px)] left-1/2 -translate-x-1/2"
                     >
                       <CardFan count={live.cardCount} />
                     </div>

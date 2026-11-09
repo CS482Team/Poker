@@ -15,7 +15,7 @@ export default function CardFan({ count }: { count: number }) {
           // each card pivots from its bottom edge, like a hand of cards held in a fan
           <div
             key={i}
-            className={`shrink-0 origin-bottom ${i > 0 ? "-ml-6" : ""}`}
+            className={`shrink-0 origin-bottom ${i > 0 ? "-ml-5" : ""}`}
             style={{ transform: `rotate(${angle}deg) translateY(${Math.abs(angle) / 2}px)` }}
           >
             <PlayingCard card={null} size="md" index={i} />
