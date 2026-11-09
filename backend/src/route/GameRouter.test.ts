@@ -14,7 +14,7 @@ describe("POST /game/:gameId/action", () => {
     const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: 10 } })
     expect(res.status).toBe(204)
     expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "bet", amount: 10 })
-    expect(sendViews).toHaveBeenCalledWith("t1", ["a", "b"])
+    expect(sendViews).toHaveBeenCalledWith("t1")
   })
 
   it("rejects a bad request", async () => {
@@ -38,7 +38,7 @@ describe("POST /game/:gameId/draw", () => {
     const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 2] })
     expect(res.status).toBe(204)
     expect(drawCards).toHaveBeenCalledWith("g1", "a", [0, 2])
-    expect(sendViews).toHaveBeenCalledWith("t1", ["a"])
+    expect(sendViews).toHaveBeenCalledWith("t1")
   })
 
   it("rejects a bad discard list", async () => {
@@ -59,16 +59,16 @@ describe("POST /game/:gameId/draw", () => {
 })
 
 describe("bots", () => {
-  it("waits 3 to 10 seconds before a bot moves", async () => {
+  it("waits 1 to 10 seconds before a bot moves", async () => {
     const game = { tableId: "t1", players: [{ id: "a" }, { id: "bot-0" }] }
     jest.mocked(takeAction).mockReturnValue({ ok: true, value: game } as never)
     jest.mocked(isBotTurn).mockReturnValueOnce(true)
     jest.mocked(playBot).mockReturnValue(game as never)
     jest.useFakeTimers()
     await request(app).post("/game/g1/action").send({ playerId: "a", action: { type: "check" } })
-    jest.advanceTimersByTime(2999)
+    jest.advanceTimersByTime(999)
     expect(playBot).not.toHaveBeenCalled()
-    jest.advanceTimersByTime(7001)
+    jest.advanceTimersByTime(9001)
     expect(playBot).toHaveBeenCalledWith("t1")
     expect(sendViews).toHaveBeenCalledTimes(2)
     jest.useRealTimers()

@@ -30,7 +30,7 @@ export interface PlayerState {
   winCond: number          // win condition met, filled in at ending
   winningRanks: number[]   // the winning cards of the hand, filled in at ending
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
-  lastAction?: ActionType | null // what they did last this betting round
+  lastAction?: ActionType | null
   //Bot parameters: should we have a BotState interface inheriting from PlayerState?
   botFlag?: boolean		   //is this player a bot?
   botBluff?: boolean		   //is the bot bluffing?

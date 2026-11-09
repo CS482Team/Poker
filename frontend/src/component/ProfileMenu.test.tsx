@@ -26,4 +26,13 @@ describe("ProfileMenu", () => {
     fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
     expect(await screen.findByText("Coming soon")).toBeInTheDocument()
   })
+
+  it("closes when you click somewhere else", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    render(<ProfileMenu />)
+    fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
+    expect(await screen.findByText("Coming soon")).toBeInTheDocument()
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument()
+  })
 })

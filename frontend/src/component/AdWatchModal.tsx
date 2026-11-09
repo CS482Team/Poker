@@ -36,8 +36,8 @@ export default function AdWatchModal({ ad, onClose }: { ad: Ad; onClose: () => v
   if (error) message = error
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[640px] overflow-hidden rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
+      <div className="w-full max-w-[640px] overflow-hidden rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <h2 className="truncate text-lg font-bold">{ad.title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="text-2xl text-[#b5a9a9]">

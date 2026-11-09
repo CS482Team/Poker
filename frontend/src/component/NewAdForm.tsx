@@ -23,8 +23,8 @@ export default function NewAdForm({ onCancel, onCreated }: { onCancel: () => voi
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onCancel}>
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+      <form onSubmit={submit} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <h2 className="text-xl font-bold">New Ad</h2>
           <button type="button" onClick={onCancel} aria-label="Close" className="text-2xl text-[#b5a9a9]">
@@ -41,10 +41,7 @@ export default function NewAdForm({ onCancel, onCreated }: { onCancel: () => voi
             <input type="number" min={0} required value={rewardAmount} onChange={(e) => setRewardAmount(Number(e.target.value))} className={numberClass} />
           </label>
           {error && <p className="text-sm text-red-400">{error}</p>}
-          <div className="flex justify-end gap-3">
-            <button type="button" onClick={onCancel} className="secondary-action">
-              Cancel
-            </button>
+          <div className="mt-3 flex justify-end">
             <button type="submit" className="primary-action">
               Create
             </button>

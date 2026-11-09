@@ -19,7 +19,8 @@ export function initSocket(server: HttpServer) {
     })
     // TODO use the logged in user once auth exists
     socket.on("watchHand", async (info: { tableId: string; userId: string }, ack?: () => void) => {
-      await socket.join(handTable(info.tableId, info.userId))
+      socket.data.userId = info.userId
+      await socket.join(handRoom(info.tableId))
       const view = getTableView(info.tableId, info.userId)
       if (view) socket.emit("view", view)
       ack?.()
@@ -43,9 +44,11 @@ export async function broadcastChange(tableId: string) {
 }
 
 /* sends the latest game state to watchers */
-export function sendViews(tableId: string, userIds: string[]) {
-  for (const id of userIds) {
-    io?.to(handTable(tableId, id)).emit("view", getTableView(tableId, id))
+export async function sendViews(tableId: string) {
+  if (!io) return
+  const sockets = await io.in(handRoom(tableId)).fetchSockets()
+  for (const socket of sockets) {
+    socket.emit("view", getTableView(tableId, socket.data.userId))
   }
 }
 
@@ -56,6 +59,6 @@ export function broadcastChat(message: ChatMessage) {
 
 /* HELPERS */
 
-function handTable(tableId: string, userId: string) {
-  return `hand:${tableId}:${userId}`
+function handRoom(tableId: string) {
+  return `hand:${tableId}`
 }

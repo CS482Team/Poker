@@ -70,9 +70,11 @@ describe("getTableView", () => {
     expect(bob).not.toHaveProperty("deck")
   })
 
-  it("returns null for a player not in the game", async () => {
+  it("shows someone not in the hand the table without any cards", async () => {
     await started()
-    expect(getTableView("t1", "stranger")).toBeNull()
+    const view = getTableView("t1", "stranger")!
+    expect(view.you).toEqual({ seat: -1, hand: [], legalActions: [] })
+    expect(view.players).toHaveLength(3)
   })
 })
 
