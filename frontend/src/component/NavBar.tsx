@@ -17,8 +17,21 @@ export default function Nav() {
 
   return (
     <nav className="site-header py-3">
+      {/* three columns: logo on the left, tabs centred, profile menu on the right */}
       <div className="mx-auto grid max-w-[calc(1280px_-_2*var(--gutter))] grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <span />
+        {/* the brand, small and colourless, pressed into the bar */}
+        <Link
+          href="/dashboard"
+          aria-label="Hearts & Diamonds, back to the lobby"
+          className="nav-mark flex items-center gap-1.5 justify-self-start rounded-md focus-visible:outline-2 focus-visible:outline-white/40"
+        >
+          <span aria-hidden className="text-sm leading-none">
+            &hearts;&diams;
+          </span>
+          <span aria-hidden className="hidden text-[11px] uppercase leading-none tracking-[0.18em] sm:inline">
+            Hearts &amp; Diamonds
+          </span>
+        </Link>
         <div className="flex gap-2">
           <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
             Lobby

@@ -75,6 +75,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
       cardCount: p.hand.length,
     })),
     winners: game.winners,
+    winnings: game.winnings,
   }
 }
 
@@ -155,7 +156,14 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
   return result
 }
 
+/* scores the hand at showdown, and records how many chips each winner took from the pot
+   (worked out from stacks before and after the payout, so Ender doesn't need to know about it) */
 function finishIfShowdown(game: GameState): GameState {
-  if (game.phase === "showdown") scoreHands(game)
+  if (game.phase !== "showdown") return game
+  const before = game.players.map(p => p.stack)
+  scoreHands(game)
+  game.winnings = Object.fromEntries(
+    game.players.map((p, i) => [p.id, p.stack - before[i]!] as const).filter(([, won]) => won > 0),
+  )
   return game
 }

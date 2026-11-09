@@ -12,4 +12,3 @@ next-env.d.ts
 
 # scripts/demo.sh logs
 .demo/
-.*
