@@ -26,6 +26,9 @@ export function createGame(
     winCond: 0,
     winningRanks: [],
     hasActed: false,
+    botFlag: seat.botFlag ?? false,
+    botBluff: false,
+    botToDiscard: [],
   }))
 
   return {
@@ -43,6 +46,7 @@ export function createGame(
       round: null,
       handNumber: 0,
       winners: [],
+      winnings: {},
     },
   }
 }
@@ -63,6 +67,9 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
     winCond: 0,
     winningRanks: [],
     hasActed: false,
+    lastAction: null,
+    botBluff: false,
+    botToDiscard: [],
   }))
   const inHand = (p: PlayerState) => p.status !== "sitting-out"
   if (players.filter(inHand).length < MIN_PLAYERS) return { ok: false, error: "too-few-players" }
@@ -105,6 +112,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
       round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
       handNumber: state.handNumber + 1,
       winners: [],
+      winnings: {},
     },
   }
 }

@@ -1,13 +1,15 @@
 import { getSupabase } from "../config/Supabase"
+import type { HandRecord } from "../../../shared/PlayerHistory"
 
-export interface NewMatch { tableId: string; matchNumber: number; pot: number; dealerSeat: number }
+export interface NewMatch { tableId: string; tableName: string; matchNumber: number; pot: number; dealerSeat: number }
 export interface NewMatchPlayer { seatNumber: number; userId: string | null; botName: string | null }
+export interface MatchResult { seatNumber: number; netResult: number }
 
 // Saves a new match (one hand) and returns its id
 export async function insertMatch(m: NewMatch): Promise<string> {
   const { data, error } = await getSupabase()
     .from("match")
-    .insert({ table_id: m.tableId, match_number: m.matchNumber, pot: m.pot, dealer_seat: m.dealerSeat })
+    .insert({ table_id: m.tableId, table_name: m.tableName, match_number: m.matchNumber, pot: m.pot, dealer_seat: m.dealerSeat })
     .select("id")
     .single()
   if (error) throw error
@@ -33,4 +35,40 @@ export async function nextMatchNumber(tableId: string): Promise<number> {
     .maybeSingle()
   if (error) throw error
   return (data?.match_number ?? 0) + 1
+}
+
+export async function finishMatch(matchId: string, winnerId: string | null, pot: number, results: MatchResult[]): Promise<void> {
+  const { error } = await getSupabase()
+    .from("match")
+    .update({ winner_id: winnerId, pot, ended_at: new Date().toISOString() })
+    .eq("id", matchId)
+  if (error) throw error
+  for (const r of results) {
+    const { error } = await getSupabase()
+      .from("match_players")
+      .update({ net_result: r.netResult })
+      .eq("match_id", matchId)
+      .eq("seat_number", r.seatNumber)
+    if (error) throw error
+  }
+}
+
+export async function getPlayerHands(userId: string): Promise<HandRecord[]> {
+  const { data, error } = await getSupabase()
+    .from("match_players")
+    .select("net_result, match(id, table_name, match_number, pot, ended_at, winner:user(username))")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+  if (error) throw error
+  return data
+    .filter((row: any) => row.match.ended_at)
+    .map((row: any) => ({
+      matchId: row.match.id,
+      tableName: row.match.table_name,
+      handNumber: row.match.match_number,
+      pot: row.match.pot,
+      winner: row.match.winner?.username ?? null,
+      netResult: row.net_result,
+      endedAt: row.match.ended_at,
+    }))
 }

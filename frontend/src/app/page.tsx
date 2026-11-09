@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/supabaseClient.ts";
+import { supabase } from "@/app/supabaseClient";
 import AuthBrand from "@/app/components/AuthBrand";
 
 
@@ -49,13 +49,11 @@ export default function HomePage() {
 
   return (
     <main className="auth-page">
-      <AuthBrand page="signin" />
+      <title>Log in</title>
+      <AuthBrand />
       <div className="auth-panel">
         <div className="auth-card">                
-          <h2 className="font-display text-3xl">Sign in</h2>
-          <p className="mt-1 text-sm text-[#9e9393]">
-            Welcome back. Deal me in.
-          </p>
+          <h2 className="font-display text-3xl">Log in</h2>
           {error && <p className="mt-1 text-sm text-[#9e9393]">{error}</p>}
           {!user ? (
             <>
@@ -82,7 +80,7 @@ export default function HomePage() {
                     type="password"
                     autoComplete="current-password"
                     minLength={6}
-                    placeholder="Your Password"
+                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -92,14 +90,14 @@ export default function HomePage() {
                   onClick={handleForgotPassword}
                   className="auth-link justify-self-end"
                 >
-                  Forgot password?
+                  Forgot password
                 </button>
                 <button type="submit" className="primary-action w-full">
-                  Sign in
+                  Log in
                 </button>
               </form>
               <div className="auth-divider">
-                <span>New to the table?</span>
+                <span>New player?</span>
               </div>
               <button
                 type="button"
@@ -119,8 +117,8 @@ export default function HomePage() {
               </button>
             </>
           ) : (
-            <div className="text-center">
-              <p className="mb-4">Logged in as {user.email}</p>
+            <div className="mt-6 grid gap-4">
+              <p className="text-[#c9bcbc]">Logged in as {user.email}</p>
               <button
                 onClick={handleLogout}
                 className="secondary-action w-full"

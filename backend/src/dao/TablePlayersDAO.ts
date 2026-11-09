@@ -49,3 +49,17 @@ export async function countPlayers(tableId: string): Promise<number> {
 
   return count ?? 0
 }
+
+/* checks if a user has a seat at a table */
+export async function isSeated(tableId: string, userId: string): Promise<boolean> {
+  const { data, error } = await getSupabase()
+    .from("table_players")
+    .select("user_id")
+    .eq("table_id", tableId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  return data !== null
+}

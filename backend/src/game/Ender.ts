@@ -1,134 +1,143 @@
 import type { GameState, PlayerState } from "../../../shared/GameState"
 import { isInHand } from "./Turn"
 
+export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>) {
+    //Check If All are In Row (Straight)
+    let straight = false;
+    if(ranks.every((r, i) => i === 0 || ranks[i-1]! - r === 1)) {
+        straight = true;
+    }
+    if(ranks.join() === "14,5,4,3,2") {
+        straight = true;
+        ranks.shift();
+        ranks.push(1);
+    }
+    //Check If All Are Same Suit (Flush)
+    let flush = false;
+    if(suits.size === 1) {
+        flush = true;
+    }
+    if(flush && straight) {
+        //If High Card is Ace:
+        if(ranks[0] === 14) {
+            //Royal Flush (10)
+            p.winningRanks = ranks.slice();
+            return 10;
+        }
+        else {
+            //Straight Flush (9)
+            p.winningRanks = ranks.slice();
+            return 9;
+        }
+    }
+    //If Only Same Suit:
+    else if(flush) {
+        //Flush (6)
+        p.winningRanks = ranks.slice();
+        return 6;
+    }
+    //If Only Same Row
+    else if(straight) {
+        //Straight (5)
+        p.winningRanks = ranks.slice();
+        return 5;
+    }
+    else {
+        //Check How Many Cards Match
+        //Each matchval is a count of how many cards match (minus one) in each hand, matchval2 counts if there is a second match
+        //match_state dictates 3 states: 0 - initial (searching for the first match, 1 - found first match, 2 - move on to second match
+        //matcher1 and matcher2: values being matched
+        let matchval = 0;
+        let match_state = 0;
+        let matchval2 = 0;
+        let matcher1 = 0;
+        let matcher2 = 0;
+        for(let i = 1; i < ranks.length; i++) {
+            if(match_state === 2 && ranks[i] === ranks[i-1]) {
+                matchval2++;
+                matcher2 = ranks[i]!;
+            }
+            else if(match_state <= 1 && ranks[i] === ranks[i-1]) {
+                match_state = 1;
+                matchval++;
+                matcher1 = ranks[i]!;
+            }
+            else if(match_state === 1){
+                match_state = 2;
+            }
+        }
+        if(matchval !== 0) {
+            for(let j = 0; j < matchval; j++)  {
+                p.winningRanks.push(matcher1);
+            }
+        }
+        if(matchval2 !== 0) {
+            for(let j = 0; j < matchval2; j++) {
+                p.winningRanks.push(matcher2);
+            }
+        }
+        for(const r of ranks) {
+            if(r !== matcher1 && r !== matcher2) {
+                p.winningRanks.push(r);
+            }
+        }
+        //4 Match
+        if(matchval === 3) {
+            //Four Of A Kind (8)
+            return 8;
+        }
+        //1 Set of 3 Match and 1 Set of 2 Match
+        else if((matchval === 2 && matchval2 === 1) || (matchval === 1 && matchval2 === 2)) {
+            //Full House (7)
+            return 7;
+        }
+        //Else Just 1 Set of Three Matches
+        else if(matchval === 2) {
+            //Three Of A Kind (4)
+            return 4;
+        }
+        //2 Sets of 2 Match
+        else if(matchval === 1 && matchval2 === 1) {
+            //2 Pair (3)
+            return 3;
+        }
+        //1 Pair Matches
+        else if(matchval === 1) {
+            //Pair (2)
+            return 2;
+        }
+        //Nothing Else Works
+        else {
+            //High Card (1)
+            return 1;
+        }
+    }
+}
+
+export function setRanks(p: PlayerState) {
+    p.winningRanks = [];
+    const ranks: number[] = [];
+    let suits = new Set<string>();
+    //Make a set of card ranks and suits in each hand
+    for(const c of p.hand) {
+        suits.add(c.suit);
+        ranks.push(c.rank);
+    }
+    ranks.sort((r1,r2) => r2 - r1);
+    return [suits, ranks];
+}
+
 export function scoreHands(state: GameState) {
     const players = state.players;
     //Run through each player
     for (let step = 1; step <= players.length; step++) {
         const p = players[(state.dealerIndex + step) % players.length]!
         if(isInHand(p)) {
-            p.winningRanks = [];
-            let suits = new Set<string>();
-            const ranks: number[] = [];
-            //Make a set of card ranks and suits in each hand
-            for(const c of p.hand) {
-                suits.add(c.suit);
-                ranks.push(c.rank);
-            }
-            ranks.sort((r1,r2) => r2 - r1);
+            let suitRanks = setRanks(p);
+            let suits = suitRanks[0];
+            const ranks: number[] = suitRanks[1];
             //CHECKING CARDS FOR WIN CONDITION
-            //Check If All are In Row (Straight)
-            let straight = false;
-            if(ranks.every((r, i) => i === 0 || ranks[i-1]! - r === 1)) {
-                straight = true;
-            }
-            if(ranks.join() === "14,5,4,3,2") {
-                straight = true;
-                ranks.shift();
-                ranks.push(1);
-            }
-            //Check If All Are Same Suit (Flush)
-            let flush = false;
-            if(suits.size === 1) {
-                flush = true;
-            }
-            //If Both Of Above
-            if(flush && straight) {
-                //If High Card is Ace:
-                if(ranks[0] === 14) {
-                    //Royal Flush (10)
-                    p.winCond = 10;
-                    p.winningRanks = ranks.slice();
-                }
-                else {
-                    //Straight Flush (9)
-                    p.winCond = 9;
-                    p.winningRanks = ranks.slice();
-                }
-            }
-            //If Only Same Suit:
-            else if(flush) {
-                //Flush (6)
-                p.winCond = 6;
-                p.winningRanks = ranks.slice();
-
-            }
-            //If Only Same Row
-            else if(straight) {
-                //Straight (5)
-                p.winCond = 5;
-                p.winningRanks = ranks.slice();
-            }
-            else {
-                //Check How Many Cards Match
-                //Each matchval is a count of how many cards match (minus one) in each hand, matchval2 counts if there is a second match
-                //match_state dictates 3 states: 0 - initial (searching for the first match, 1 - found first match, 2 - move on to second match
-                //matcher1 and matcher2: values being matched
-                let matchval = 0;
-                let match_state = 0;
-                let matchval2 = 0;
-                let matcher1 = 0;
-                let matcher2 = 0;
-                for(let i = 1; i < ranks.length; i++) {
-                    if(match_state === 2 && ranks[i] === ranks[i-1]) {
-                        matchval2++;
-                        matcher2 = ranks[i]!;
-                    }
-                    else if(match_state <= 1 && ranks[i] === ranks[i-1]) {
-                        match_state = 1;
-                        matchval++;
-                        matcher1 = ranks[i]!;
-                    }
-                    else if(match_state === 1){
-                        match_state = 2;
-                    }
-                }
-                if(matchval !== 0) {
-                    for(let j = 0; j < matchval; j++)  {
-                        p.winningRanks.push(matcher1);
-                    }
-                }
-                if(matchval2 !== 0) {
-                    for(let j = 0; j < matchval2; j++) {
-                        p.winningRanks.push(matcher2);
-                    }
-                }
-                for(const r of ranks) {
-                    if(r !== matcher1 && r !== matcher2) {
-                        p.winningRanks.push(r);
-                    }
-                }
-                //4 Match
-                if(matchval === 3) {
-                    //Four Of A Kind (8)
-                    p.winCond = 8;
-                }
-                //1 Set of 3 Match and 1 Set of 2 Match
-                else if((matchval === 2 && matchval2 === 1) || (matchval === 1 && matchval2 === 2)) {
-                    //Full House (7)
-                    p.winCond = 7;
-                }
-                //Else Just 1 Set of Three Matches
-                else if(matchval === 2) {
-                    //Three Of A Kind (4)
-                    p.winCond = 4;
-                }
-                //2 Sets of 2 Match
-                else if(matchval === 1 && matchval2 === 1) {
-                    //2 Pair (3)
-                    p.winCond = 3;
-                }
-                //1 Pair Matches
-                else if(matchval === 1) {
-                    //Pair (2)
-                    p.winCond = 2;
-                }
-                //Nothing Else Works
-                else {
-                    //High Card (1)
-                    p.winCond = 1;
-                }
-            }
+            p.winCond = returnScore(p, ranks, suits);
         }
     }
     const stacks_before = players.map(p => p.stack);

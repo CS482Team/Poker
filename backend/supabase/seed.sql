@@ -20,6 +20,36 @@ values
   ('00000000-0000-0000-0000-000000000004', 'Noah', 1560),
   ('00000000-0000-0000-0000-000000000005', 'Alex', 2450);
 
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, confirmation_token, recovery_token, email_change_token_new, email_change, created_at, updated_at)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-0000-0000-000000000006',
+  'authenticated',
+  'authenticated',
+  'test@admin.com',
+  extensions.crypt('admin123', extensions.gen_salt('bf')),
+  now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  '', '', '', '',
+  now(),
+  now()
+);
+
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values (
+  '00000000-0000-0000-0000-000000000006',
+  '00000000-0000-0000-0000-000000000006',
+  '{"sub":"00000000-0000-0000-0000-000000000006","email":"test@admin.com","email_verified":true}',
+  'email',
+  now(),
+  now(),
+  now()
+);
+
+insert into public."user" (id, username, role)
+values ('00000000-0000-0000-0000-000000000006', 'Admin', 1);
+
 set session_replication_role = origin;
 
 insert into public."table" (name, max_players, buy_in, status, minimum_bet, ante, bot_count)
@@ -42,3 +72,21 @@ join (values
   ('Dummy Table 3', '00000000-0000-0000-0000-000000000003', 0, 1000),
   ('Dummy Table 3', '00000000-0000-0000-0000-000000000004', 1, 1000)
 ) as p(table_name, user_id, seat_number, stack) on p.table_name = t.name;
+
+insert into public.match (id, table_name, match_number, pot, winner_id, started_at, ended_at)
+values
+  ('10000000-0000-0000-0000-000000000001', 'The Ruby',    1, 480, '00000000-0000-0000-0000-000000000001', now() - interval '2 hours', now() - interval '2 hours'),
+  ('10000000-0000-0000-0000-000000000002', 'The Ruby',    2, 300, '00000000-0000-0000-0000-000000000002', now() - interval '1 day',   now() - interval '1 day'),
+  ('10000000-0000-0000-0000-000000000003', 'Velvet Room', 1, 120, '00000000-0000-0000-0000-000000000001', now() - interval '3 days',  now() - interval '3 days');
+
+insert into public.match_players (match_id, seat_number, user_id, net_result)
+values
+  ('10000000-0000-0000-0000-000000000001', 0, '00000000-0000-0000-0000-000000000001',  240),
+  ('10000000-0000-0000-0000-000000000001', 1, '00000000-0000-0000-0000-000000000002', -240),
+  ('10000000-0000-0000-0000-000000000002', 0, '00000000-0000-0000-0000-000000000001', -150),
+  ('10000000-0000-0000-0000-000000000002', 1, '00000000-0000-0000-0000-000000000002',  150),
+  ('10000000-0000-0000-0000-000000000003', 0, '00000000-0000-0000-0000-000000000001',   60),
+  ('10000000-0000-0000-0000-000000000003', 1, '00000000-0000-0000-0000-000000000003',  -60);
+
+insert into public.advert (title, reward_amount, active, created_by)
+values ('THIS IS AN EXTERNAL AD', 500, true, '00000000-0000-0000-0000-000000000006');

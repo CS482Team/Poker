@@ -4,10 +4,11 @@ import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
-import { getBalance, setBalance } from "../dao/UserDAO"
+import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
+import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
-import { broadcastChange, sendViews } from "../socket/io"
-import { sendGame } from "./GameController"
+import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
+import { playBotLater, sendGame } from "./GameController"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -45,7 +46,9 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
   if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
   if ((await countPlayers(id)) === 0) {
     endGame(id)
-    await deleteTable(id)
+    await deleteTable(id) // its chat is deleted with it, so there's no one to tell
+  } else if (stack !== null) {
+    await announce(id, userId, "left the table")
   }
   await broadcastChange(id)
   if (game) sendGame(game)
@@ -79,6 +82,7 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
   }
   await addPlayer(table.id, userId, seatNumber, table.buyIn)
   await changeBalance(userId, -table.buyIn, "buy_in")
+  await announce(table.id, userId, "joined the table")
   await broadcastChange(table.id)
   await dealIfReady(table.id)
   res.status(204).end()
@@ -88,7 +92,18 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
 
 async function dealIfReady(tableId: string) {
   const playerIds = await startIfReady(tableId)
-  if (playerIds) sendViews(tableId, playerIds)
+  if (playerIds) sendViews(tableId)
+  playBotLater(tableId)
+}
+
+/* posts a system line in the table's chat, like "Maya joined the table"
+   chat is extra, so a failure here is logged and never blocks joining or leaving */
+async function announce(tableId: string, userId: string, event: string) {
+  try {
+    broadcastChat(await sendSystemMessage(tableId, `${await getUsername(userId)} ${event}`))
+  } catch (err) {
+    console.error("chat announcement failed", err)
+  }
 }
 
 /* changes a user's balance and logs it */
@@ -99,6 +114,7 @@ async function changeBalance(userId: string, delta: number, reason: string) {
 
 /* finds the lowest empty seat */
 function firstFreeSeat(table: Table) {
+  if (table.seats.length + table.botCount >= table.maxPlayers) return -1
   const taken = new Set(table.seats.map((seat) => seat.seatNumber))
   for (let seatNumber = 0; seatNumber < table.maxPlayers; seatNumber++) {
     if (!taken.has(seatNumber)) return seatNumber
@@ -121,6 +137,9 @@ function isValidNewTable(body: NewTable) {
     Number.isInteger(body.minimumBet) &&
     body.minimumBet >= 0 &&
     Number.isInteger(body.ante) &&
-    body.ante >= 0
+    body.ante >= 0 &&
+    (body.botCount === undefined || (Number.isInteger(body.botCount) && body.botCount >= 0 && body.botCount < body.maxPlayers))
+    // bots must leave at least one seat for a person (the database checks bot_count < max_players too)
+
   )
 }

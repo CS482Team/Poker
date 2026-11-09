@@ -1,10 +1,11 @@
 "use client"
 
-import DevUserSwitch from "@/component/DevUserSwitch"
+import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
+import BalanceDisplay from "@/component/BalanceDisplay"
 
 export default function Nav() {
   const pathname = usePathname()
@@ -16,18 +17,33 @@ export default function Nav() {
   if (pathname === "/" || pathname === "/signup") return null
 
   return (
-    <nav className="site-header relative flex justify-center gap-2 py-3">
-      <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
-        Lobby
-      </Link>
-      {tableId ? (
-        <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
-          Table
+    <nav className="site-header py-3">
+      {/* three columns: logo on the left, tabs centred, profile menu on the right */}
+      <div className="mx-auto grid max-w-[calc(1280px_-_2*var(--gutter))] grid-cols-[1fr_auto_1fr] items-center gap-2">
+        {/* the brand, small and colourless, pressed into the bar */}
+        <Link
+          href="/dashboard"
+          aria-label="Hearts & Diamonds, back to the lobby"
+          className="nav-mark justify-self-start rounded-md text-3xl leading-none focus-visible:outline-2 focus-visible:outline-white/40"
+        >
+          H&amp;D
         </Link>
-      ) : (
-        <span className="nav-tab opacity-40">Table</span>
-      )}
-      <DevUserSwitch />
+        <div className="flex gap-2">
+          <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
+            Lobby
+          </Link>
+          {tableId && (
+            <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
+              Table
+            </Link>
+          )}
+        </div>
+        <div className="flex items-center justify-end gap-3">
+          <BalanceDisplay />
+          <ProfileMenu />
+        </div>
+
+      </div>
     </nav>
   )
 }

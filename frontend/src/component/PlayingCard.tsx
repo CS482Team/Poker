@@ -4,12 +4,13 @@ import { CARD_BACK_IMAGE, cardImage, cardLabel } from "@/util/Card"
 
 const SIZES = {
   sm: { width: 44, height: 62 },
+  md: { width: 40, height: 56 }, // opponents' card fans
   lg: { width: 100, height: 140 },
 }
 
 interface PlayingCardProps {
   card: Card | null // null = face down
-  size: "sm" | "lg"
+  size: keyof typeof SIZES
   index?: number // position in the hand; staggers the deal-in animation
 }
 

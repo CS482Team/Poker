@@ -1,3 +1,4 @@
+import type { ActionType } from "./Actions"
 import type { Card } from "./Card"
 
 export type PlayerId = string // TODO socket.id for now use Supabase user id after Heloisa's auth
@@ -13,6 +14,7 @@ export interface TableConfig {
 export interface SeatInput { 
   id: PlayerId; name: 
   string; stack: number 
+  botFlag?: boolean
 } // what tables (Cyrus) hand to createGame
 
 export type PlayerStatus = "active" | "folded" | "all-in" | "sitting-out"
@@ -28,6 +30,11 @@ export interface PlayerState {
   winCond: number          // win condition met, filled in at ending
   winningRanks: number[]   // the winning cards of the hand, filled in at ending
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
+  lastAction?: ActionType | null
+  //Bot parameters: should we have a BotState interface inheriting from PlayerState?
+  botFlag?: boolean		   //is this player a bot?
+  botBluff?: boolean		   //is the bot bluffing?
+  botToDiscard?: number[]	   //Card indexes the bot should discard
 }
 
 export type Street = "predraw" | "postdraw"
@@ -59,4 +66,5 @@ export interface GameState {
   round: BettingRound | null // null outside betting phases
   handNumber: number
   winners: PlayerId[]        // filled in at ending
+  winnings: Record<PlayerId, number> // chips each winner took from the pot, filled in at ending (splits give each their share)
 }

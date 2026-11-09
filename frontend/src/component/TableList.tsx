@@ -1,6 +1,7 @@
 "use client"
 
 import type { Table } from "@shared/Table"
+import Icon, { JOIN, LOCK, PLUS, RETURN } from "@/component/Icon"
 import NewTableForm from "@/component/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 import { watchTables } from "@/service/SocketService"
@@ -10,12 +11,17 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 function isTableFull(table: Table) {
-  return table.seats.length >= table.maxPlayers
+  return table.seats.length + table.botCount >= table.maxPlayers
 }
 
 function actionLabel(isCurrent: boolean, isFull: boolean) {
   if (isCurrent) return "Return"
   return isFull ? "Full" : "Join"
+}
+
+function actionIcon(isCurrent: boolean, isFull: boolean) {
+  if (isCurrent) return RETURN
+  return isFull ? LOCK : JOIN
 }
 
 export default function TableList() {
@@ -56,8 +62,9 @@ export default function TableList() {
         <h1 className="page-title">
           Tables <small>{tables.length} tables</small>
         </h1>
-        <button type="button" onClick={() => setCreating(true)} className="primary-action">
-          New table
+        <button type="button" onClick={() => setCreating(true)} className="primary-action gap-2">
+          <Icon d={PLUS} size={18} />
+          New Table
         </button>
       </div>
 
@@ -76,7 +83,7 @@ export default function TableList() {
           const full = isTableFull(table)
           const current = table.id === currentId
           const stakes = `$${table.ante} / $${table.minimumBet}`
-          const seats = `${table.seats.length}/${table.maxPlayers}`
+          const seats = `${table.seats.length + table.botCount}/${table.maxPlayers}`
           return (
             <div key={table.id} className="list-row grid gap-3 border-b border-white/10 px-[22px] py-3.5 last:border-0 md:grid-cols-[1.5fr_.7fr_.6fr_.8fr_220px] md:items-center md:gap-4">
               <div>
@@ -90,7 +97,8 @@ export default function TableList() {
               <span className="hidden text-sm md:block">${table.buyIn}</span>
               <span className="hidden text-sm md:block">{stakes}</span>
               <div className="flex flex-wrap items-center gap-2 md:flex-row-reverse md:justify-start">
-                <button type="button" disabled={full && !current} onClick={() => enter(table, current)} className="secondary-action small min-w-16 disabled:cursor-not-allowed disabled:opacity-40">
+                <button type="button" disabled={full && !current} onClick={() => enter(table, current)} className="secondary-action small min-w-24 gap-1.5 disabled:cursor-not-allowed disabled:opacity-40">
+                  <Icon d={actionIcon(current, full)} size={14} />
                   {actionLabel(current, full)}
                 </button>
               </div>
