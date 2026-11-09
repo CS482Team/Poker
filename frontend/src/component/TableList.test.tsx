@@ -36,6 +36,7 @@ const table = {
   minimumBet: 10,
   ante: 5,
   maxPlayers: 6,
+  botCount: 0,
   seats: [seat("u1", 0), seat("u2", 1)],
 }
 
@@ -84,8 +85,8 @@ describe("TableList", () => {
     expect(mockPush).toHaveBeenCalledWith("/table/t1")
   })
 
-  it("disables a full table", async () => {
-    jest.mocked(fetchTables).mockResolvedValue([{ ...table, seats: [0, 1, 2, 3, 4, 5].map((n) => seat(`u${n}`, n)) }])
+  it("disables a table filled by players and bots", async () => {
+    jest.mocked(fetchTables).mockResolvedValue([{ ...table, botCount: 4 }])
     render(<TableList />)
     expect(await screen.findByRole("button", { name: "Full" })).toBeDisabled()
   })

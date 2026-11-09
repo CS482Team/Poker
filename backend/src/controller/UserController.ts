@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance } from "../dao/UserDAO"
+import { getBalance, getUsername } from "../dao/UserDAO"
 
 /* handles GET /users/:id/balance */
 export async function getUserBalance(req: Request<{ id: string }>, res: Response) {
@@ -21,11 +21,15 @@ export async function getMyHandsHistory(req: Request, res: Response) {
     res.status(401).json({ error: "Unauthorized" })
     return
   }
-  try {                                                       
+  try {
     res.json(await getPlayerHands(data.user.id))
-  } catch (err) {                                            
+  } catch (err) {
     console.error("getPlayerHands failed:", err)
-    res.status(500).json({ error: String((err as Error).message ?? err) })
+    res.status(500).json({ error: "Could not load hands" })
   }
 }
 
+export async function getUserUsername(req: Request<{ id: string }>, res: Response) {
+  const username = await getUsername(req.params.id)
+  res.json({ username })
+}

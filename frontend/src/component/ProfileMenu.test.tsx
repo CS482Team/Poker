@@ -12,11 +12,11 @@ describe("ProfileMenu", () => {
     expect(await screen.findByRole("link", { name: "Admin" })).toHaveAttribute("href", "/admin")
   })
 
-  it("shows coming soon to everyone else", async () => {
+  it("links everyone else to just their profile", async () => {
     jest.mocked(isAdmin).mockResolvedValue(false)
     render(<ProfileMenu />)
     fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
-    expect(await screen.findByText("Coming soon")).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile")
     expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument()
   })
 
@@ -24,6 +24,16 @@ describe("ProfileMenu", () => {
     jest.mocked(isAdmin).mockRejectedValue(new Error("down"))
     render(<ProfileMenu />)
     fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
-    expect(await screen.findByText("Coming soon")).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "Profile" })).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument()
+  })
+
+  it("closes when you click somewhere else", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    render(<ProfileMenu />)
+    fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
+    expect(await screen.findByRole("link", { name: "Profile" })).toBeInTheDocument()
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByRole("link", { name: "Profile" })).not.toBeInTheDocument()
   })
 })

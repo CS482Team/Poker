@@ -752,6 +752,18 @@ input[type="checkbox"]:checked::after {
   transition: color .2s;
 }
 .nav-mark:hover { color: rgba(255, 255, 255, .4); }
+.turn-dot {
+  position: absolute;
+  top: 50%;
+  left: calc(100% - 12px);
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #facc15;
+  animation: turn-dot 0.8s ease-in-out infinite;
+}
+@keyframes turn-dot { 50% { opacity: .2; } }
 .nav-tab.active::after {
   content: "";
   position: absolute;
@@ -785,7 +797,7 @@ input[type="checkbox"]:checked::after {
 .pot {
   position: absolute;
   left: 50%;
-  top: 37%;
+  top: 50%;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -812,7 +824,7 @@ input[type="checkbox"]:checked::after {
 /* At the end of a hand the pot glides from the centre to the winner's seat,
    then shrinks and fades into their portrait. --to-left/--to-top come from the winner's seat. */
 .pot-slide {
-  --pot-top: 37%;
+  --pot-top: 50%;
   z-index: 3; /* passes over the portraits */
   animation: pot-to-winner 1.8s both;
 }
@@ -859,7 +871,6 @@ input[type="checkbox"]:checked::after {
 .seat-portrait.winner { border-color: #e9c46a; box-shadow: 0 0 0 3px rgba(233, 196, 106, .3), 0 4px 10px rgba(0, 0, 0, .55); }
 /* Open seat: a dashed ring the same size as a portrait, so the table keeps its shape */
 .seat-portrait.empty { border-style: dashed; border-color: rgba(255, 255, 255, .45); background: rgba(0, 0, 0, .3); box-shadow: none; }
-.seat-label .open { font-weight: 400; color: #d8cfcf; }
 .your-seat { width: 84px; height: 84px; border-color: #f1f1f1; }
 .seat-label.you { margin-top: 6px; }
 .dealer-chip {
@@ -1013,8 +1024,6 @@ input[type="checkbox"]:checked::after {
   .leader-row .col-rate, .leader-row .col-chips { display: none; }
   .card-back, .playing-card { width: clamp(52px, 15vw, 64px); }
   .compact { width: 28px; height: 40px; }
-  .pot { top: 34%; }
-  .pot-slide { --pot-top: 34%; }
   .pot small { font-size: 15px; }
   .pot strong { font-size: 22px; }
   .pot-slide strong { font-size: 18px; }
@@ -1352,15 +1361,19 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
   to   { opacity: 1; transform: none; }
 }
 @keyframes turn-glow {
-  0%, 100% { box-shadow: 0 0 6px 1px rgb(250 204 21 / 0.25); }
-  50%      { box-shadow: 0 0 16px 6px rgb(250 204 21 / 0.7); }
+  0%, 100% { box-shadow: 0 0 4px 1px rgb(255 255 255 / 0.2); }
+  50%      { box-shadow: 0 0 12px 4px rgb(255 255 255 / 0.7); }
 }
-.animate-turn-glow { animation: turn-glow 1.4s ease-in-out infinite; }
+@keyframes bot-turn-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px rgb(114 187 234 / 0.2); }
+  50%      { box-shadow: 0 0 12px 4px rgb(114 187 234 / 0.7); }
+}
+.animate-turn-glow { animation: turn-glow 2s ease-in-out infinite; }
+.animate-turn-glow.bot { animation-name: bot-turn-glow; }
 .animate-deal-in { animation: deal-in 300ms ease-out both; }
 
-/* Players who ask their system for less motion get a steady glow and no card slide */
+/* Players who ask their system for less motion get no card slide */
 @media (prefers-reduced-motion: reduce) {
-  .animate-turn-glow { animation: none; box-shadow: 0 0 10px 3px rgb(250 204 21 / 0.45); }
   .animate-deal-in { animation: none; }
   /* no gliding: the winnings just stay where the pot was */
   .pot-slide { left: 50%; top: var(--pot-top); animation: none; }

@@ -4,7 +4,7 @@ import { fetchMyHands } from "@/service/HistoryService"
 import type { HandRecord } from "@shared/PlayerHistory"
 import { useEffect, useState } from "react"
 
-export default function HistoryPage() {
+export default function MyHistory() {
   const [hands, setHands] = useState<HandRecord[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,9 +17,10 @@ export default function HistoryPage() {
   return (
     <div className="page-shell">
       <div className="page-header">
-        <h1 className="page-title">Game history</h1>
+        <h1 className="page-title">Profile</h1>
       </div>
       <section className="panel p-5">
+        <h2 className="mb-3 text-lg font-bold">Game History</h2>
         {error && <p className="mb-4 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
         {hands === null && !error && <p className="py-6 text-center text-sm text-[#9e9393]">Loading…</p>}
         {hands?.length === 0 && <p className="py-6 text-center text-sm text-[#9e9393]">No hands yet.</p>}

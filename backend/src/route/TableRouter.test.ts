@@ -107,6 +107,12 @@ describe("players", () => {
     expect(res.status).toBe(409)
   })
 
+  it("rejects a join when bots fill the open seats", async () => {
+    jest.mocked(getTable).mockResolvedValue({ ...detail, botCount: 1 })
+    const res = await request(app).post("/tables/t1/players").send({ userId: "me" })
+    expect(res.status).toBe(409)
+  })
+
   it("rejects a join without a user", async () => {
     const res = await request(app).post("/tables/t1/players").send({})
     expect(res.status).toBe(400)

@@ -6,7 +6,7 @@ import ChatPanel from "@/component/ChatPanel"
 import Dots from "@/component/Dots"
 import EmptySeat from "@/component/EmptySeat"
 import Icon, { LEAVE } from "@/component/Icon"
-import RoomSettings from "@/component/RoomSettings" 
+import RoomSettings from "@/component/RoomSettings"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
@@ -26,8 +26,8 @@ const SEAT_SPOTS = [
   [[17, 24], [83, 24]],
   [[17, 24], [50, 12], [83, 24]],
   [[17, 24], [38, 12], [62, 12], [83, 24]],
-  [[9, 64], [17, 24], [50, 12], [83, 24], [91, 64]],
-  [[9, 64], [17, 24], [38, 12], [62, 12], [83, 24], [91, 64]],
+  [[4, 67], [18, 26], [50, 12], [82, 26], [96, 67]],
+  [[4, 67], [18, 26], [40, 12], [60, 12], [82, 26], [96, 67]],
 ]
 
 /* where seat `i` of a `count`-seat table sits */
@@ -46,6 +46,7 @@ export default function GameTable({ id }: { id: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
+  const spectating = view?.you.seat === -1
   const tableSeats = table?.seats ?? []
   const openSeats = Array.from({ length: table?.maxPlayers ?? 0 }, (_, n) => n).filter(n => !tableSeats.some(s => s.seatNumber === n))
   const botSeats = (view?.players ?? [])
@@ -123,11 +124,11 @@ export default function GameTable({ id }: { id: string }) {
           <Icon d={LEAVE} size={14} />
           Leave
         </button>
-        <h1 className="truncate text-3xl font-bold">{table.name}</h1>
+        <h1 className="min-w-0 break-words text-3xl font-bold">{table.name}</h1>
         {table.hostId === getCurrentUserId() && (
-        <button type="button" onClick={() => setSettingsOpen(true)} className="secondary-action small">
-          Settings
-        </button>
+          <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Table settings" className="text-3xl leading-none text-white/70 hover:text-white">
+            ⋮
+          </button>
         )}
       </div>
       <div className="mx-auto flex w-full max-w-[780px] flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf] md:justify-end">
@@ -147,7 +148,7 @@ export default function GameTable({ id }: { id: string }) {
           <p className="panel p-6 text-center text-sm text-[#9e9393]">Chat is turned off at this table.</p>
         )}
       </div>
-      <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0">
+      <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
           <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
           {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
@@ -206,6 +207,7 @@ export default function GameTable({ id }: { id: string }) {
             const won = view?.winners.includes(seat.userId)
             const bot = !tableSeats.some((s) => s.userId === seat.userId)
             const folded = live?.status === "folded"
+            const watching = view !== null && !live
             const toAct = live !== undefined && live.seat === view?.toActSeat
             const dealer = live !== undefined && live.seat === view?.dealerSeat
             const fanned = live && !mine && !folded && live.cardCount > 0 // your own hand is shown below the table
@@ -213,7 +215,7 @@ export default function GameTable({ id }: { id: string }) {
               <div
                 key={seat.userId}
                 data-seat
-                className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition-opacity ${folded ? "opacity-50" : ""}`}
+                className={`absolute -translate-x-1/2 -translate-y-1/2 text-center transition-opacity ${folded || watching ? "opacity-50" : ""}`}
                 style={position}
               >
                 {/* the fan sits above the portrait, which covers just the bottom of the cards (like the mockup) */}
@@ -233,10 +235,10 @@ export default function GameTable({ id }: { id: string }) {
                     </svg>
                   )}
                   <div
-                    className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""}`}
+                    className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""} ${bot ? "bot" : ""}`}
                     style={bot && !won ? { borderColor: "#72bbea" } : undefined}
                   >
-                    {name[0]}
+                    {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : name[0]}
                     {dealer && (
                       <span className="dealer-chip" aria-label="Dealer">
                         D
@@ -248,12 +250,13 @@ export default function GameTable({ id }: { id: string }) {
                   <span>{name}</span>
                   <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
                 </div>
+                {watching && <small>Spectating</small>}
                 {live && actionText(live) && <small>{actionText(live)}</small>}
               </div>
             )
           })}
         </div>
-        {view && (
+        {view && !spectating && (
           <div className="relative z-10 -mt-12">
             <PlayerHand
               cards={view.you.hand}
@@ -273,7 +276,7 @@ export default function GameTable({ id }: { id: string }) {
             </button>
           </div>
         )}
-        {view && !canDraw && (
+        {view && !canDraw && !spectating && (
           <div className="mt-6">
             <ActionBar
               key={`${view.toActSeat}-${view.round?.currentBet}`}
@@ -300,7 +303,6 @@ function winnerText(view: PlayerView): string {
     .join(" · ")
 }
 
-/* what the player did last this round, e.g. "Check" or "Raise $20" */
 function actionText(p: PublicPlayer): string | null {
   if (p.status === "folded") return "Folded"
   if (p.lastAction === "check") return "Check"

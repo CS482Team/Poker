@@ -15,3 +15,10 @@ function signedInUserId(): string | null {
 export function getCurrentUserId(): string {
   return signedInUserId() ?? "";
 }
+
+export async function fetchUsername(userId: string): Promise<string> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/username`);
+  if (!res.ok) throw new Error("Could not load username");
+  const body = (await res.json()) as { username: string };
+  return body.username;
+}

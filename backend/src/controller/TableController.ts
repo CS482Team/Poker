@@ -112,7 +112,7 @@ export async function updateSettings(req: Request<{ id: string }, {}, { userId: 
 
 async function dealIfReady(tableId: string) {
   const playerIds = await startIfReady(tableId)
-  if (playerIds) sendViews(tableId, playerIds)
+  if (playerIds) sendViews(tableId)
   playBotLater(tableId)
 }
 
@@ -134,6 +134,7 @@ async function changeBalance(userId: string, delta: number, reason: string) {
 
 /* finds the lowest empty seat */
 function firstFreeSeat(table: Table) {
+  if (table.seats.length + table.botCount >= table.maxPlayers) return -1
   const taken = new Set(table.seats.map((seat) => seat.seatNumber))
   for (let seatNumber = 0; seatNumber < table.maxPlayers; seatNumber++) {
     if (!taken.has(seatNumber)) return seatNumber

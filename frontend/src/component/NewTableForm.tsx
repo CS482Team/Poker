@@ -1,17 +1,25 @@
 "use client"
 
+import Stepper from "@/component/Stepper"
 import { setCurrentTableId } from "@/service/CurrentTableService"
 import { createTable, joinTable } from "@/service/TableService"
-import { getCurrentUserId } from "@/service/UserService"
+import { fetchUsername, getCurrentUserId } from "@/service/UserService"
 import { MAX_PLAYERS, MIN_PLAYERS } from "@shared/Rules"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-
-const seatOptions = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => MIN_PLAYERS + i)
+import { useEffect, useState } from "react"
 
 const labelClass = "grid gap-1.5 text-sm text-[#b5a9a9]"
 const inputClass = "w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[#f5f2ef] [color-scheme:dark]"
 const numberClass = `${inputClass} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`
+
+function Money({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="relative">
+      {children}
+      <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#b5a9a9]">$</span>
+    </span>
+  )
+}
 
 export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   const router = useRouter()
@@ -23,12 +31,24 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [botCount, setBotCount] = useState(0)
 
+  function changeSeats(seats: number) {
+    setMaxPlayers(seats)
+    setBotCount(Math.min(botCount, seats - 1))
+  }
+
+  useEffect(() => {
+    fetchUsername(getCurrentUserId())
+      .then((username) => setName((current) => current || `${username}'s room`))
+      .catch(() => {})
+  }, [])
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     try {
       const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante, botCount })
       await joinTable(id, getCurrentUserId())
       setCurrentTableId(id)
+      onCancel()
       router.push(`/table/${id}`)
     } catch (err) {
       setError((err as Error).message)
@@ -36,8 +56,8 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onCancel}>
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+      <form onSubmit={submit} className="w-full max-w-[460px] rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <h2 className="text-xl font-bold">New Table</h2>
           <button type="button" onClick={onCancel} aria-label="Close" className="text-2xl text-[#b5a9a9]">
@@ -49,37 +69,30 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
             Table Name
             <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           </label>
-          <label className={labelClass}>
-            Seats
-            <select value={maxPlayers} onChange={(e) => setMaxPlayers(Number(e.target.value))} className={inputClass}>
-              {seatOptions.map((n) => (
-                <option key={n} value={n} className="bg-[#181414]">
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Bots
-            <input type="number" min={0} max={maxPlayers - 1} value={botCount} onChange={(e) => setBotCount(Number(e.target.value))} className={numberClass} />
-          </label>
-          <label className={labelClass}>
-            Buy In
-            <input type="number" min={1} required value={buyIn} onChange={(e) => setBuyIn(Number(e.target.value))} className={numberClass} />
-          </label>
-          <label className={labelClass}>
-            Ante
-            <input type="number" min={0} required value={ante} onChange={(e) => setAnte(Number(e.target.value))} className={numberClass} />
-          </label>
-          <label className={labelClass}>
-            Min Bet
-            <input type="number" min={0} required value={minimumBet} onChange={(e) => setMinimumBet(Number(e.target.value))} className={numberClass} />
-          </label>
+          <Stepper label="Seats" value={maxPlayers} min={MIN_PLAYERS} max={MAX_PLAYERS} onChange={changeSeats} />
+          <Stepper label="Bots" value={botCount} min={0} max={maxPlayers - 1} onChange={setBotCount} />
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+            <label className={labelClass}>
+              Buy In
+              <Money>
+                <input type="number" min={1} required value={buyIn} onChange={(e) => setBuyIn(Number(e.target.value))} className={`${numberClass} pl-7`} />
+              </Money>
+            </label>
+            <label className={labelClass}>
+              Ante
+              <Money>
+                <input type="number" min={0} required value={ante} onChange={(e) => setAnte(Number(e.target.value))} className={`${numberClass} pl-7`} />
+              </Money>
+            </label>
+            <label className={labelClass}>
+              Min Bet
+              <Money>
+                <input type="number" min={0} required value={minimumBet} onChange={(e) => setMinimumBet(Number(e.target.value))} className={`${numberClass} pl-7`} />
+              </Money>
+            </label>
+          </div>
           {error && <p className="text-sm text-red-400 sm:col-span-2">{error}</p>}
-          <div className="flex justify-end gap-3 sm:col-span-2">
-            <button type="button" onClick={onCancel} className="secondary-action">
-              Cancel
-            </button>
+          <div className="mt-3 flex justify-end sm:col-span-2">
             <button type="submit" className="primary-action">
               Create
             </button>
