@@ -1,4 +1,4 @@
-import type { LegalAction } from "./Actions"
+import type { ActionType, LegalAction } from "./Actions"
 import type { Card } from "./Card"
 import type { BettingRound, PlayerId, PlayerStatus, Phase } from "./GameState"
 
@@ -9,6 +9,7 @@ export interface PublicPlayer {
   stack: number
   status: PlayerStatus
   betThisRound: number
+  lastAction: ActionType | null
   cardCount: number
 }
 

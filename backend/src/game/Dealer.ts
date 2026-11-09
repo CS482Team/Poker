@@ -67,6 +67,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
     winCond: 0,
     winningRanks: [],
     hasActed: false,
+    lastAction: null,
     botBluff: false,
     botToDiscard: [],
   }))

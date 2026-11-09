@@ -100,7 +100,7 @@ export function botBet(state: GameState, botId: PlayerId, rng: Rng = Math.random
   const tiers = [
     { from: minBet * 5, raiseAt: 84, callAt: 42, size: 0.75 },
     { from: minBet * 3, raiseAt: 56, callAt: 28, size: 0.5 },
-    { from: minBet, raiseAt: 42, callAt: 25, size: 0.25 },
+    { from: minBet, raiseAt: 42, callAt: 16, size: 0.25 },
     { from: 0, raiseAt: 42, callAt: 12, size: 0.25 },
   ]
   const tier = tiers.find(t => currentBet >= t.from)!

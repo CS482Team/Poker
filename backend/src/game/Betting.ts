@@ -22,7 +22,7 @@ export function startBettingRound(state: GameState, street: Street): GameState {
   const next: GameState = {
     ...state,
     phase: street === "predraw" ? "predraw-betting" : "postdraw-betting",
-    players: state.players.map(p => ({ ...p, betThisRound: 0, hasActed: false })),
+    players: state.players.map(p => ({ ...p, betThisRound: 0, hasActed: false, lastAction: null })),
     round: { street, currentBet: 0, minRaise: state.config.minBet },
   }
   // Nobody to bet against (everyone else folded or all-in): skip straight past this round
@@ -99,6 +99,7 @@ export function applyAction(state: GameState, playerId: PlayerId, action: Player
     // A short all-in raise: others must still match it, but players who already acted can't re-raise
   }
   me.hasActed = true
+  me.lastAction = legal.type
 
   const next: GameState = { ...state, players, round, pot: state.pot + chips }
   if (players.filter(isInHand).length <= 1) return { ok: true, value: endRound(next) } // everyone else folded

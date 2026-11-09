@@ -13,7 +13,7 @@ import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 import PlayerHand from "@/component/PlayerHand"
 import type { ActionType } from "@shared/Actions"
-import type { PlayerView } from "@shared/PlayerView"
+import type { PlayerView, PublicPlayer } from "@shared/PlayerView"
 import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -223,7 +223,7 @@ export default function GameTable({ id }: { id: string }) {
                   )}
                   <div
                     className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""}`}
-                    style={bot && !won ? { borderColor: "#7cc4f0" } : undefined}
+                    style={bot && !won ? { borderColor: "#72bbea" } : undefined}
                   >
                     {name[0]}
                     {dealer && (
@@ -237,7 +237,7 @@ export default function GameTable({ id }: { id: string }) {
                   <span>{name}</span>
                   <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
                 </div>
-                {folded ? <small>Folded</small> : live && live.betThisRound > 0 && <small>Bet ${live.betThisRound}</small>}
+                {live && actionText(live) && <small>{actionText(live)}</small>}
               </div>
             )
           })}
@@ -253,7 +253,7 @@ export default function GameTable({ id }: { id: string }) {
           </div>
         )}
         {canDraw && view && (
-          <div className="mt-6 flex items-center justify-center gap-4">
+          <div className="mt-6 flex min-h-[3.25rem] items-center justify-center gap-4">
             <p aria-live="polite" className="text-sm text-[#d8cfcf]">
               {discardText(selected.length, view.you.hand.length)}
             </p>
@@ -262,7 +262,7 @@ export default function GameTable({ id }: { id: string }) {
             </button>
           </div>
         )}
-        {view && (
+        {view && !canDraw && (
           <div className="mt-6">
             <ActionBar
               key={`${view.toActSeat}-${view.round?.currentBet}`}
@@ -288,6 +288,16 @@ function winnerText(view: PlayerView): string {
     .join(" · ")
 }
 
+/* what the player did last this round, e.g. "Check" or "Raise $20" */
+function actionText(p: PublicPlayer): string | null {
+  if (p.status === "folded") return "Folded"
+  if (p.lastAction === "check") return "Check"
+  if (p.lastAction === "call") return `Call $${p.betThisRound}`
+  if (p.lastAction === "bet") return `Bet $${p.betThisRound}`
+  if (p.lastAction === "raise") return `Raise $${p.betThisRound}`
+  return null
+}
+
 /* tells the player what pressing Draw will do, e.g. "Discarding 2 cards" */
 function discardText(discarding: number, handSize: number): string {
   if (discarding === 0) return `Keeping all ${handSize} cards`
@@ -296,7 +306,7 @@ function discardText(discarding: number, handSize: number): string {
 
 function statusText(view: PlayerView): string {
   if (view.phase === "draw") {
-    return view.toActSeat === view.you.seat ? "Pick cards to discard, then draw" : "Waiting for others to draw"
+    return view.toActSeat === view.you.seat ? "Pick cards to replace" : "Waiting for others to draw"
   }
   const toAct = view.toActSeat === null ? undefined : view.players[view.toActSeat]
   if (!toAct) return "Round over, waiting for next round"

@@ -1352,10 +1352,10 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
   to   { opacity: 1; transform: none; }
 }
 @keyframes turn-glow {
-  0%, 100% { box-shadow: 0 0 8px 2px rgb(250 204 21 / 0.35); }
-  50%      { box-shadow: 0 0 12px 4px rgb(250 204 21 / 0.55); }
+  0%, 100% { box-shadow: 0 0 6px 1px rgb(250 204 21 / 0.25); }
+  50%      { box-shadow: 0 0 16px 6px rgb(250 204 21 / 0.7); }
 }
-.animate-turn-glow { animation: turn-glow 2.8s ease-in-out infinite; }
+.animate-turn-glow { animation: turn-glow 1.4s ease-in-out infinite; }
 .animate-deal-in { animation: deal-in 300ms ease-out both; }
 
 /* Players who ask their system for less motion get a steady glow and no card slide */

@@ -37,7 +37,7 @@ export async function startGame(table: Pick<Table, "id" | "name" | "ante" | "min
   const started = startHand(created.value, rng)
   if (!started.ok) return started
   
-  const game = playBots(started.value) // a bot may be first to act
+  const game = started.value
   gameDAO.save(game)
 
 
@@ -81,6 +81,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
       stack: p.stack,
       status: p.status,
       betThisRound: p.betThisRound,
+      lastAction: p.lastAction ?? null,
       cardCount: p.hand.length,
     })),
     winners: game.winners,
@@ -93,7 +94,7 @@ function makeBots(table: Table, lastBots: SeatInput[]): SeatInput[] {
   const count = Math.min(table.botCount, table.maxPlayers - table.seats.length)
   const names = [...botNames].sort(() => Math.random() - 0.5)
   return Array.from({ length: count }, (_, i) =>
-    lastBots[i] ?? { id: `bot-${i}`, name: `[BOT] ${names[i]}`, stack: table.buyIn, botFlag: true })
+    lastBots[i] ?? { id: `bot-${i}`, name: names[i]!, stack: table.buyIn, botFlag: true })
 }
 
 export async function startIfReady(tableId: string, lastDealer?: PlayerId, lastBots: SeatInput[] = []): Promise<PlayerId[] | null> {
@@ -147,7 +148,7 @@ export function leaveGame(tableId: string, playerId: PlayerId): GameState | null
   if (game.phase !== "showdown" && game.players.filter(isInHand).length <= 1) {
     game = { ...game, phase: "showdown", round: null, toActIndex: null }
   }
-  game = playBots(game) // a bot shouldn't wait for the player who left
+  game = finishIfShowdown(game)
   gameDAO.save(game)
   return game
 
@@ -163,9 +164,9 @@ export type ActError = "game-not-found" | ActionError
 export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<GameState, ActError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-  const result = applyAction(game, playerId, action) // the person's move
+  const result = applyAction(game, playerId, action)
   if (!result.ok) return result
-  const next = playBots(result.value) // then any bots after them
+  const next = finishIfShowdown(result.value)
   gameDAO.save(next)
   return { ok: true, value: next }
 
@@ -178,7 +179,7 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
   if (!game) return { ok: false, error: "game-not-found" }
   const result = applyDraw(game, playerId, discard)
   if (!result.ok) return result
-  const next = playBots(result.value)
+  const next = finishIfShowdown(result.value)
   gameDAO.save(next)
   return { ok: true, value: next }
 }
@@ -195,18 +196,22 @@ function finishIfShowdown(game: GameState): GameState {
   return game
 }
 
-// Plays every bot whose turn it is, until it's a person's turn or the hand is over.
-function playBots(start: GameState): GameState {
-  let game = start
-  for (let moves = 0; moves < 100; moves++) {
-    const bot = game.toActIndex === null ? undefined : game.players[game.toActIndex]
-    if (!bot?.botFlag) break
-    const result = game.phase === "draw"
-      ? applyDraw(game, bot.id, botDiscard(game, bot.id))
-      : applyAction(game, bot.id, botBet(game, bot.id))
-    const next = result.ok ? result : applyAction(game, bot.id, { type: "fold" })
-    if (!next.ok) break
-    game = next.value
-  }
-  return finishIfShowdown(game)
+export function isBotTurn(tableId: string): boolean {
+  const game = gameDAO.findByTable(tableId)
+  return game?.toActIndex != null && game.players[game.toActIndex]!.botFlag === true
+}
+
+// Plays one move for the bot whose turn it is
+export function playBot(tableId: string): GameState | null {
+  const game = gameDAO.findByTable(tableId)
+  if (!game || !isBotTurn(tableId)) return null
+  const bot = game.players[game.toActIndex!]!
+  const result = game.phase === "draw"
+    ? applyDraw(game, bot.id, botDiscard(game, bot.id))
+    : applyAction(game, bot.id, botBet(game, bot.id))
+  const next = result.ok ? result : applyAction(game, bot.id, { type: "fold" })
+  if (!next.ok) return null
+  const finished = finishIfShowdown(next.value)
+  gameDAO.save(finished)
+  return finished
 }

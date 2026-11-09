@@ -199,9 +199,10 @@ describe("GameTable", () => {
   })
 
   it("fades a folded player and hides their cards", async () => {
-    await showView({ ...view, players: [alex, { ...maya, status: "folded" }] })
+    await showView({ ...view, players: [{ ...alex, lastAction: "check" }, { ...maya, status: "folded" }] })
     expect(screen.queryByRole("img", { name: /Maya has/ })).not.toBeInTheDocument()
     expect(screen.getByText("Folded")).toBeInTheDocument()
+    expect(within(seatOf("Me")).getByText("Check")).toBeInTheDocument()
     expect(seatOf("Maya")).toHaveClass("opacity-50")
   })
 
@@ -236,8 +237,8 @@ describe("GameTable", () => {
   })
 
   it("seats bots in the open seats with a blue ring", async () => {
-    await showView({ ...view, players: [...view.players, { seat: 2, id: "bot-0", name: "[BOT] McBot", stack: 90 }] })
-    expect(screen.getByText("[BOT] McBot")).toBeInTheDocument()
-    expect(screen.getByText("[").style.borderColor).toBe("rgb(124, 196, 240)")
+    await showView({ ...view, players: [...view.players, { seat: 2, id: "bot-0", name: "Taks", stack: 90 }] })
+    expect(screen.getByText("Taks")).toBeInTheDocument()
+    expect(screen.getByText("T").style.borderColor).toBe("rgb(114, 187, 234)")
   })
 })
