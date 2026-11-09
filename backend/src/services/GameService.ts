@@ -16,6 +16,9 @@ import { isInHand, isPlayersTurn } from "../game/Turn"
 import { updateStack } from "../dao/TablePlayersDAO"
 import ( botDiscard, botBet } from "../game/Dealer"
 
+const botNames: string[] = ["NormalPete", "MrBigTime", "QueenOHearts", "UnsaidBot", "You", "JohnnyChristmas", "HowDoIPlay", "PokerFace", "Taks", "McBot"]
+
+
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
   return {
@@ -83,7 +86,12 @@ export async function startIfReady(tableId: string, lastDealer?: PlayerId): Prom
 
   const seats = [...table.seats]
     .sort((a, b) => a.seatNumber - b.seatNumber)
-    .map(s => ({ id: s.userId, name: s.username, stack: s.stack }))
+    for(let i = 0; i < table.botCount; i++) {
+        let botID = "bot-" + i
+        let botName = "[BOT]_" + botNames[Math.floor(Math.random() * botNames.length)]
+        .map(b => ({ id: botID, name: botName, stack: table.buyIn, botFlag: true}))
+    }
+    .map(s => ({ id: s.userId, name: s.username, stack: s.stack, botFlag: false }))
   const dealer = seats.findIndex(s => s.id === lastDealer)
   const started = await startGame(table, [...seats.slice(dealer + 1), ...seats.slice(0, dealer + 1)])
   return started.ok ? seats.map(s => s.id) : null
