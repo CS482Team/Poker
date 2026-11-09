@@ -26,7 +26,7 @@ jobs:
         run: |
           echo '### Backend test coverage' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          cat coverage.txt >> $GITHUB_STEP_SUMMARY || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   frontend-tests:
@@ -42,6 +42,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npx jest --coverage --coverageReporters=text 2>&1 | tee coverage.txt
         shell: bash
@@ -49,5 +50,5 @@ jobs:
         run: |
           echo '### Frontend test coverage' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          cat coverage.txt >> $GITHUB_STEP_SUMMARY || true
           echo '```' >> $GITHUB_STEP_SUMMARY
