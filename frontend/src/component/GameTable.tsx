@@ -13,7 +13,7 @@ import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 import PlayerHand from "@/component/PlayerHand"
 import type { ActionType } from "@shared/Actions"
-import type { PlayerView } from "@shared/PlayerView"
+import type { PlayerView, PublicPlayer } from "@shared/PlayerView"
 import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -44,6 +44,13 @@ export default function GameTable({ id }: { id: string }) {
   const [busy, setBusy] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
+  const tableSeats = table?.seats ?? []
+  const openSeats = Array.from({ length: table?.maxPlayers ?? 0 }, (_, n) => n).filter(n => !tableSeats.some(s => s.seatNumber === n))
+  const botSeats = (view?.players ?? [])
+  .filter(p => !tableSeats.some(s => s.userId === p.id))
+  .map((p, i) => ({ userId: p.id, username: p.name, seatNumber: openSeats[i]!, stack: p.stack }))
+  const seats = [...tableSeats, ...botSeats]
+
 
   useEffect(() => {
     fetchTable(id)
@@ -138,7 +145,7 @@ export default function GameTable({ id }: { id: string }) {
             <>
               <p className="sr-only" role="status">{winnerText(view)}</p>
               {Object.entries(view.winnings).map(([winnerId, chips]) => {
-                const seat = table.seats.find((s) => s.userId === winnerId)
+                const seat = seats.find((s) => s.userId === winnerId)
                 if (!seat) return null
                 const to = seatPosition(seat.seatNumber, table.maxPlayers)
                 return (
@@ -172,7 +179,7 @@ export default function GameTable({ id }: { id: string }) {
           )}
           {/* every seat has a fixed spot by seat number, so players don't move as others join or leave */}
           {Array.from({ length: table.maxPlayers }, (_, seatNumber) => {
-            const seat = table.seats.find((s) => s.seatNumber === seatNumber)
+            const seat = seats.find((s) => s.seatNumber === seatNumber)
             const position = seatPosition(seatNumber, table.maxPlayers)
             if (!seat) {
               return (
@@ -186,6 +193,7 @@ export default function GameTable({ id }: { id: string }) {
             // the game's view of this player; `live.seat` is their place in the game's turn order, not the table seat
             const live = view?.players.find((p) => p.id === seat.userId)
             const won = view?.winners.includes(seat.userId)
+            const bot = !tableSeats.some((s) => s.userId === seat.userId)
             const folded = live?.status === "folded"
             const toAct = live !== undefined && live.seat === view?.toActSeat
             const dealer = live !== undefined && live.seat === view?.dealerSeat
@@ -213,7 +221,10 @@ export default function GameTable({ id }: { id: string }) {
                       <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
                     </svg>
                   )}
-                  <div className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""}`}>
+                  <div
+                    className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""}`}
+                    style={bot && !won ? { borderColor: "#72bbea" } : undefined}
+                  >
                     {name[0]}
                     {dealer && (
                       <span className="dealer-chip" aria-label="Dealer">
@@ -226,7 +237,7 @@ export default function GameTable({ id }: { id: string }) {
                   <span>{name}</span>
                   <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
                 </div>
-                {folded ? <small>Folded</small> : live && live.betThisRound > 0 && <small>Bet ${live.betThisRound}</small>}
+                {live && actionText(live) && <small>{actionText(live)}</small>}
               </div>
             )
           })}
@@ -242,7 +253,7 @@ export default function GameTable({ id }: { id: string }) {
           </div>
         )}
         {canDraw && view && (
-          <div className="mt-6 flex items-center justify-center gap-4">
+          <div className="mt-6 flex min-h-[3.25rem] items-center justify-center gap-4">
             <p aria-live="polite" className="text-sm text-[#d8cfcf]">
               {discardText(selected.length, view.you.hand.length)}
             </p>
@@ -251,7 +262,7 @@ export default function GameTable({ id }: { id: string }) {
             </button>
           </div>
         )}
-        {view && (
+        {view && !canDraw && (
           <div className="mt-6">
             <ActionBar
               key={`${view.toActSeat}-${view.round?.currentBet}`}
@@ -277,6 +288,16 @@ function winnerText(view: PlayerView): string {
     .join(" · ")
 }
 
+/* what the player did last this round, e.g. "Check" or "Raise $20" */
+function actionText(p: PublicPlayer): string | null {
+  if (p.status === "folded") return "Folded"
+  if (p.lastAction === "check") return "Check"
+  if (p.lastAction === "call") return `Call $${p.betThisRound}`
+  if (p.lastAction === "bet") return `Bet $${p.betThisRound}`
+  if (p.lastAction === "raise") return `Raise $${p.betThisRound}`
+  return null
+}
+
 /* tells the player what pressing Draw will do, e.g. "Discarding 2 cards" */
 function discardText(discarding: number, handSize: number): string {
   if (discarding === 0) return `Keeping all ${handSize} cards`
@@ -285,7 +306,7 @@ function discardText(discarding: number, handSize: number): string {
 
 function statusText(view: PlayerView): string {
   if (view.phase === "draw") {
-    return view.toActSeat === view.you.seat ? "Pick cards to discard, then draw" : "Waiting for others to draw"
+    return view.toActSeat === view.you.seat ? "Pick cards to replace" : "Waiting for others to draw"
   }
   const toAct = view.toActSeat === null ? undefined : view.players[view.toActSeat]
   if (!toAct) return "Round over, waiting for next round"

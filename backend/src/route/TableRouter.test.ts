@@ -68,6 +68,11 @@ describe("tables", () => {
     const res = await request(app).post("/tables").send({ ...validTable, maxPlayers: 7 })
     expect(res.status).toBe(400)
   })
+
+  it("rejects bots that fill every seat", async () => {
+    const res = await request(app).post("/tables").send({ ...validTable, botCount: validTable.maxPlayers })
+    expect(res.status).toBe(400)
+  })
 })
 
 describe("players", () => {

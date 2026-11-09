@@ -32,7 +32,7 @@ describe("TableDAO", () => {
   it("creates a table with its host", async () => {
     mockState.result = { data: { id: "new-id" } }
     expect(await createTable(newTable)).toBe("new-id")
-    expect(calls).toContainEqual(["insert", [{ name: "New", max_players: 4, buy_in: 100, minimum_bet: 5, ante: 1, host_id: "u1" }]])
+    expect(calls).toContainEqual(["insert", [{ name: "New", max_players: 4, buy_in: 100, minimum_bet: 5, ante: 1, host_id: "u1", bot_count: 0 }]])
   })
 
   it("deletes the table by id", async () => {

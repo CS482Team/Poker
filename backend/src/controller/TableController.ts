@@ -8,7 +8,7 @@ import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
-import { sendGame } from "./GameController"
+import { playBotLater, sendGame } from "./GameController"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -93,6 +93,7 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
 async function dealIfReady(tableId: string) {
   const playerIds = await startIfReady(tableId)
   if (playerIds) sendViews(tableId, playerIds)
+  playBotLater(tableId)
 }
 
 /* posts a system line in the table's chat, like "Maya joined the table"
@@ -135,6 +136,9 @@ function isValidNewTable(body: NewTable) {
     Number.isInteger(body.minimumBet) &&
     body.minimumBet >= 0 &&
     Number.isInteger(body.ante) &&
-    body.ante >= 0
+    body.ante >= 0 &&
+    (body.botCount === undefined || (Number.isInteger(body.botCount) && body.botCount >= 0 && body.botCount < body.maxPlayers))
+    // bots must leave at least one seat for a person (the database checks bot_count < max_players too)
+
   )
 }

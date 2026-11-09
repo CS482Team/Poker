@@ -40,6 +40,7 @@ const table = {
   variant: "five_card_draw",
   minimumBet: 5,
   ante: 1,
+  botCount: 0,
   seats: [
     { userId: getCurrentUserId(), username: "Alex", seatNumber: 0, stack: 2450 },
     { userId: "u2", username: "Maya", seatNumber: 1, stack: 1840 },
@@ -50,7 +51,7 @@ const view = {
   gameId: "g1",
   pot: 0,
   toActSeat: 0,
-  players: [{ seat: 0, name: "Alex" }],
+  players: [{ seat: 0, id: getCurrentUserId(), name: "Alex", stack: 2450 }],
   you: { seat: 0, hand: [], legalActions: [{ type: "check" }] },
   winners: [],
   winnings: {},
@@ -198,9 +199,10 @@ describe("GameTable", () => {
   })
 
   it("fades a folded player and hides their cards", async () => {
-    await showView({ ...view, players: [alex, { ...maya, status: "folded" }] })
+    await showView({ ...view, players: [{ ...alex, lastAction: "check" }, { ...maya, status: "folded" }] })
     expect(screen.queryByRole("img", { name: /Maya has/ })).not.toBeInTheDocument()
     expect(screen.getByText("Folded")).toBeInTheDocument()
+    expect(within(seatOf("Me")).getByText("Check")).toBeInTheDocument()
     expect(seatOf("Maya")).toHaveClass("opacity-50")
   })
 
@@ -232,5 +234,11 @@ describe("GameTable", () => {
     fireEvent.click(screen.getAllByRole("button", { pressed: false })[1]!)
     fireEvent.click(screen.getByRole("button", { name: "Draw" }))
     expect(draw).toHaveBeenCalledWith("g1", getCurrentUserId(), [1])
+  })
+
+  it("seats bots in the open seats with a blue ring", async () => {
+    await showView({ ...view, players: [...view.players, { seat: 2, id: "bot-0", name: "Taks", stack: 90 }] })
+    expect(screen.getByText("Taks")).toBeInTheDocument()
+    expect(screen.getByText("T").style.borderColor).toBe("rgb(114, 187, 234)")
   })
 })

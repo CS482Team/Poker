@@ -30,8 +30,10 @@ describe("NewTableForm", () => {
   it("creates, joins and opens the table", async () => {
     jest.mocked(createTable).mockResolvedValue("new-id")
     render(<NewTableForm onCancel={jest.fn()} />)
+    fireEvent.change(screen.getByLabelText("Bots"), { target: { value: "2" } })
     submit()
     await screen.findByRole("button", { name: "Create" })
+    expect(createTable).toHaveBeenCalledWith(expect.objectContaining({ botCount: 2 }))
     expect(joinTable).toHaveBeenCalled()
     expect(mockPush).toHaveBeenCalledWith("/table/new-id")
   })

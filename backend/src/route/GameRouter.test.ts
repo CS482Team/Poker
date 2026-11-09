@@ -1,6 +1,6 @@
 import request from "supertest"
 import { app } from "../app"
-import { drawCards, takeAction } from "../services/GameService"
+import { drawCards, isBotTurn, playBot, takeAction } from "../services/GameService"
 import { sendViews } from "../socket/io"
 
 jest.mock("../services/GameService")
@@ -55,5 +55,22 @@ describe("POST /game/:gameId/draw", () => {
     jest.mocked(drawCards).mockReturnValue({ ok: false, error: "wrong-phase" })
     const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [] })
     expect(res.status).toBe(409)
+  })
+})
+
+describe("bots", () => {
+  it("waits 3 to 10 seconds before a bot moves", async () => {
+    const game = { tableId: "t1", players: [{ id: "a" }, { id: "bot-0" }] }
+    jest.mocked(takeAction).mockReturnValue({ ok: true, value: game } as never)
+    jest.mocked(isBotTurn).mockReturnValueOnce(true)
+    jest.mocked(playBot).mockReturnValue(game as never)
+    jest.useFakeTimers()
+    await request(app).post("/game/g1/action").send({ playerId: "a", action: { type: "check" } })
+    jest.advanceTimersByTime(2999)
+    expect(playBot).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(7001)
+    expect(playBot).toHaveBeenCalledWith("t1")
+    expect(sendViews).toHaveBeenCalledTimes(2)
+    jest.useRealTimers()
   })
 })

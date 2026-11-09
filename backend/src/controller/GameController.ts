@@ -1,21 +1,38 @@
 import type { Request, Response } from "express"
 import type { ActionType, PlayerAction } from "../../../shared/Actions"
 import type { GameState } from "../../../shared/GameState"
-import { drawCards, nextHand, takeAction } from "../services/GameService"
+import { drawCards, isBotTurn, nextHand, playBot, takeAction } from "../services/GameService"
 import type { ActError, DrawCardsError } from "../services/GameService"
 import { sendViews } from "../socket/io"
 
 const NEXT_HAND_DELAY = 5000
+const BOT_MIN_DELAY = 3000
+const BOT_MAX_DELAY = 10000
+const waitingBots = new Set<string>()
 
 export function sendGame(game: GameState) {
   sendViews(game.tableId, game.players.map(p => p.id))
   if (game.phase === "hand-complete") {
     setTimeout(() => dealNextHand(game.tableId).catch(console.error), NEXT_HAND_DELAY)
+  } else {
+    playBotLater(game.tableId)
   }
+}
+
+/* a bot thinks for 3 to 10 seconds before it moves */
+export function playBotLater(tableId: string) {
+  if (waitingBots.has(tableId) || !isBotTurn(tableId)) return
+  waitingBots.add(tableId)
+  setTimeout(() => {
+    waitingBots.delete(tableId)
+    const game = playBot(tableId)
+    if (game) sendGame(game)
+  }, BOT_MIN_DELAY + Math.random() * (BOT_MAX_DELAY - BOT_MIN_DELAY))
 }
 
 async function dealNextHand(tableId: string) {
   sendViews(tableId, await nextHand(tableId))
+  playBotLater(tableId)
 }
 
 const ACTION_TYPES: ActionType[] = ["fold", "check", "call", "bet", "raise"]

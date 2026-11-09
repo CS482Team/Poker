@@ -14,6 +14,10 @@ import type { DrawError } from "../game/Drawer"
 import { scoreHands } from "../game/Ender"
 import { isInHand, isPlayersTurn } from "../game/Turn"
 import { updateStack } from "../dao/TablePlayersDAO"
+import { botDiscard, botBet } from "../game/Bot"
+
+const botNames: string[] = ["NormalPete", "MrBigTime", "QueenOHearts", "UnsaidBot", "U", "JohnnyChristmas", "HowDoIPlay", "PokerFace", "Taks", "McBot"]
+
 
 const matches = new Map<string, { matchId: string; stacks: number[] }>()
 
@@ -32,17 +36,22 @@ export async function startGame(table: Pick<Table, "id" | "name" | "ante" | "min
   if (!created.ok) return created
   const started = startHand(created.value, rng)
   if (!started.ok) return started
+  
   const game = started.value
-
   gameDAO.save(game)
+
 
   const matchNumber = await nextMatchNumber(table.id)
   const matchId = await insertMatch({ tableId: table.id, tableName: table.name, matchNumber, pot: game.pot, dealerSeat: game.dealerIndex })
-  // TODO bots need a name, not a user id
-  await insertMatchPlayers(matchId, game.players.map((p, seat) => ({ seatNumber: seat, userId: p.id, botName: null })))
+  await insertMatchPlayers(matchId, game.players.map((p, seat) => ({
+    seatNumber: seat,
+    userId: p.botFlag ? null : p.id,
+    botName: p.botFlag ? p.name : null,
+  })))
   matches.set(game.id, { matchId, stacks: game.players.map(p => p.stack + p.totalContributed) })
 
-  return started
+  return { ok: true, value: game }
+
 }
 
 export function getTableView(tableId: string, userId: PlayerId): PlayerView | null {
@@ -72,6 +81,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
       stack: p.stack,
       status: p.status,
       betThisRound: p.betThisRound,
+      lastAction: p.lastAction ?? null,
       cardCount: p.hand.length,
     })),
     winners: game.winners,
@@ -79,14 +89,24 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
   }
 }
 
-export async function startIfReady(tableId: string, lastDealer?: PlayerId): Promise<PlayerId[] | null> {
+// Bots for the table: last hand's bots keep their chips and names; new ones get a buy-in and a name not already used
+function makeBots(table: Table, lastBots: SeatInput[]): SeatInput[] {
+  const count = Math.min(table.botCount, table.maxPlayers - table.seats.length)
+  const names = [...botNames].sort(() => Math.random() - 0.5)
+  return Array.from({ length: count }, (_, i) =>
+    lastBots[i] ?? { id: `bot-${i}`, name: names[i]!, stack: table.buyIn, botFlag: true })
+}
+
+export async function startIfReady(tableId: string, lastDealer?: PlayerId, lastBots: SeatInput[] = []): Promise<PlayerId[] | null> {
   if (gameDAO.findByTable(tableId)) return null
   const table = await getTable(tableId)
   if (!table) return null
+  if (table.seats.length === 0) return null // bots never play on their own
 
-  const seats = [...table.seats]
+  const seats: SeatInput[] = [...table.seats]
     .sort((a, b) => a.seatNumber - b.seatNumber)
-    .map(s => ({ id: s.userId, name: s.username, stack: s.stack }))
+    .map(s => ({ id: s.userId, name: s.username, stack: s.stack, botFlag: false }))
+  seats.push(...makeBots(table, lastBots))
   const dealer = seats.findIndex(s => s.id === lastDealer)
   const started = await startGame(table, [...seats.slice(dealer + 1), ...seats.slice(0, dealer + 1)])
   return started.ok ? seats.map(s => s.id) : null
@@ -95,10 +115,12 @@ export async function startIfReady(tableId: string, lastDealer?: PlayerId): Prom
 export async function nextHand(tableId: string): Promise<PlayerId[]> {
   const game = gameDAO.findByTable(tableId)
   if (!game || game.phase !== "hand-complete") return []
-  await Promise.all(game.players.map(p => updateStack(tableId, p.id, p.stack)))
+  await Promise.all(game.players.filter(p => !p.botFlag).map(p => updateStack(tableId, p.id, p.stack)))
+  const bots = game.players.filter(p => p.botFlag)
+    .map(p => ({ id: p.id, name: p.name, stack: p.stack, botFlag: true }))
   await saveResult(game)
   endGame(tableId)
-  return (await startIfReady(tableId, game.players[game.dealerIndex]?.id)) ?? game.players.map(p => p.id)
+  return (await startIfReady(tableId, game.players[game.dealerIndex]?.id, bots)) ?? game.players.map(p => p.id)
 }
 
 async function saveResult(game: GameState) {
@@ -107,7 +129,8 @@ async function saveResult(game: GameState) {
   matches.delete(game.id)
   const results = game.players.map((p, seat) => ({ seatNumber: seat, netResult: p.stack - match.stacks[seat]! }))
   const pot = game.players.reduce((sum, p) => sum + p.totalContributed, 0)
-  await finishMatch(match.matchId, game.winners[0] ?? null, pot, results)
+  const winner = game.players.find(p => p.id === game.winners[0])
+  await finishMatch(match.matchId, winner && !winner.botFlag ? winner.id : null, pot, results)
 }
 
 export function leaveGame(tableId: string, playerId: PlayerId): GameState | null {
@@ -125,8 +148,10 @@ export function leaveGame(tableId: string, playerId: PlayerId): GameState | null
   if (game.phase !== "showdown" && game.players.filter(isInHand).length <= 1) {
     game = { ...game, phase: "showdown", round: null, toActIndex: null }
   }
-  gameDAO.save(finishIfShowdown(game))
+  game = finishIfShowdown(game)
+  gameDAO.save(game)
   return game
+
 }
 
 export function endGame(tableId: string) {
@@ -139,10 +164,12 @@ export type ActError = "game-not-found" | ActionError
 export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAction): Result<GameState, ActError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-
   const result = applyAction(game, playerId, action)
-  if (result.ok) gameDAO.save(finishIfShowdown(result.value))
-  return result
+  if (!result.ok) return result
+  const next = finishIfShowdown(result.value)
+  gameDAO.save(next)
+  return { ok: true, value: next }
+
 }
 
 export type DrawCardsError = "game-not-found" | DrawError
@@ -150,10 +177,11 @@ export type DrawCardsError = "game-not-found" | DrawError
 export function drawCards(gameId: string, playerId: PlayerId, discard: number[]): Result<GameState, DrawCardsError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-
   const result = applyDraw(game, playerId, discard)
-  if (result.ok) gameDAO.save(finishIfShowdown(result.value))
-  return result
+  if (!result.ok) return result
+  const next = finishIfShowdown(result.value)
+  gameDAO.save(next)
+  return { ok: true, value: next }
 }
 
 /* scores the hand at showdown, and records how many chips each winner took from the pot
@@ -166,4 +194,24 @@ function finishIfShowdown(game: GameState): GameState {
     game.players.map((p, i) => [p.id, p.stack - before[i]!] as const).filter(([, won]) => won > 0),
   )
   return game
+}
+
+export function isBotTurn(tableId: string): boolean {
+  const game = gameDAO.findByTable(tableId)
+  return game?.toActIndex != null && game.players[game.toActIndex]!.botFlag === true
+}
+
+// Plays one move for the bot whose turn it is
+export function playBot(tableId: string): GameState | null {
+  const game = gameDAO.findByTable(tableId)
+  if (!game || !isBotTurn(tableId)) return null
+  const bot = game.players[game.toActIndex!]!
+  const result = game.phase === "draw"
+    ? applyDraw(game, bot.id, botDiscard(game, bot.id))
+    : applyAction(game, bot.id, botBet(game, bot.id))
+  const next = result.ok ? result : applyAction(game, bot.id, { type: "fold" })
+  if (!next.ok) return null
+  const finished = finishIfShowdown(next.value)
+  gameDAO.save(finished)
+  return finished
 }

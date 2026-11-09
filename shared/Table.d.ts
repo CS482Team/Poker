@@ -7,6 +7,7 @@ export interface Table {
   minimumBet: number
   ante: number
   maxPlayers: number
+  botCount: number
   seats: Seat[]
 }
 
@@ -17,6 +18,7 @@ export interface NewTable {
   buyIn: number
   minimumBet: number
   ante: number
+  botCount?: number
 }
 
 export interface Seat {

@@ -21,11 +21,12 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   const [minimumBet, setMinimumBet] = useState(10)
   const [ante, setAnte] = useState(5)
   const [error, setError] = useState<string | null>(null)
+  const [botCount, setBotCount] = useState(0)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante })
+      const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante, botCount })
       await joinTable(id, getCurrentUserId())
       setCurrentTableId(id)
       router.push(`/table/${id}`)
@@ -57,6 +58,10 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
                 </option>
               ))}
             </select>
+          </label>
+          <label>
+            Bots
+            <input type="number" min={0} max={maxPlayers - 1} value={botCount} onChange={(e) => setBotCount(Number(e.target.value))} className={numberClass} />
           </label>
           <label className={labelClass}>
             Buy In

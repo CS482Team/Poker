@@ -2,7 +2,7 @@ import type { NewTable, Table } from "../../../shared/Table"
 
 import { getSupabase } from "../config/Supabase"
 
-const TABLE_COLUMNS = "id, name, status, variant, max_players, buy_in, minimum_bet, ante, table_players(user_id, seat_number, stack, user(username))"
+const TABLE_COLUMNS = "id, name, status, variant, max_players, buy_in, minimum_bet, ante, bot_count, table_players(user_id, seat_number, stack, user(username))"
 
 /* gets every table with its seats */
 export async function getAllTables(): Promise<Table[]> {
@@ -33,6 +33,7 @@ export async function createTable(input: NewTable): Promise<string> {
       minimum_bet: input.minimumBet,
       ante: input.ante,
       host_id: input.hostId,
+      bot_count: input.botCount ?? 0,
     })
     .select("id")
     .single()
@@ -61,6 +62,7 @@ function toTable(row: any): Table {
     buyIn: row.buy_in,
     minimumBet: row.minimum_bet,
     ante: row.ante,
+    botCount: row.bot_count,
     seats: row.table_players.map((p: any) => ({
       userId: p.user_id,
       username: p.user.username,

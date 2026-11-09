@@ -19,6 +19,13 @@ describe("UserDAO", () => {
     expect(calls).toContainEqual(["eq", ["id", "u1"]])
   })
 
+  it("reads a username", async () => {
+    mockState.result = { data: { username: "Maya" } }
+    expect(await getUsername("u1")).toBe("Maya")
+    expect(calls).toContainEqual(["select", ["username"]])
+    expect(calls).toContainEqual(["eq", ["id", "u1"]])
+  })
+
   it("saves the new balance on the user", async () => {
     await setBalance("u1", 400)
     expect(calls).toContainEqual(["from", ["user"]])
