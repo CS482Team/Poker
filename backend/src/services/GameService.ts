@@ -62,7 +62,6 @@ export function getTableView(tableId: string, userId: PlayerId): PlayerView | nu
 function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
   const seat = game.players.findIndex(p => p.id === playerId)
   const me = game.players[seat]
-  if (!me) return null
 
   return {
     gameId: game.id,
@@ -73,7 +72,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
     dealerSeat: game.dealerIndex,
     toActSeat: game.toActIndex,
     round: game.round,
-    you: { seat, hand: me.hand, legalActions: getLegalActions(game, playerId) },
+    you: { seat, hand: me?.hand ?? [], legalActions: me ? getLegalActions(game, playerId) : [] },
     players: game.players.map((p, i) => ({
       seat: i,
       id: p.id,
@@ -92,9 +91,9 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
 // Bots for the table: last hand's bots keep their chips and names; new ones get a buy-in and a name not already used
 function makeBots(table: Table, lastBots: SeatInput[]): SeatInput[] {
   const count = Math.min(table.botCount, table.maxPlayers - table.seats.length)
-  const names = [...botNames].sort(() => Math.random() - 0.5)
+  const names = botNames.filter(n => !lastBots.some(b => b.name === n)).sort(() => Math.random() - 0.5)
   return Array.from({ length: count }, (_, i) =>
-    lastBots[i] ?? { id: `bot-${i}`, name: names[i]!, stack: table.buyIn, botFlag: true })
+    lastBots[i] ?? { id: `bot-${i}`, name: names[i - lastBots.length]!, stack: table.buyIn, botFlag: true })
 }
 
 export async function startIfReady(tableId: string, lastDealer?: PlayerId, lastBots: SeatInput[] = []): Promise<PlayerId[] | null> {
@@ -201,7 +200,6 @@ export function isBotTurn(tableId: string): boolean {
   return game?.toActIndex != null && game.players[game.toActIndex]!.botFlag === true
 }
 
-// Plays one move for the bot whose turn it is
 export function playBot(tableId: string): GameState | null {
   const game = gameDAO.findByTable(tableId)
   if (!game || !isBotTurn(tableId)) return null

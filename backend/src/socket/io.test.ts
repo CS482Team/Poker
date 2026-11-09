@@ -82,12 +82,13 @@ describe("socket", () => {
     expect(await received).toEqual({ id: "g1" })
   })
 
-  it("pushes views to the players in a table", async () => {
+  it("pushes views to everyone watching a table", async () => {
     jest.mocked(getTableView).mockReturnValue({ id: "g1" } as never)
     await join("watchHand", { tableId: "t1", userId: "a" })
     const received = next("view")
-    sendViews("t1", ["a", "b"])
+    sendViews("t1")
     expect(await received).toEqual({ id: "g1" })
+    expect(getTableView).toHaveBeenLastCalledWith("t1", "a")
   })
   it("sends chat messages to that table's chat", async () => {
     const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
