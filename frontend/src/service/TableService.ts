@@ -1,4 +1,4 @@
-import type { NewTable, Table } from "@shared/Table";
+import type { NewTable, Table, TableSettings } from "@shared/Table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -44,4 +44,13 @@ export async function joinTable(id: string, userId: string): Promise<void> {
 export async function leaveTable(id: string, userId: string): Promise<void> {
   const res = await fetch(`${API_URL}/tables/${id}/players/${userId}`, { method: "DELETE" });
   if (!res.ok) throw await requestError(res, "Failed to leave table");
+}
+
+export async function updateTableSettings(id: string, userId: string, settings: TableSettings): Promise<void> {
+  const res = await fetch(`${API_URL}/tables/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...settings }),
+  });
+  if (!res.ok) throw await requestError(res, "Failed to save settings");
 }

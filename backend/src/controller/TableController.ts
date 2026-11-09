@@ -1,8 +1,8 @@
 import { Request, Response } from "express"
-import type { NewTable, Table } from "../../../shared/Table"
+import type { NewTable, Table, TableSettings } from "../../../shared/Table"
 import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
@@ -88,6 +88,26 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
   res.status(204).end()
 }
 
+export async function updateSettings(req: Request<{ id: string }, {}, { userId: string } & TableSettings>, res: Response) {
+  const table = await getTable(req.params.id)
+  if (!table) {
+    res.status(404).json({ error: "Table not found" })
+    return
+  }
+  if (req.body.userId !== table.hostId) {
+    res.status(403).json({ error: "Only the host can change settings" })
+    return
+  }
+  if (!isValidSettings(req.body, table.maxPlayers)) {
+    res.status(400).json({ error: "Invalid settings" })
+    return
+  }
+  const { name, botCount, chatEnabled, turnTimerEnabled } = req.body
+  await updateTableSettings(table.id, { name: name.trim(), botCount, chatEnabled, turnTimerEnabled })
+  await broadcastChange(table.id)
+  res.status(204).end()
+}
+
 /* HELPER FUNCTIONS */
 
 async function dealIfReady(tableId: string) {
@@ -140,5 +160,18 @@ function isValidNewTable(body: NewTable) {
     (body.botCount === undefined || (Number.isInteger(body.botCount) && body.botCount >= 0 && body.botCount < body.maxPlayers))
     // bots must leave at least one seat for a person (the database checks bot_count < max_players too)
 
+  )
+}
+
+/* checks the new room settings */
+function isValidSettings(body: TableSettings, maxPlayers: number) {
+  return (
+    typeof body.name === "string" &&
+    body.name.trim() !== "" &&
+    Number.isInteger(body.botCount) &&
+    body.botCount >= 0 &&
+    body.botCount < maxPlayers &&
+    typeof body.chatEnabled === "boolean" &&
+    typeof body.turnTimerEnabled === "boolean"
   )
 }

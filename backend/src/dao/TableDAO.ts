@@ -1,8 +1,8 @@
-import type { NewTable, Table } from "../../../shared/Table"
+import type { NewTable, Table, TableSettings } from "../../../shared/Table"
 
 import { getSupabase } from "../config/Supabase"
 
-const TABLE_COLUMNS = "id, name, status, variant, max_players, buy_in, minimum_bet, ante, bot_count, table_players(user_id, seat_number, stack, user(username))"
+const TABLE_COLUMNS = "id, name, host_id, status, variant, max_players, buy_in, minimum_bet, ante, bot_count, chat_enabled, turn_timer_enabled, table_players(user_id, seat_number, stack, user(username))"
 
 /* gets every table with its seats */
 export async function getAllTables(): Promise<Table[]> {
@@ -50,12 +50,29 @@ export async function deleteTable(id: string): Promise<void> {
   if (error) throw error
 }
 
+/* saves the host's new room settings */
+export async function updateTableSettings(id: string, settings: TableSettings): Promise<void> {
+  const { error } = await getSupabase()
+    .from("table")
+    .update({
+      name: settings.name,
+      bot_count: settings.botCount,
+      chat_enabled: settings.chatEnabled,
+      turn_timer_enabled: settings.turnTimerEnabled,
+    })
+    .eq("id", id)
+
+  if (error) throw error
+}
 
 /* HELPER */
 function toTable(row: any): Table {
   return {
     id: row.id,
     name: row.name,
+    hostId: row.host_id,
+    chatEnabled: row.chat_enabled,
+    turnTimerEnabled: row.turn_timer_enabled,
     status: row.status,
     variant: row.variant,
     maxPlayers: row.max_players,

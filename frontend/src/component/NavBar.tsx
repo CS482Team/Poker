@@ -43,6 +43,9 @@ export default function Nav() {
             </Link>
           )}
         </div>
+        <Link href="/history" className={pathname === "/history" ? "nav-tab active" : "nav-tab"}>
+        History
+        </Link>
         <div className="flex justify-end">
           <BalanceDisplay /> 
           <ProfileMenu />
