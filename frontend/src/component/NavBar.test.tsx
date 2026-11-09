@@ -12,10 +12,10 @@ jest.mock("next/navigation", () => ({
 describe("Nav", () => {
   beforeEach(() => jest.mocked(getCurrentTableId).mockReturnValue(null))
 
-  it("hides the table link in the lobby", () => {
+  it("hides the table tab when not at a table", () => {
     jest.mocked(usePathname).mockReturnValue("/dashboard")
     render(<Nav />)
-    expect(screen.queryByRole("link", { name: "Table" })).not.toBeInTheDocument()
+    expect(screen.queryByText("Table")).not.toBeInTheDocument()
   })
 
   it("links back to your table from the lobby", () => {

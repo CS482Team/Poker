@@ -113,11 +113,11 @@ describe("ChatPanel", () => {
     expect(screen.getByPlaceholderText("Message")).toHaveValue("")
   })
 
-  it("sends a quick chat", async () => {
-    send.mockResolvedValue({ ok: true })
+  it("fills the message with a quick chat", () => {
     render(<ChatPanel {...props} seated />)
-    await act(async () => fireEvent.click(screen.getByText("Nice hand")))
-    expect(send).toHaveBeenCalledWith("Nice hand")
+    fireEvent.click(screen.getByText("Nice hand"))
+    expect(screen.getByLabelText("Chat message")).toHaveValue("Nice hand")
+    expect(send).not.toHaveBeenCalled()
   })
 
   it("shows why a message was refused", async () => {
@@ -147,8 +147,8 @@ describe("ChatPanel", () => {
     expect(stop).toHaveBeenCalled()
   })
 
-  it("shows a Contact admin button that does nothing yet", () => {
+  it("shows a Contact Admin button that does nothing yet", () => {
     render(<ChatPanel {...props} seated />)
-    expect(screen.getByText("Contact admin")).toBeDisabled()
+    expect(screen.getByText("Contact Admin")).toBeDisabled()
   })
 })

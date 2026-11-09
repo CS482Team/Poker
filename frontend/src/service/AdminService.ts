@@ -1,5 +1,6 @@
 import { authHeaders } from "@/service/AuthService";
 import type { Ad, NewAd } from "@shared/Ad";
+import type { HandRecord, PlayerSummary } from "@shared/PlayerHistory";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -44,4 +45,16 @@ export async function setAdActive(id: string, active: boolean): Promise<void> {
 export async function deleteAd(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/ads/${id}`, { method: "DELETE", headers: await authHeaders() });
   if (!res.ok) throw new Error(`Failed to delete ad (${res.status})`);
+}
+
+export async function fetchPlayers(): Promise<PlayerSummary[]> {
+  const res = await fetch(`${API_URL}/admin/players`, { headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to load players (${res.status})`);
+  return res.json();
+}
+
+export async function fetchPlayerHands(id: string): Promise<HandRecord[]> {
+  const res = await fetch(`${API_URL}/admin/players/${id}/hands`, { headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to load history (${res.status})`);
+  return res.json();
 }
