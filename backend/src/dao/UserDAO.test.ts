@@ -9,6 +9,14 @@ describe("UserDAO", () => {
   it("reads a balance", async () => {
     mockState.result = { data: { chip_balance: 500 } }
     expect(await getBalance("u1")).toBe(500)
+    expect(calls).toContainEqual(["from", ["user"]])
+  })
+
+  it("reads a username", async () => {
+    mockState.result = { data: { username: "Maya" } }
+    expect(await getUsername("u1")).toBe("Maya")
+    expect(calls).toContainEqual(["select", ["username"]])
+    expect(calls).toContainEqual(["eq", ["id", "u1"]])
   })
 
   it("reads a username", async () => {
