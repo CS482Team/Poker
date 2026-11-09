@@ -6,7 +6,7 @@ import type { SeatInput } from "../../../shared/GameState"
 jest.mock("../dao/MatchDAO")
 jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
 
-const table = { id: "t1", ante: 1, minimumBet: 2 }
+const table = { id: "t1", name: "Ruby", ante: 1, minimumBet: 2 }
 const seats: SeatInput[] = [
   { id: "a", name: "Alice", stack: 100 },
   { id: "b", name: "Bob", stack: 100 },
@@ -45,7 +45,7 @@ describe("startGame", () => {
   it("stores the dealt game and saves the match", async () => {
     const game = await started()
     expect(gameDAO.get(game.id)?.phase).toBe("predraw-betting")
-    expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", matchNumber: 3, pot: 3, dealerSeat: 0 })
+    expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", tableName: "Ruby", matchNumber: 3, pot: 3, dealerSeat: 0 })
     expect(insertMatchPlayers).toHaveBeenCalledWith("m1", [
       { seatNumber: 0, userId: "a", botName: null },
       { seatNumber: 1, userId: "b", botName: null },

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
+import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act as playAction, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
@@ -83,6 +84,7 @@ describe("GameTable", () => {
     jest.mocked(fetchTable).mockRejectedValue(new Error("Failed"))
     render(<GameTable id="t1" />)
     expect(await screen.findByText("Failed")).toBeInTheDocument()
+    expect(clearCurrentTableId).toHaveBeenCalled()
   })
 
   it("leaves and goes to the lobby", async () => {

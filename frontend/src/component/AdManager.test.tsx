@@ -2,12 +2,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import AdManager from "@/component/AdManager"
 import { createAd, deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
 
-const mockRouter = { replace: jest.fn() }
-
-jest.mock("next/navigation", () => ({
-  useRouter: () => mockRouter,
-}))
-
 jest.mock("@/service/AdminService", () => ({
   createAd: jest.fn(),
   deleteAd: jest.fn(),
@@ -24,10 +18,10 @@ beforeEach(() => {
 })
 
 describe("AdManager", () => {
-  it("sends non admins to the lobby", async () => {
-    jest.mocked(fetchAds).mockRejectedValue(new Error("403"))
+  it("shows when ads can't load", async () => {
+    jest.mocked(fetchAds).mockRejectedValue(new Error("Failed to load ads (500)"))
     render(<AdManager />)
-    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/dashboard"))
+    expect(await screen.findByText("Failed to load ads (500)")).toBeInTheDocument()
   })
 
   it("lists ads", async () => {

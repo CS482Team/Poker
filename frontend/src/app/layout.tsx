@@ -1,6 +1,7 @@
 import Nav from "@/component/NavBar";
 import { Suspense } from "react";
 import "./globals.css";
+import "./site.css";
 
 export const metadata = { title: "Hearts & Diamonds" };
 

@@ -4,7 +4,6 @@ import type { Ad } from "@shared/Ad"
 import Icon, { CHECK, CROSS, PENCIL, PLUS, TRASH } from "@/component/Icon"
 import NewAdForm from "@/component/NewAdForm"
 import { deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 const ROW = "grid grid-cols-[minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[minmax(0,1fr)_120px_140px_96px] sm:gap-4"
@@ -12,7 +11,6 @@ const ICON = "grid size-8 place-items-center rounded-md text-[#9e9393] transitio
 const INPUT = "w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[15px] text-[#f5f2ef] outline-none focus:border-white/40 [color-scheme:dark]"
 
 export default function AdManager() {
-  const router = useRouter()
   const [ads, setAds] = useState<Ad[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
@@ -24,8 +22,11 @@ export default function AdManager() {
   useEffect(() => {
     fetchAds()
       .then(setAds)
-      .catch(() => router.replace("/dashboard"))
-  }, [router])
+      .catch((err: Error) => {
+        setAds([])
+        setError(err.message)
+      })
+  }, [])
 
   async function run(action: () => Promise<void>) {
     try {
@@ -59,20 +60,16 @@ export default function AdManager() {
   if (!ads) return null
 
   return (
-    <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Admin</h1>
-        <button type="button" onClick={() => setCreating(true)} className="primary-action gap-2">
-          <Icon d={PLUS} size={18} />
-          New Ad
-        </button>
-      </div>
-
+    <>
       {creating && <NewAdForm onCancel={() => setCreating(false)} onCreated={() => run(async () => setCreating(false))} />}
 
       <section className="panel padded">
         <div className="panel-head">
           <h2>Ads</h2>
+          <button type="button" onClick={() => setCreating(true)} className="primary-action small gap-1.5">
+            <Icon d={PLUS} size={16} />
+            New Ad
+          </button>
         </div>
 
         {error && <p className="mb-3 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
@@ -150,6 +147,6 @@ export default function AdManager() {
           </>
         )}
       </section>
-    </div>
+    </>
   )
 }

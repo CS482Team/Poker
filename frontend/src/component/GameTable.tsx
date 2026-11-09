@@ -16,9 +16,19 @@ import type { Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
+const SEAT_SPOTS = [
+  [],
+  [[50, 12]],
+  [[17, 24], [83, 24]],
+  [[17, 24], [50, 12], [83, 24]],
+  [[17, 24], [38, 12], [62, 12], [83, 24]],
+  [[9, 64], [17, 24], [50, 12], [83, 24], [91, 64]],
+  [[9, 64], [17, 24], [38, 12], [62, 12], [83, 24], [91, 64]],
+]
+
 function seatPosition(i: number, count: number) {
-  const angle = count === 1 ? Math.PI / 2 : Math.PI - (i * Math.PI) / (count - 1)
-  return { left: `${50 + 43 * Math.cos(angle)}%`, top: `${55 - 41 * Math.sin(angle)}%` }
+  const [left, top] = SEAT_SPOTS[count]![i]!
+  return { left: `${left}%`, top: `${top}%` }
 }
 
 export default function GameTable({ id }: { id: string }) {
@@ -37,7 +47,10 @@ export default function GameTable({ id }: { id: string }) {
         setTable(loaded)
         setError(null)
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: Error) => {
+        clearCurrentTableId()
+        setError(err.message)
+      })
     return watchTable(id, getCurrentUserId(), setTable, setView)
   }, [id])
 
@@ -91,32 +104,28 @@ export default function GameTable({ id }: { id: string }) {
   if (!table) return <p className="p-8 text-center">Loading table…</p>
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-8 sm:px-6 md:flex-row md:items-start md:gap-12 xl:gap-14">
-      {/* sits left of the table from 768px wide (incl. half-screen windows) at a fixed height (table title + table = 520px)
-          so zoom doesn't stretch it; only stacks under the table on phones */}
-      <div className="order-2 h-[28rem] w-full shrink-0 md:sticky md:top-6 md:order-1 md:h-[520px] md:w-[260px] lg:w-[320px] xl:w-[360px]">
+    <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-8 sm:px-6 md:grid-cols-[260px_minmax(0,1fr)] md:gap-x-12 md:gap-y-12 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-x-14">
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={leave} className="secondary-action small gap-1.5">
+          <Icon d={LEAVE} size={14} />
+          Leave
+        </button>
+        <h1 className="truncate text-3xl font-bold">{table.name}</h1>
+      </div>
+      <div className="mx-auto flex w-full max-w-[780px] flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf] md:justify-end">
+        <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
+        <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
+        <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
+        <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+      </div>
+      <div className="order-last h-[28rem] md:order-none md:h-[520px]">
         <ChatPanel
           tableId={table.id}
           userId={getCurrentUserId()}
           seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
         />
       </div>
-      <div className="relative isolate order-1 mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:order-2">
-        <div className="mb-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-2">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={leave} className="secondary-action small gap-1.5">
-              <Icon d={LEAVE} size={14} />
-              Leave
-            </button>
-            <h1 className="text-3xl font-bold">{table.name}</h1>
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">
-            <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
-            <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
-            <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
-            <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
-          </div>
-        </div>
+      <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
           <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
           {view && (
