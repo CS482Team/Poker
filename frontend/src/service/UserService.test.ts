@@ -1,14 +1,22 @@
-import { DEV_USERS, getCurrentUserId, setCurrentUserId } from "@/service/UserService"
+import { getCurrentUserId } from "@/service/UserService"
 
-beforeEach(() => sessionStorage.clear())
+beforeEach(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:54321"
+  localStorage.clear()
+})
 
 describe("userService", () => {
-  it("defaults to the first dev user", () => {
-    expect(getCurrentUserId()).toBe(DEV_USERS[0].id)
+  it("uses the signed in user", () => {
+    localStorage.setItem("sb-127-auth-token", JSON.stringify({ user: { id: "u1" } }))
+    expect(getCurrentUserId()).toBe("u1")
   })
 
-  it("remembers the chosen user", () => {
-    setCurrentUserId(DEV_USERS[1].id)
-    expect(getCurrentUserId()).toBe(DEV_USERS[1].id)
+  it("is empty when nobody is signed in", () => {
+    expect(getCurrentUserId()).toBe("")
+  })
+
+  it("is empty when the session is unreadable", () => {
+    localStorage.setItem("sb-127-auth-token", "{bad")
+    expect(getCurrentUserId()).toBe("")
   })
 })

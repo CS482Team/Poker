@@ -46,6 +46,7 @@ export function createGame(
       round: null,
       handNumber: 0,
       winners: [],
+      winnings: {},
     },
   }
 }
@@ -110,6 +111,7 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
       round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
       handNumber: state.handNumber + 1,
       winners: [],
+      winnings: {},
     },
   }
 }

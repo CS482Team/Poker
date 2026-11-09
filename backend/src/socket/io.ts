@@ -1,7 +1,9 @@
 import type { Server as HttpServer } from "http"
 import { Server } from "socket.io"
+import type { ChatMessage } from "../../../shared/Chat"
 import { getAllTables, getTable } from "../dao/TableDAO"
 import { getTableView } from "../services/GameService"
+import { chatRoom, registerChat } from "./chat"
 
 const LOBBY = "lobby"
 let io: Server | undefined
@@ -26,6 +28,7 @@ export function initSocket(server: HttpServer) {
       await socket.join(LOBBY)
       ack?.()
     })
+    registerChat(socket, broadcastChat) // passed in so chat.ts doesn't import io.ts (avoids a circular import)
   })
 }
 
@@ -44,6 +47,11 @@ export function sendViews(tableId: string, userIds: string[]) {
   for (const id of userIds) {
     io?.to(handTable(tableId, id)).emit("view", getTableView(tableId, id))
   }
+}
+
+/* sends a new chat message to everyone in that table's chat */
+export function broadcastChat(message: ChatMessage) {
+  io?.to(chatRoom(message.tableId)).emit("chat:message", message)
 }
 
 /* HELPERS */

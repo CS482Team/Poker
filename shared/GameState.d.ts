@@ -64,4 +64,5 @@ export interface GameState {
   round: BettingRound | null // null outside betting phases
   handNumber: number
   winners: PlayerId[]        // filled in at ending
+  winnings: Record<PlayerId, number> // chips each winner took from the pot, filled in at ending (splits give each their share)
 }

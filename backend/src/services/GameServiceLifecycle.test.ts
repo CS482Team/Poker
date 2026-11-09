@@ -1,7 +1,7 @@
 import { drawCards, endGame, getTableView, leaveGame, nextHand, startIfReady, takeAction } from "../services/GameService"
 import { gameDAO } from "../dao/GameDAO"
 import { getTable } from "../dao/TableDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { finishMatch, insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { updateStack } from "../dao/TablePlayersDAO"
 
 jest.mock("../dao/MatchDAO")
@@ -9,7 +9,7 @@ jest.mock("../dao/TablePlayersDAO")
 jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
 
 const seat = (userId: string, seatNumber: number) => ({ userId, username: userId, seatNumber, stack: 100 })
-const table = (seats: ReturnType<typeof seat>[]) => ({ id: "t1", ante: 1, minimumBet: 2, seats })
+const table = (seats: ReturnType<typeof seat>[]) => ({ id: "t1", name: "Ruby", ante: 1, minimumBet: 2, seats })
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -41,6 +41,7 @@ describe("table games", () => {
     gameDAO.findByTable("t1")!.phase = "hand-complete"
     expect(await nextHand("t1")).toEqual(["a", "b"])
     expect(updateStack).toHaveBeenCalledTimes(2)
+    expect(finishMatch).toHaveBeenCalledWith("m1", null, 2, [{ seatNumber: 0, netResult: -1 }, { seatNumber: 1, netResult: -1 }])
     const game = gameDAO.findByTable("t1")!
     expect(game.players[game.dealerIndex]!.id).toBe("b")
     endGame("t1")

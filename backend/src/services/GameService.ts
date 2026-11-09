@@ -4,7 +4,7 @@ import type { GameState, PlayerId, Result, SeatInput, StartError, TableConfig } 
 import type { PlayerView } from "../../../shared/PlayerView"
 import type { Table } from "../../../shared/Table"
 import { getTable } from "../dao/TableDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { finishMatch, insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { gameDAO } from "../dao/GameDAO"
 import { applyAction, getLegalActions } from "../game/Betting"
 import type { ActionError } from "../game/Betting"
@@ -19,6 +19,8 @@ import { botDiscard, botBet } from "../game/Bot"
 const botNames: string[] = ["NormalPete", "MrBigTime", "QueenOHearts", "UnsaidBot", "U", "JohnnyChristmas", "HowDoIPlay", "PokerFace", "Taks", "McBot"]
 
 
+const matches = new Map<string, { matchId: string; stacks: number[] }>()
+
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
   return {
@@ -29,7 +31,7 @@ export function configForTable(table: Pick<Table, "ante" | "minimumBet">): Table
 
 // Creates a game at a table, deals the first hand, keeps it in the game store,
 // and saves the match rows.
-export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<GameState, StartError>> {
+export async function startGame(table: Pick<Table, "id" | "name" | "ante" | "minimumBet">, seats: SeatInput[], rng?: Rng): Promise<Result<GameState, StartError>> {
   const created = createGame(table.id, seats, configForTable(table))
   if (!created.ok) return created
   const started = startHand(created.value, rng)
@@ -40,12 +42,13 @@ export async function startGame(table: Pick<Table, "id" | "ante" | "minimumBet">
 
 
   const matchNumber = await nextMatchNumber(table.id)
-  const matchId = await insertMatch({ tableId: table.id, matchNumber, pot: game.pot, dealerSeat: game.dealerIndex })
+  const matchId = await insertMatch({ tableId: table.id, tableName: table.name, matchNumber, pot: game.pot, dealerSeat: game.dealerIndex })
   await insertMatchPlayers(matchId, game.players.map((p, seat) => ({
     seatNumber: seat,
     userId: p.botFlag ? null : p.id,
     botName: p.botFlag ? p.name : null,
   })))
+  matches.set(game.id, { matchId, stacks: game.players.map(p => p.stack + p.totalContributed) })
 
   return { ok: true, value: game }
 
@@ -81,6 +84,7 @@ function toPlayerView(game: GameState, playerId: PlayerId): PlayerView | null {
       cardCount: p.hand.length,
     })),
     winners: game.winners,
+    winnings: game.winnings,
   }
 }
 
@@ -110,11 +114,22 @@ export async function startIfReady(tableId: string, lastDealer?: PlayerId, lastB
 export async function nextHand(tableId: string): Promise<PlayerId[]> {
   const game = gameDAO.findByTable(tableId)
   if (!game || game.phase !== "hand-complete") return []
-    await Promise.all(game.players.filter(p => !p.botFlag).map(p => updateStack(tableId, p.id, p.stack)))
-    const bots = game.players.filter(p => p.botFlag)
+  await Promise.all(game.players.filter(p => !p.botFlag).map(p => updateStack(tableId, p.id, p.stack)))
+  const bots = game.players.filter(p => p.botFlag)
     .map(p => ({ id: p.id, name: p.name, stack: p.stack, botFlag: true }))
-    endGame(tableId)
-    return (await startIfReady(tableId, game.players[game.dealerIndex]?.id, bots)) ?? game.players.map(p => p.id)
+  await saveResult(game)
+  endGame(tableId)
+  return (await startIfReady(tableId, game.players[game.dealerIndex]?.id, bots)) ?? game.players.map(p => p.id)
+}
+
+async function saveResult(game: GameState) {
+  const match = matches.get(game.id)
+  if (!match) return
+  matches.delete(game.id)
+  const results = game.players.map((p, seat) => ({ seatNumber: seat, netResult: p.stack - match.stacks[seat]! }))
+  const pot = game.players.reduce((sum, p) => sum + p.totalContributed, 0)
+  const winner = game.players.find(p => p.id === game.winners[0])
+  await finishMatch(match.matchId, winner && !winner.botFlag ? winner.id : null, pot, results)
 }
 
 export function leaveGame(tableId: string, playerId: PlayerId): GameState | null {
@@ -168,8 +183,15 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
   return { ok: true, value: next }
 }
 
+/* scores the hand at showdown, and records how many chips each winner took from the pot
+   (worked out from stacks before and after the payout, so Ender doesn't need to know about it) */
 function finishIfShowdown(game: GameState): GameState {
-  if (game.phase === "showdown") scoreHands(game)
+  if (game.phase !== "showdown") return game
+  const before = game.players.map(p => p.stack)
+  scoreHands(game)
+  game.winnings = Object.fromEntries(
+    game.players.map((p, i) => [p.id, p.stack - before[i]!] as const).filter(([, won]) => won > 0),
+  )
   return game
 }
 
