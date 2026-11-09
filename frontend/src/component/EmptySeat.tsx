@@ -2,9 +2,9 @@
 export default function EmptySeat() {
   return (
     <div className="text-center">
-      <div className="seat-portrait empty" aria-hidden />
-      <div className="seat-label">
-        <span className="open">Open seat</span>
+      <div className="seat-portrait empty" role="img" aria-label="Open seat" />
+      <div className="seat-label invisible" aria-hidden>
+        &nbsp;
       </div>
     </div>
   )

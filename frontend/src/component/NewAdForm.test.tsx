@@ -31,7 +31,7 @@ describe("NewAdForm", () => {
   it("cancels", () => {
     const onCancel = jest.fn()
     render(<NewAdForm onCancel={onCancel} onCreated={jest.fn()} />)
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
+    fireEvent.click(screen.getByRole("button", { name: "Close" }))
     expect(onCancel).toHaveBeenCalled()
   })
 })

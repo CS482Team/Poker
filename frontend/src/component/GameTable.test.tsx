@@ -175,7 +175,7 @@ describe("GameTable", () => {
   it("shows an open seat for every empty seat at the table", async () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
-    expect(screen.getAllByText("Open seat")).toHaveLength(4) // 6 max players, 2 seated
+    expect(screen.getAllByRole("img", { name: "Open seat" })).toHaveLength(4) // 6 max players, 2 seated
   })
 
   it("keeps players in their own seat when others join", async () => {
@@ -185,7 +185,7 @@ describe("GameTable", () => {
     const push = jest.mocked(watchTable).mock.calls[0][2]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 4, stack: 100 }] }))
     expect(seatOf("Maya").style.left).toBe(before)
-    expect(screen.getAllByText("Open seat")).toHaveLength(3)
+    expect(screen.getAllByRole("img", { name: "Open seat" })).toHaveLength(3)
   })
 
   it("fans out an opponent's face-down cards", async () => {
@@ -239,6 +239,13 @@ describe("GameTable", () => {
   it("seats bots in the open seats with a blue ring", async () => {
     await showView({ ...view, players: [...view.players, { seat: 2, id: "bot-0", name: "Taks", stack: 90 }] })
     expect(screen.getByText("Taks")).toBeInTheDocument()
-    expect(screen.getByText("T").style.borderColor).toBe("rgb(114, 187, 234)")
+    expect(screen.getByText("BOT").closest(".seat-portrait")).toHaveStyle({ borderColor: "#72bbea" })
+  })
+
+  it("greys out a player who joined mid-hand and hides their controls", async () => {
+    await showView({ ...view, you: { seat: -1, hand: [], legalActions: [] }, players: [maya] })
+    expect(within(seatOf("Me")).getByText("Spectating")).toBeInTheDocument()
+    expect(seatOf("Me")).toHaveClass("opacity-50")
+    expect(screen.queryByRole("button", { name: "Fold" })).not.toBeInTheDocument()
   })
 })

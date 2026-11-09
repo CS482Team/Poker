@@ -1,4 +1,4 @@
-import { getCurrentUserId } from "@/service/UserService"
+import { fetchUsername, getCurrentUserId } from "@/service/UserService"
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:54321"
@@ -18,5 +18,10 @@ describe("userService", () => {
   it("is empty when the session is unreadable", () => {
     localStorage.setItem("sb-127-auth-token", "{bad")
     expect(getCurrentUserId()).toBe("")
+  })
+
+  it("loads a username", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ username: "Maya" }) }) as never
+    expect(await fetchUsername("u1")).toBe("Maya")
   })
 })

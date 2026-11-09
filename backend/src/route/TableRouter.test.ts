@@ -32,7 +32,7 @@ jest.mock("../services/ChatService", () => ({
 
 const validTable = { hostId: "u1", name: "Table", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
 const seat = { userId: "u1", username: "Maya", seatNumber: 0, stack: 150 }
-const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 150, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [seat] }
+const detail = { id: "t1", name: "Table", botCount: 0, maxPlayers: 2, buyIn: 150, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [seat] }
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -102,6 +102,12 @@ describe("players", () => {
 
   it("rejects a join when the table is full", async () => {
     jest.mocked(getTable).mockResolvedValue({ ...detail, maxPlayers: 1 })
+    const res = await request(app).post("/tables/t1/players").send({ userId: "me" })
+    expect(res.status).toBe(409)
+  })
+
+  it("rejects a join when bots fill the open seats", async () => {
+    jest.mocked(getTable).mockResolvedValue({ ...detail, botCount: 1 })
     const res = await request(app).post("/tables/t1/players").send({ userId: "me" })
     expect(res.status).toBe(409)
   })
