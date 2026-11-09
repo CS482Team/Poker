@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/supabaseClient.ts";
+import { supabase } from "@/app/supabaseClient";
 import AuthBrand from "@/app/components/AuthBrand";
 
 
