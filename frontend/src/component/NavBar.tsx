@@ -1,5 +1,6 @@
 "use client"
 
+import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -15,32 +16,37 @@ export default function Nav() {
   if (pathname === "/" || pathname === "/signup") return null
 
   return (
-    // three columns: logo on the left, tabs centred, an empty right column to balance it
-    <nav className="site-header grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-3">
-      {/* small version of the sign-in page's brand */}
-      <Link
-        href="/dashboard"
-        aria-label="Hearts & Diamonds, back to the lobby"
-        className="flex items-center gap-2 justify-self-start rounded-md focus-visible:outline-2 focus-visible:outline-[#e5484d]"
-      >
-        <span aria-hidden className="text-2xl leading-none text-[#e5484d]">
-          &hearts;&diams;
-        </span>
-        <span aria-hidden className="font-display hidden text-lg leading-none sm:inline">
-          Hearts &amp; Diamonds
-        </span>
-      </Link>
-      <div className="flex gap-2">
-        <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
-          Lobby
+    <nav className="site-header py-3">
+      {/* three columns: logo on the left, tabs centred, profile menu on the right */}
+      <div className="mx-auto grid max-w-[calc(1280px_-_2*var(--gutter))] grid-cols-[1fr_auto_1fr] items-center gap-2">
+        {/* the brand, small and colourless, pressed into the bar */}
+        <Link
+          href="/dashboard"
+          aria-label="Hearts & Diamonds, back to the lobby"
+          className="nav-mark flex items-center gap-1.5 justify-self-start rounded-md focus-visible:outline-2 focus-visible:outline-white/40"
+        >
+          <span aria-hidden className="text-sm leading-none">
+            &hearts;&diams;
+          </span>
+          <span aria-hidden className="hidden text-[11px] uppercase leading-none tracking-[0.18em] sm:inline">
+            Hearts &amp; Diamonds
+          </span>
         </Link>
-        {tableId ? (
-          <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
-            Table
+        <div className="flex gap-2">
+          <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
+            Lobby
           </Link>
-        ) : (
-          <span className="nav-tab opacity-40">Table</span>
-        )}
+          {tableId ? (
+            <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
+              Table
+            </Link>
+          ) : (
+            <span className="nav-tab opacity-40">Table</span>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <ProfileMenu />
+        </div>
       </div>
     </nav>
   )

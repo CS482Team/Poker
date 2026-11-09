@@ -9,7 +9,7 @@ beforeEach(() => jest.clearAllMocks())
 /* a bet of $min to $max is open, as at the start of a betting round */
 function renderBet(min: number, max: number) {
   const legal: LegalAction[] = [{ type: "fold" }, { type: "check" }, { type: "bet", min, max }]
-  render(<ActionBar legalActions={legal} busy={false} status="" onAction={onAction} />)
+  render(<ActionBar legalActions={legal} busy={false} onAction={onAction} />)
 }
 
 /* presses + or - a number of times */
@@ -24,7 +24,7 @@ function typeAmount(text: string) {
 
 describe("ActionBar", () => {
   it("calls and raises", () => {
-    render(<ActionBar legalActions={[{ type: "fold" }, { type: "call", amount: 5 }, { type: "raise", min: 10, max: 50 }]} busy={false} status="" onAction={onAction} />)
+    render(<ActionBar legalActions={[{ type: "fold" }, { type: "call", amount: 5 }, { type: "raise", min: 10, max: 50 }]} busy={false} onAction={onAction} />)
     fireEvent.click(screen.getByRole("button", { name: "Call $5" }))
     fireEvent.click(screen.getByRole("button", { name: "Raise to $10" }))
     expect(onAction).toHaveBeenCalledWith("call")
@@ -114,11 +114,10 @@ describe("ActionBar", () => {
   })
 
   it("disables everything when it isn't your turn", () => {
-    render(<ActionBar legalActions={[]} busy={false} status="Maya to act" onAction={onAction} />)
+    render(<ActionBar legalActions={[]} busy={false} onAction={onAction} />)
     expect(screen.getByRole("button", { name: "Fold" })).toBeDisabled()
     expect(screen.getByLabelText("Bet amount")).toBeDisabled()
     expect(screen.getByRole("button", { name: "Increase bet amount" })).toBeDisabled()
     expect(screen.getByRole("button", { name: "Decrease bet amount" })).toBeDisabled()
-    expect(screen.getByText("Maya to act")).toBeInTheDocument()
   })
 })

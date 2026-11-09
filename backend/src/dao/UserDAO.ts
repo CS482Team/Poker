@@ -24,3 +24,17 @@ export async function setBalance(userId: string, balance: number): Promise<void>
 
   if (error) throw error
 }
+
+export async function getRole(userId: string): Promise<number> {
+  const { data, error } = await getSupabase().from("user").select("role").eq("id", userId).single()
+
+  if (error) throw error
+
+  return data.role
+}
+
+export async function getUserIdFromToken(token: string): Promise<string | null> {
+  const { data } = await getSupabase().auth.getUser(token)
+
+  return data.user?.id ?? null
+}

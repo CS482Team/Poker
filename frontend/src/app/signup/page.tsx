@@ -37,19 +37,19 @@ export default function SignupPage() {
 
     return (
     <main className="auth-page">
-    <AuthBrand page="signup"/>
+      <title>Sign up</title>
+    <AuthBrand />
     <div className="auth-panel">
         <div className="auth-card">
-            <button
-                onClick={() => router.push("/")}
-                className="auth-link justify-self-end"
-            >
-                &larr; Back to sign in
-            </button>                
-            <h2 className="font-display text-3xl">Sign up</h2>
-            <p className="mt-1 test-sm text-[#9e9393]">
-                It takes less than a minute.
-            </p>
+            <div className="flex items-center justify-between">
+                <h2 className="font-display text-3xl">Sign up</h2>
+                <button
+                    onClick={() => router.push("/")}
+                    className="auth-link"
+                >
+                    &larr; Back to sign in
+                </button>
+            </div>
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
             {message && <p className="text-green-600 text-sm mb-2">{message}</p>}
             <form
@@ -89,7 +89,7 @@ export default function SignupPage() {
                 <label className="crud-field">
                     <span>Confirm Password</span>
                     <input
-                        type="confirmPassword"
+                        type="password"
                         placeholder="Confirm Password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -102,13 +102,13 @@ export default function SignupPage() {
                         Sign Up
                     </button>
                     <p className="mt-5 text-center text-sm text-[#9e9393]">
-                        Already have an account? {" "}
+                        Already have an account? {"  "}
                         <button
                             type="button"
                             onClick={() => router.push("/")}
                             className="auth-link justify-self-end"
                         >
-                            Sign in
+                        Sign in
                         </button>
                     </p>
                 </form>
