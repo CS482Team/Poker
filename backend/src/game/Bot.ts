@@ -1,212 +1,110 @@
-import type { GameState, PlayerState, PlayerId, Phase } from "../../../shared/GameState"
-import { returnScore, setRanks } from "./Ender"
-import { advanceTurn, isInHand, isPlayersTurn } from "./Turn"
-import { getLegalActions, applyAction } from "./Betting"
 import type { LegalAction, PlayerAction } from "../../../shared/Actions"
-	
-/*Score function:
-- Use Ender.ts function to evaluate this hand's current wincond
-- From there, Straight or higher does not draw and has a high score for betting
-- High values are then further accounted for (except royal flush which has highest score)*/
-function botScore(b: PlayerState, state: GameState) {
-	const copy: PlayerState = { ...b, winningRanks: [] }
-	const [suits, ranks] = setRanks(copy)
-	const score = returnScore(copy, ranks, suits)
-	const highCardVal = copy.winningRanks[0] ?? 0
+import type { Rng } from "../../../shared/Card"
+import type { GameState, PlayerId, PlayerState } from "../../../shared/GameState"
+import { getLegalActions } from "./Betting"
+import { returnScore, setRanks } from "./Ender"
 
-	let happiness = ((score - 1) * 14) + highCardVal;
-	if(b.botBluff) {
-		happiness = happiness + 14;
-	}
-	if(state.phase === "predraw-betting") {
-		happiness = happiness + drawPotential(ranks, suits, b);
-	}
-	return happiness;
+// Bot decisions. These only choose a move; GameService applies it with applyAction / applyDraw,
+// so a bot plays by exactly the same rules as a person.
+
+const INCREMENT = 14 // one "rank up" of happiness (one hand category)
+
+type BetRaise = Extract<LegalAction, { min: number }>
+
+/* Score function:
+- Use Ender.ts to evaluate the hand (works on a copy, so the real player isn't changed)
+- happiness = hand category * 14 + its top card; straight or better is above 56 */
+function botScore(b: PlayerState, state: GameState, rng: Rng): number {
+  const copy: PlayerState = { ...b, winningRanks: [] }
+  const [suits, ranks] = setRanks(copy)
+  const score = returnScore(copy, ranks, suits)
+  const highCardVal = copy.winningRanks[0] ?? 0
+  let happiness = (score - 1) * INCREMENT + highCardVal
+  if (b.botBluff) happiness += INCREMENT
+  if (state.phase === "predraw-betting") happiness += drawPotential(b, rng)
+  return happiness
 }
 
-/*Evaluate draw potential function:
-- High card and Pair further check for straight and flush potential (2 off or less of either results in discarding those in hope)
-- Kept separate as this is only needed for first scoring*/
-function drawPotential(ranks: number[], suits: Set<string>(), b: PlayerState) {
-	let bonus = 0;
-	//Close to flush: 4 of same suit
-	let breaks = 0;
-	//Currently ignores ace having the ability to be 1
-	for(let i = 0; i < ranks.length-1; i++) {
-		if(ranks[i] !== ranks[i+1]) {
-			breaks = breaks + 1;
-		}
-	}
-	if(breaks === 1) {
-		bonus = bonus + 14;
-	}
-	//Close to straight: 4 in row
-	if(suits.size == 2) {
-		let sc1 = 0; //Suit count 1
-		let sc2 = 0; //Suit count 2
-		let cards1: number[] = [];
-		let cards2: number[] = [];
-		let suitbase = [...suits][0];
-		for(let i = 0; i < b.hand.length; i++) {
-			if(b.hand[i].suit === suitbase) {
-				sc1 = sc1 + 1;
-				cards1.push(i);
-			}
-			else {
-				sc2 = sc2 + 1;
-				cards2.push(i);
-			}
-		}
-		if(sc1 === 4) {
-			bonus = bonus + 14;
-			b.botToDiscard.push(cards2[0]);
-		}
-		else if(sc2 === 4) {
-			bonus = bonus + 14;
-			b.botToDiscard.push(cards1[0]);
-		}
-	}
-	//10%ish chance for bot to bluff, adding a rank up of confidence
-	let bluffScore = Math.random();
-	if(bluffScore > .9) {
-		bonus = bonus + 14;
-		b.botBluff = true;
-	}
-	return bonus;
+/* Draw potential (only before the draw): one card off a flush or a straight is worth a rank up,
+   and ~10% of the time the bot decides to bluff this hand */
+function drawPotential(b: PlayerState, rng: Rng): number {
+  let bonus = 0
+  // Close to flush: 4 of the same suit
+  const suitCounts = new Map<string, number>()
+  for (const c of b.hand) suitCounts.set(c.suit, (suitCounts.get(c.suit) ?? 0) + 1)
+  if ([...suitCounts.values()].some(n => n === 4)) bonus += INCREMENT
+  // Close to straight: 4 different ranks in a row
+  const unique = [...new Set(b.hand.map(c => c.rank))].sort((x, y) => x - y)
+  if (unique.some((r, i) => unique[i + 3] === r + 3)) bonus += INCREMENT
+  // 10%ish chance to bluff, adding a rank up of confidence for the rest of the hand
+  if (!b.botBluff && rng() > 0.9) b.botBluff = true
+  return bonus
 }
 
-/*Discard:
-- Straight or higher does not draw
-- Three of a kind either discards 2 out cards or the lower of the two (unsure which direction to go or make it a chance)
-- Two pair discards the odd card out
-- Pair and High Card will be harder, this will be based on prior evaluation, especially since these are likely to result in fold*/
-export function botDiscard(playerId: PlayerId, state: GameState)  {
-	let b = state.players.find(b => b.id === playerId)!
-	const copy: PlayerState = { ...b, winningRanks: [] }
-	const [suits, ranks] = setRanks(copy)
-	const score = returnScore(copy, ranks, suits)
+/* Discard: returns the positions (0-4) of the cards to throw away.
+- Straight or better keeps everything (four of a kind sometimes throws its odd card)
+- Pairs, two pair and three of a kind keep the matching cards and throw the rest
+- High card keeps its top 2 cards (top 3 when bluffing) */
+export function botDiscard(state: GameState, botId: PlayerId, rng: Rng = Math.random): number[] {
+  const b = state.players.find(p => p.id === botId)!
+  const counts = new Map<number, number>()
+  for (const c of b.hand) counts.set(c.rank, (counts.get(c.rank) ?? 0) + 1)
+  const unmatched = b.hand.map((c, i) => ({ i, rank: c.rank })).filter(c => counts.get(c.rank) === 1)
 
-	const counts = new Map<number, number>()
-	for (const c of b.hand) counts.set(c.rank, (counts.get(c.rank) ?? 0) + 1)
-	const unmatched = b.hand.map((c, i) => ({ i, rank: c.rank })).filter(c => counts.get(c.rank) === 1)
-	
-	if (score === 8) return rng() > 0.5 ? unmatched.map(c => c.i) : [] // four of a kind
-	if (score >= 5) return []                    // straight or better keeps everything
-	//TODO: Fix this so the bot actually discards correctly with a straight or flush
-	if (score >= 2) return unmatched.map(c => c.i) // pair, two pair, three of a kind
-	// high card: throw the lowest 3 (2 when bluffing)
-	return [...unmatched].sort((x, y) => x.rank - y.rank).slice(0, b.botBluff ? 2 : 3).map(c => c.i)
+  const copy: PlayerState = { ...b, winningRanks: [] }
+  const [suits, ranks] = setRanks(copy)
+  const score = returnScore(copy, ranks, suits)
 
+  if (score === 8) return rng() > 0.5 ? unmatched.map(c => c.i) : [] // four of a kind
+  if (score >= 5) return [] // straight, flush, full house, straight flush
+  if (score >= 2) return unmatched.map(c => c.i) // pair, two pair, three of a kind
+  // high card: throw the lowest 3 (2 when bluffing)
+  const lowestFirst = [...unmatched].sort((x, y) => x.rank - y.rank)
+  return lowestFirst.slice(0, b.botBluff ? 2 : 3).map(c => c.i)
 }
 
-/*Betting:
-- Use score from scoring to 
-- For first bet: take into account bonus from potential
-- For second bet: take into account whether the score improved or not maybe.*/
-export function botBet(playerId: PlayerId, state: GameState) {
-	let b = state.players.find(b => b.id === playerId)!
-	let happiness = botScore(b, state);
-	let happinessRand = Math.random();
-	//Currently 10% chance to rank up or down, may want more random
-	let increment = 14;
-	if(happinessRand <= .1) {
-		happiness = happiness - increment;
-	}
-	else if(happinessRand >= .9) {
-		happiness = happiness + increment;
-	}
-	let firstRoundBonusChance = Math.random(); //Chance of a bonus for first round only
-	if(state.phase == "predraw-betting" && firstRoundBonusChance >= .85) {
-		happiness = happiness + increment;
-	}
+/* Betting: picks fold / check / call / bet / raise from what's legal right now.
+- Happier bots bet and raise more, and call bigger bets
+- Bet and raise amounts are "to" amounts, kept between the legal min and max (all-in) */
+export function botBet(state: GameState, botId: PlayerId, rng: Rng = Math.random): PlayerAction {
+  const b = state.players.find(p => p.id === botId)!
+  let happiness = botScore(b, state, rng)
+  // 10% chance to rank down, 10% to rank up
+  const happinessRand = rng()
+  if (happinessRand <= 0.1) happiness -= INCREMENT
+  else if (happinessRand >= 0.9) happiness += INCREMENT
+  // extra confidence sometimes before the draw
+  if (state.phase === "predraw-betting" && rng() >= 0.85) happiness += INCREMENT
 
-	type BetRaise = Extract<LegalAction, { min: number, max: number }>;
+  const legal = getLegalActions(state, botId)
+  const bet = legal.find((a): a is BetRaise => a.type === "bet")
+  const raise = legal.find((a): a is BetRaise => a.type === "raise")
+  const canCheck = legal.some(a => a.type === "check")
+  const canCall = legal.some(a => a.type === "call")
+  const minBet = state.config.minBet
+  const currentBet = state.round?.currentBet ?? 0
+  const minRaise = state.round?.minRaise ?? minBet
 
-	const legalActs: LegalAction[] = getLegalActions(state, b.id);
-	const fold = legalActs.find(a => a.type === "fold");
-	const bet = legalActs.find((a): a is BetRaise => a.type === "bet");
-	const check = legalActs.find(a => a.type === "check");
-	if(check) {
-		//bet - Happiness greater than/equal to 42
-		if(bet && happiness >= 42) {
-			const sized = (option: BetRaise, to: number): PlayerAction => ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) });
+  /* a whole number of chips inside the legal range */
+  const sized = (option: BetRaise, to: number): PlayerAction =>
+    ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) })
 
-			return sized(bet, minBet + rng() * happiness * 0.5);
+  if (canCheck) {
+    // Bet: happiness 42 or more
+    if (bet && happiness >= 42) return sized(bet, minBet + rng() * happiness * 0.5)
+    // Check: anything else (checking is free, so never fold here)
+    return { type: "check" }
+  }
 
-		}
-		//check - otherwise
-		else {
-			return applyAction(state, b.id, check);
-		}
-	}
-	else {
-		const raise = legalActs.find((a) a is BetRaise => a.type === "raise");
-		const call = legalActs.find(a => a.type === "call");
-		//TODO: Check if we want more complexity/shift values
-		if(state.round?.currentBet ?? 0 >= state.config.minBet * 5) {
-			//Raise - Happiness greater than/equal to 84
-			if(happiness >= 84 && raise) {
-				const sized = (option: BetRaise, to: number): PlayerAction => ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) });
-
-				return sized(bet, minBet + rng() * happiness * 0.5);
-			}
-			//Call - Happiness greater than/equal to 42 or bluff
-			else if((happiness >= 42 || b.botBluff) && call) {
-				return applyAction(state, b.id, call);
-			}
-			//Fold - Else
-			else {
-				return applyAction(state, b.id, fold);
-			}
-		}
-		else if(state.round?.currentBet ?? 0 >= state.config.minBet * 3) {
-			//Raise - Happiness greater than/equal to 56
-			if(happiness >= 56 && raise) {
-				const sized = (option: BetRaise, to: number): PlayerAction => ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) });
-
-				return sized(bet, minBet + rng() * happiness * 0.5);
-			}
-			//Call - Happiness greater than/equal to 28 or bluff
-			else if((happiness >= 28 || b.botBluff) && call) {
-				return applyAction(state, b.id, call);
-			}
-			//Fold - Else
-			else {
-				return applyAction(state, b.id, fold);
-			}
-		}
-		//CHECK PLEASE: Is this even necessary?
-		else if(state.round?.currentBet ?? 0 >= state.config.minBet) {
-			//Raise - Happiness greater than/equal to 42
-			if(happiness >= 42 && raise) {
-				const sized = (option: BetRaise, to: number): PlayerAction => ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) });
-
-				return sized(bet, minBet + rng() * happiness * 0.5);
-			}
-			//Call - Happiness greater than/equal to 25 or bluff
-			else if((happiness >= 25 || b.botBluff) && call) {
-				return applyAction(state, b.id, call);
-			}
-			//Fold - Else
-			else {
-				return applyAction(state, b.id, fold);
-			}
-		}
-		else {
-			//Raise - Happiness greater than/equal to 42
-			if(happiness >= 42 && raise) {
-				const sized = (option: BetRaise, to: number): PlayerAction => ({ type: option.type, amount: Math.min(option.max, Math.max(option.min, Math.round(to))) });
-
-				return sized(bet, minBet + rng() * happiness * 0.5);
-			}
-			//Call - Happiness greater than/equal to 12 (if first round) or bluff
-			else if((happiness >= 12 || b.botBluff) && call) {
-				return applyAction(state, b.id, call);
-			}
-			//Fold - Else
-			else {
-				return applyAction(state, b.id, fold);
-			}
-		}
-	}
+  // Facing a bet: the bigger it is, the happier the bot needs to be to stay in
+  const tiers = [
+    { from: minBet * 5, raiseAt: 84, callAt: 42, size: 0.75 },
+    { from: minBet * 3, raiseAt: 56, callAt: 28, size: 0.5 },
+    { from: minBet, raiseAt: 42, callAt: 25, size: 0.25 },
+    { from: 0, raiseAt: 42, callAt: 12, size: 0.25 },
+  ]
+  const tier = tiers.find(t => currentBet >= t.from)!
+  if (raise && happiness >= tier.raiseAt) return sized(raise, currentBet + minRaise + rng() * happiness * tier.size)
+  if (canCall && happiness >= tier.callAt) return { type: "call" }
+  return { type: "fold" }
 }

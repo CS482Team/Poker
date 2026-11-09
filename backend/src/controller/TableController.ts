@@ -121,6 +121,9 @@ function isValidNewTable(body: NewTable) {
     Number.isInteger(body.minimumBet) &&
     body.minimumBet >= 0 &&
     Number.isInteger(body.ante) &&
-    body.ante >= 0
+    body.ante >= 0 &&
+    (body.botCount === undefined || (Number.isInteger(body.botCount) && body.botCount >= 0 && body.botCount < body.maxPlayers))
+    // bots must leave at least one seat for a person (the database checks bot_count < max_players too)
+
   )
 }
