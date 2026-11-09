@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import Nav from "@/component/NavBar"
 import { usePathname } from "next/navigation"
 import { getCurrentTableId } from "@/service/CurrentTableService"
+import { watchTable } from "@/service/SocketService"
 
 jest.mock("@/component/ProfileMenu", () => () => null)
 jest.mock("@/service/CurrentTableService", () => ({ getCurrentTableId: jest.fn() }))
+jest.mock("@/service/SocketService", () => ({ watchTable: jest.fn(() => jest.fn()) }))
 jest.mock("next/navigation", () => ({
   usePathname: jest.fn(),
 }))
@@ -42,5 +44,13 @@ describe("Nav", () => {
     jest.mocked(getCurrentTableId).mockReturnValue("abc")
     render(<Nav />)
     expect(screen.getByRole("link", { name: "Table" })).toBeInTheDocument()
+  })
+
+  it("flashes a dot on the table tab when it's your turn", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    jest.mocked(getCurrentTableId).mockReturnValue("abc")
+    render(<Nav />)
+    act(() => jest.mocked(watchTable).mock.lastCall![3]({ toActSeat: 1, you: { seat: 1 } } as never))
+    expect(screen.getByRole("img", { name: "Your turn" })).toBeInTheDocument()
   })
 })

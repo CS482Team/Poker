@@ -2,6 +2,8 @@
 
 import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
+import { watchTable } from "@/service/SocketService"
+import { getCurrentUserId } from "@/service/UserService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -11,7 +13,15 @@ export default function Nav() {
   const pathname = usePathname()
   const [tableId, setTableId] = useState<string | null>(null)
 
+  const [myTurn, setMyTurn] = useState(false)
+
   useEffect(() => setTableId(getCurrentTableId()), [pathname])
+
+  useEffect(() => {
+    setMyTurn(false)
+    if (!tableId) return
+    return watchTable(tableId, getCurrentUserId(), () => {}, (view) => setMyTurn(!!view && view.you.seat >= 0 && view.toActSeat === view.you.seat))
+  }, [tableId])
 
   // The sign-in and sign-up pages have their own full-screen layout
   if (pathname === "/" || pathname === "/signup") return null
@@ -35,6 +45,7 @@ export default function Nav() {
           {tableId && (
             <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
               Table
+              {myTurn && !pathname.startsWith("/table") && <span role="img" aria-label="Your turn" className="turn-dot" />}
             </Link>
           )}
         </div>

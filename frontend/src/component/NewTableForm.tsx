@@ -1,5 +1,6 @@
 "use client"
 
+import Stepper from "@/component/Stepper"
 import { setCurrentTableId } from "@/service/CurrentTableService"
 import { createTable, joinTable } from "@/service/TableService"
 import { fetchUsername, getCurrentUserId } from "@/service/UserService"
@@ -17,23 +18,6 @@ function Money({ children }: { children: React.ReactNode }) {
       {children}
       <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#b5a9a9]">$</span>
     </span>
-  )
-}
-
-function Stepper({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (value: number) => void }) {
-  return (
-    <div className={labelClass}>
-      {label}
-      <div className="flex items-center rounded-lg border border-white/10 bg-black/40 pr-1.5 text-[#f5f2ef]">
-        <span className="flex-1 px-3 py-2">{value}</span>
-        <button type="button" aria-label={`Fewer ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="grid h-8 w-7 place-items-center rounded-md text-lg leading-none hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent">
-          −
-        </button>
-        <button type="button" aria-label={`More ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="grid h-8 w-7 place-items-center rounded-md text-lg leading-none hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent">
-          +
-        </button>
-      </div>
-    </div>
   )
 }
 
@@ -64,6 +48,7 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
       const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante, botCount })
       await joinTable(id, getCurrentUserId())
       setCurrentTableId(id)
+      onCancel()
       router.push(`/table/${id}`)
     } catch (err) {
       setError((err as Error).message)

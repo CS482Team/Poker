@@ -752,6 +752,18 @@ input[type="checkbox"]:checked::after {
   transition: color .2s;
 }
 .nav-mark:hover { color: rgba(255, 255, 255, .4); }
+.turn-dot {
+  position: absolute;
+  top: 50%;
+  left: calc(100% - 12px);
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #facc15;
+  animation: turn-dot 0.8s ease-in-out infinite;
+}
+@keyframes turn-dot { 50% { opacity: .2; } }
 .nav-tab.active::after {
   content: "";
   position: absolute;

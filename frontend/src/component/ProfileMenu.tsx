@@ -34,12 +34,13 @@ export default function ProfileMenu() {
       </button>
       {open && (
         <div className="profile-menu">
-          {admin ? (
+          <Link href="/profile" onClick={() => setOpen(false)}>
+            Profile
+          </Link>
+          {admin && (
             <Link href="/admin" onClick={() => setOpen(false)}>
               Admin
             </Link>
-          ) : (
-            <p className="p-2.5 text-[13px] text-[#9e9393]">Coming soon</p>
           )}
         </div>
       )}

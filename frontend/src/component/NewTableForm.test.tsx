@@ -36,7 +36,8 @@ beforeEach(() => {
 describe("NewTableForm", () => {
   it("creates, joins and opens the table", async () => {
     jest.mocked(createTable).mockResolvedValue("new-id")
-    render(<NewTableForm onCancel={jest.fn()} />)
+    const onCancel = jest.fn()
+    render(<NewTableForm onCancel={onCancel} />)
     fireEvent.click(screen.getByRole("button", { name: "More bots" }))
     fireEvent.click(screen.getByRole("button", { name: "More bots" }))
     submit()
@@ -44,6 +45,7 @@ describe("NewTableForm", () => {
     expect(createTable).toHaveBeenCalledWith(expect.objectContaining({ botCount: 2 }))
     expect(joinTable).toHaveBeenCalled()
     expect(mockPush).toHaveBeenCalledWith("/table/new-id")
+    expect(onCancel).toHaveBeenCalled()
   })
 
   it("shows the error", async () => {
