@@ -14,7 +14,7 @@ import type { DrawError } from "../game/Drawer"
 import { scoreHands } from "../game/Ender"
 import { isInHand, isPlayersTurn } from "../game/Turn"
 import { updateStack } from "../dao/TablePlayersDAO"
-import ( botDiscard, botBet } from "../game/Bot"
+import { botDiscard, botBet } from "../game/Bot"
 
 const botNames: string[] = ["NormalPete", "MrBigTime", "QueenOHearts", "UnsaidBot", "U", "JohnnyChristmas", "HowDoIPlay", "PokerFace", "Taks", "McBot"]
 
@@ -161,14 +161,11 @@ export type DrawCardsError = "game-not-found" | DrawError
 export function drawCards(gameId: string, playerId: PlayerId, discard: number[]): Result<GameState, DrawCardsError> {
   const game = gameDAO.get(gameId)
   if (!game) return { ok: false, error: "game-not-found" }
-  if (game.players[game.toActIndex].botFlag) {
-    const result = botDiscard(playerId, game)
-  }
-  else {
-    const result = applyDraw(game, playerId, discard)
-  }
-  if (result.ok) gameDAO.save(finishIfShowdown(result.value))
-  return result
+  const result = applyDraw(game, playerId, discard)
+  if (!result.ok) return result
+  const next = playBots(result.value)
+  gameDAO.save(next)
+  return { ok: true, value: next }
 }
 
 function finishIfShowdown(game: GameState): GameState {

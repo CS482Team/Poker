@@ -27,11 +27,12 @@ export default function GameTable({ id }: { id: string }) {
   const [busy, setBusy] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
-  const openSeats = Array.from({ length: table.maxPlayers }, (_, n) => n).filter(n => !table.seats.some(s => s.seatNumber === n))
+  const tableSeats = table?.seats ?? []
+  const openSeats = Array.from({ length: table?.maxPlayers ?? 0 }, (_, n) => n).filter(n => !tableSeats.some(s => s.seatNumber === n))
   const botSeats = (view?.players ?? [])
-  .filter(p => !table.seats.some(s => s.userId === p.id))
+  .filter(p => !tableSeats.some(s => s.userId === p.id))
   .map((p, i) => ({ userId: p.id, username: p.name, seatNumber: openSeats[i]!, stack: p.stack }))
-  const seats = [...table.seats, ...botSeats]
+  const seats = [...tableSeats, ...botSeats]
 
 
   useEffect(() => {
@@ -116,6 +117,8 @@ export default function GameTable({ id }: { id: string }) {
           const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
           const live = view?.players.find((p) => p.id === seat.userId)
           const won = view?.winners.includes(seat.userId)
+          const bot = !tableSeats.some((s) => s.userId === seat.userId)
+          const ring = won ? "#e8b84a" : bot ? "#7cc4f0" : undefined
           return (
             <div
               key={seat.userId}
@@ -127,7 +130,7 @@ export default function GameTable({ id }: { id: string }) {
                   <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
                 </svg>
               )}
-              <div className="seat-portrait" style={won ? { borderColor: "#e8b84a" } : undefined}>
+              <div className="seat-portrait" style={ring ? { borderColor: ring } : undefined}>
                 {name[0]}
               </div>
               <div className="seat-label">
