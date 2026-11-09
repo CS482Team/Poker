@@ -52,7 +52,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
   return (
     <aside
       aria-label="Table chat"
-      className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-black bg-panel text-ink shadow-2xl"
+      className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-black bg-[#1f1a1b] text-ink shadow-2xl"
     >
       <header className="flex items-center justify-between gap-3 border-b border-panel-edge px-4 py-3">
         <h2 className="text-lg font-bold leading-tight">Chat</h2>
@@ -63,7 +63,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
           title="Coming soon"
           className="rounded border border-panel-edge bg-panel-raised px-2.5 py-1 text-sm font-semibold text-ink-muted disabled:cursor-not-allowed"
         >
-          Contact admin
+          Contact Admin
         </button>
       </header>
 
@@ -75,7 +75,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
               <li key={m.id} className="flex items-center gap-2 py-1 text-sm text-ink-muted">
                 <span className="h-px flex-1 bg-panel-edge" />
                 <span>{m.body}</span>
-                <span>{timeOf(m.createdAt)}</span>
+                <span className="text-[10px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
                 <span className="h-px flex-1 bg-panel-edge" />
               </li>
             )
@@ -83,14 +83,14 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
           // your own messages sit on the right in red, everyone else's on the left
           const mine = m.userId === userId
           return (
-            <li key={m.id} className={`flex gap-2.5 ${mine ? "flex-row-reverse" : ""}`}>
+            <li key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
               <Avatar name={m.name} url={m.avatarUrl} />
-              <div className={`flex min-w-0 max-w-[80%] flex-col ${mine ? "items-end" : "items-start"}`}>
+              <div className={`flex min-w-0 max-w-[75%] flex-col ${mine ? "items-end" : "items-start"}`}>
                 <p className="text-sm text-ink-muted">
                   <span className="font-semibold text-ink">{mine ? "Me" : m.name}</span>
-                  <span className="ml-2">{timeOf(m.createdAt)}</span>
+                  <span className="ml-2 text-[10px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
                 </p>
-                <p className={`mt-1 break-words rounded-lg px-3 py-2 text-base ${mine ? "rounded-tr-sm bg-panel-mine" : "rounded-tl-sm bg-panel-raised"}`}>
+                <p className={`mt-0.5 break-words rounded-lg px-2.5 py-1.5 text-sm leading-snug ${mine ? "rounded-tr-sm bg-panel-mine" : "rounded-tl-sm bg-panel-raised"}`}>
                   {m.body}
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
               <button
                 key={text}
                 type="button"
-                onClick={() => post(text)}
+                onClick={() => setDraft(text)}
                 className={`rounded-full border border-panel-edge bg-panel-raised px-3 py-1 text-sm text-ink hover:bg-panel-edge ${FOCUS}`}
               >
                 {text}
@@ -130,7 +130,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
               maxLength={MAX_CHAT_LENGTH}
               aria-label="Chat message"
               placeholder={seated ? "Message" : "Take a seat"}
-              className={`h-11 w-full rounded-md border border-panel-edge bg-panel-sunken pl-3 pr-16 text-base text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:bg-panel ${FOCUS}`}
+              className={`h-10 w-full rounded-md border border-panel-edge bg-panel-sunken pl-3 pr-16 text-sm text-ink placeholder:text-ink-muted disabled:cursor-not-allowed disabled:bg-panel ${FOCUS}`}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">
               {draft.length}/{MAX_CHAT_LENGTH}
@@ -148,14 +148,14 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
 /* A sender's profile picture, or their initial if they have none or it fails to load */
 function Avatar({ name, url }: { name: string | null; url: string | null }) {
   const [broken, setBroken] = useState(false)
-  const shape = "size-9 shrink-0 rounded-full border border-panel-edge"
+  const shape = "size-7 shrink-0 rounded-full border border-panel-edge"
   if (url && !broken) {
     // plain <img>: avatars can come from any host, which next/image would need configuring for
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={url} alt="" onError={() => setBroken(true)} className={`${shape} object-cover`} />
   }
   return (
-    <span aria-hidden className={`${shape} flex items-center justify-center bg-panel-raised text-sm font-semibold`}>
+    <span aria-hidden className={`${shape} flex items-center justify-center bg-panel-raised text-xs font-semibold`}>
       {(name ?? "?")[0].toUpperCase()}
     </span>
   )
@@ -163,5 +163,5 @@ function Avatar({ name, url }: { name: string | null; url: string | null }) {
 
 /* Formats a timestamp as a short local time, e.g. 10:24 */
 function timeOf(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
 }
