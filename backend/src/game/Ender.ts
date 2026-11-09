@@ -1,7 +1,7 @@
 import type { GameState, PlayerState } from "../../../shared/GameState"
 import { isInHand } from "./Turn"
 
-export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>()) {
+export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>) {
     //Check If All are In Row (Straight)
     let straight = false;
     if(ranks.every((r, i) => i === 0 || ranks[i-1]! - r === 1)) {
@@ -114,7 +114,7 @@ export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>(
     }
 }
 
-export function setRanks(PlayerState: p) {
+export function setRanks(p: PlayerState) {
     p.winningRanks = [];
     const ranks: number[] = [];
     let suits = new Set<string>();

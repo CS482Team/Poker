@@ -31,8 +31,8 @@ export interface PlayerState {
   hasActed: boolean        // acted since the last full bet/raise in this round (a short all-in doesn't reset it)
   //Bot parameters: should we have a BotState interface inheriting from PlayerState?
   botFlag?: boolean		   //is this player a bot?
-  botBluff: boolean		   //is the bot bluffing?
-  botToDiscard: number[]	   //Card indexes the bot should discard
+  botBluff?: boolean		   //is the bot bluffing?
+  botToDiscard?: number[]	   //Card indexes the bot should discard
 }
 
 export type Street = "predraw" | "postdraw"

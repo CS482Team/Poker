@@ -26,7 +26,7 @@ export function createGame(
     winCond: 0,
     winningRanks: [],
     hasActed: false,
-    botFlag: seat.botFlag ?? false
+    botFlag: seat.botFlag ?? false,
     botBluff: false,
     botToDiscard: [],
   }))
