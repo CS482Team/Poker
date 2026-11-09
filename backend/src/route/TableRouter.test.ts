@@ -1,7 +1,7 @@
 import request from "supertest"
 import { app } from "../app"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
-import { createTable, deleteTable, getAllTables, getTable } from "../dao/TableDAO"
+import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
@@ -11,6 +11,7 @@ jest.mock("../dao/TableDAO", () => ({
   getTable: jest.fn(),
   createTable: jest.fn(),
   deleteTable: jest.fn(),
+  updateTableSettings: jest.fn(),
 }))
 jest.mock("../dao/TablePlayersDAO", () => ({
   addPlayer: jest.fn(),
@@ -32,7 +33,7 @@ jest.mock("../services/ChatService", () => ({
 
 const validTable = { hostId: "u1", name: "Table", maxPlayers: 4, buyIn: 100, minimumBet: 5, ante: 1 }
 const seat = { userId: "u1", username: "Maya", seatNumber: 0, stack: 150 }
-const detail = { id: "t1", name: "Table", botCount: 0, maxPlayers: 2, buyIn: 150, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [seat] }
+const detail = { id: "t1", name: "Table", hostId: "u1", maxPlayers: 2, buyIn: 150, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, botCount: 0, chatEnabled: true, turnTimerEnabled: true, seats: [seat] }
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -199,5 +200,35 @@ describe("chat announcements", () => {
     const res = await request(app).delete("/tables/t1/players/u1")
     expect(res.status).toBe(204)
     expect(setBalance).toHaveBeenCalledWith("u1", 1000)
+  })
+})
+
+describe("settings", () => {
+  const settings = { userId: "u1", name: " New name ", botCount: 1, chatEnabled: false, turnTimerEnabled: true }
+
+  it("lets the host change the settings", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    const res = await request(app).patch("/tables/t1").send(settings)
+    expect(res.status).toBe(204)
+    expect(updateTableSettings).toHaveBeenCalledWith("t1", { name: "New name", botCount: 1, chatEnabled: false, turnTimerEnabled: true })
+  })
+
+  it("rejects a change from someone who is not the host", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    const res = await request(app).patch("/tables/t1").send({ ...settings, userId: "other" })
+    expect(res.status).toBe(403)
+    expect(updateTableSettings).not.toHaveBeenCalled()
+  })
+
+  it("rejects as many bots as seats", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    const res = await request(app).patch("/tables/t1").send({ ...settings, botCount: 2 })
+    expect(res.status).toBe(400)
+  })
+
+  it("returns 404 for a missing table", async () => {
+    jest.mocked(getTable).mockResolvedValue(null)
+    const res = await request(app).patch("/tables/t1").send(settings)
+    expect(res.status).toBe(404)
   })
 })

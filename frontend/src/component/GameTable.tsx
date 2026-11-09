@@ -6,6 +6,7 @@ import ChatPanel from "@/component/ChatPanel"
 import Dots from "@/component/Dots"
 import EmptySeat from "@/component/EmptySeat"
 import Icon, { LEAVE } from "@/component/Icon"
+import RoomSettings from "@/component/RoomSettings"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
@@ -42,6 +43,7 @@ export default function GameTable({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
   const spectating = view?.you.seat === -1
@@ -122,7 +124,12 @@ export default function GameTable({ id }: { id: string }) {
           <Icon d={LEAVE} size={14} />
           Leave
         </button>
-        <h1 className="truncate text-3xl font-bold">{table.name}</h1>
+        <h1 className="min-w-0 break-words text-3xl font-bold">{table.name}</h1>
+        {table.hostId === getCurrentUserId() && (
+          <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Table settings" className="text-3xl leading-none text-white/70 hover:text-white">
+            ⋮
+          </button>
+        )}
       </div>
       <div className="mx-auto flex w-full max-w-[780px] flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf] md:justify-end">
         <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
@@ -131,11 +138,15 @@ export default function GameTable({ id }: { id: string }) {
         <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
       </div>
       <div className="order-last h-[28rem] md:order-none md:h-[520px]">
-        <ChatPanel
-          tableId={table.id}
-          userId={getCurrentUserId()}
-          seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
-        />
+        {table.chatEnabled ? (
+          <ChatPanel
+            tableId={table.id}
+            userId={getCurrentUserId()}
+            seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
+          />
+        ) : (
+          <p className="panel p-6 text-center text-sm text-[#9e9393]">Chat is turned off at this table.</p>
+        )}
       </div>
       <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
@@ -276,6 +287,7 @@ export default function GameTable({ id }: { id: string }) {
           </div>
         )}
       </div>
+      {settingsOpen && <RoomSettings table={table} onClose={() => setSettingsOpen(false)} />}
     </div>
   )
 }
