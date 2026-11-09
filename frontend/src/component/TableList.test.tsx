@@ -37,6 +37,9 @@ const table = {
   ante: 5,
   maxPlayers: 6,
   botCount: 0,
+  hostId: "u1",
+  chatEnabled: true,
+  turnTimerEnabled: false,
   seats: [seat("u1", 0), seat("u2", 1)],
 }
 
