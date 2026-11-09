@@ -27,6 +27,12 @@ export default function GameTable({ id }: { id: string }) {
   const [busy, setBusy] = useState(false)
   const [selected, setSelected] = useState<number[]>([])
   const canDraw = view?.phase === "draw" && view.toActSeat === view.you.seat
+  const openSeats = Array.from({ length: table.maxPlayers }, (_, n) => n).filter(n => !table.seats.some(s => s.seatNumber === n))
+  const botSeats = (view?.players ?? [])
+  .filter(p => !table.seats.some(s => s.userId === p.id))
+  .map((p, i) => ({ userId: p.id, username: p.name, seatNumber: openSeats[i]!, stack: p.stack }))
+  const seats = [...table.seats, ...botSeats]
+
 
   useEffect(() => {
     fetchTable(id)
@@ -106,7 +112,7 @@ export default function GameTable({ id }: { id: string }) {
             <span className="text-3xl font-bold text-white">${view.pot}</span>
           </div>
         )}
-        {[...table.seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
+        {[...seats].sort((a, b) => a.seatNumber - b.seatNumber).map((seat, i) => {
           const name = seat.userId === getCurrentUserId() ? "Me" : seat.username
           const live = view?.players.find((p) => p.id === seat.userId)
           const won = view?.winners.includes(seat.userId)
@@ -114,7 +120,7 @@ export default function GameTable({ id }: { id: string }) {
             <div
               key={seat.userId}
               className="absolute -translate-x-1/2 -translate-y-1/2 text-center"
-              style={seatPosition(i, table.seats.length)}
+              style={seatPosition(i, seats.length)}
             >
               {won && (
                 <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-6 left-1/2 h-5 w-7 -translate-x-1/2">
