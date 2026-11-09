@@ -5,6 +5,7 @@ import { getCurrentTableId } from "@/service/CurrentTableService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
+import BalanceDisplay from "@/component/BalanceDisplay"
 
 export default function Nav() {
   const pathname = usePathname()
@@ -43,8 +44,10 @@ export default function Nav() {
           )}
         </div>
         <div className="flex justify-end">
+          <BalanceDisplay /> 
           <ProfileMenu />
         </div>
+
       </div>
     </nav>
   )
