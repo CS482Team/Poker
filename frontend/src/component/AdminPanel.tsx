@@ -2,6 +2,7 @@
 
 import AdManager from "@/component/AdManager"
 import PlayerHistory from "@/component/PlayerHistory"
+import ReportList from "@/component/ReportList"
 import { isAdmin } from "@/service/AdminService"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -22,6 +23,7 @@ export default function AdminPanel() {
     <div className="page-shell flex flex-col gap-6">
       <h1 className="page-title">Admin</h1>
       <PlayerHistory />
+      <ReportList />
       <AdManager />
     </div>
   )

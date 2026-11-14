@@ -10,7 +10,7 @@ const mockQuery: Record<string, unknown> = {
   maybeSingle: () => Promise.resolve(mockState.result),
   then: (resolve: (value: object) => void) => resolve(mockState.awaited ?? mockState.result),
 }
-for (const name of ["select", "insert", "update", "delete", "eq", "order", "limit"]) {
+for (const name of ["select", "insert", "update", "delete", "eq", "lte", "order", "limit"]) {
   mockQuery[name] = (...args: unknown[]) => {
     calls.push([name, args])
     return mockQuery

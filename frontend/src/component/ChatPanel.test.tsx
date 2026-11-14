@@ -4,6 +4,7 @@ import { watchChat } from "@/service/ChatService"
 import type { ChatMessage } from "@shared/Chat"
 
 jest.mock("@/service/ChatService", () => ({ watchChat: jest.fn() }))
+jest.mock("@/service/ReportService", () => ({ sendReport: jest.fn() }))
 
 const props = { tableId: "t1", userId: "u1" }
 const hello: ChatMessage = {
@@ -147,8 +148,9 @@ describe("ChatPanel", () => {
     expect(stop).toHaveBeenCalled()
   })
 
-  it("shows a Contact Admin button that does nothing yet", () => {
+  it("opens the contact admin modal", () => {
     render(<ChatPanel {...props} seated />)
-    expect(screen.getByText("Contact Admin")).toBeDisabled()
+    fireEvent.click(screen.getByRole("button", { name: "Contact Admin" }))
+    expect(screen.getByRole("dialog", { name: "Contact Admin" })).toBeInTheDocument()
   })
 })

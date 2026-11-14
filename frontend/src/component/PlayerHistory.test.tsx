@@ -3,6 +3,7 @@ import PlayerHistory from "@/component/PlayerHistory"
 import { fetchPlayerHands, fetchPlayers } from "@/service/AdminService"
 
 jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn() }))
+jest.mock("@/component/HandModal", () => ({ matchId }: { matchId: string }) => <p>Hand {matchId} details</p>)
 
 const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3 }
 const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0 }
@@ -26,6 +27,13 @@ describe("PlayerHistory", () => {
     expect(screen.getByText("$90")).toBeInTheDocument()
     expect(screen.getByText(`Hand #1 · Pot $480 · Won by Maya`)).toBeInTheDocument()
     expect(fetchPlayerHands).toHaveBeenCalledWith("u1")
+  })
+
+  it("opens a hand", async () => {
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(await screen.findByText("Won $240"))
+    expect(screen.getByText("Hand m1 details")).toBeInTheDocument()
   })
 
   it("searches and picks another player", async () => {

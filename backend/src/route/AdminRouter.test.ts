@@ -1,9 +1,9 @@
 import request from "supertest"
 import { app } from "../app"
-import { getPlayerHands } from "../dao/MatchDAO"
+import { getHand, getPlayerHands } from "../dao/MatchDAO"
 import { getAllPlayers, getRole, getUserIdFromToken } from "../dao/UserDAO"
 
-jest.mock("../dao/MatchDAO", () => ({ getPlayerHands: jest.fn() }))
+jest.mock("../dao/MatchDAO", () => ({ getHand: jest.fn(), getPlayerHands: jest.fn() }))
 jest.mock("../dao/UserDAO", () => ({ getAllPlayers: jest.fn(), getRole: jest.fn(), getUserIdFromToken: jest.fn() }))
 
 const player = { id: "u1", username: "Maya", balance: 500, handsPlayed: 3 }
@@ -27,6 +27,14 @@ describe("AdminRouter", () => {
     const res = await request(app).get("/admin/players/u1/hands").set("Authorization", "Bearer token")
     expect(res.body).toEqual([hand])
     expect(getPlayerHands).toHaveBeenCalledWith("u1")
+  })
+
+  it("shows one hand", async () => {
+    jest.mocked(getHand).mockResolvedValue({ id: "m1", handNumber: 1, pot: 3, endedAt: null, players: [], actions: [] })
+    const res = await request(app).get("/admin/hands/m1").set("Authorization", "Bearer token")
+    expect(res.body.handNumber).toBe(1)
+    jest.mocked(getHand).mockResolvedValue(null)
+    expect((await request(app).get("/admin/hands/m2").set("Authorization", "Bearer token")).status).toBe(404)
   })
 
   it("keeps non admins out", async () => {

@@ -1,3 +1,4 @@
+import ContactAdminModal from "@/component/ContactAdminModal"
 import { type ChatConnection, watchChat } from "@/service/ChatService"
 import type { ChatMessage } from "@shared/Chat"
 import { MAX_CHAT_LENGTH, QUICK_CHATS } from "@shared/Rules"
@@ -16,6 +17,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [contacting, setContacting] = useState(false)
   const chat = useRef<ChatConnection | null>(null)
   const bottom = useRef<HTMLLIElement>(null)
 
@@ -56,16 +58,15 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
     >
       <header className="flex items-center justify-between gap-3 border-b border-panel-edge px-4 py-3">
         <h2 className="text-lg font-bold leading-tight">Chat</h2>
-        {/* shown for the mockup; contact admin comes in a later story */}
         <button
           type="button"
-          disabled
-          title="Coming soon"
-          className="rounded border border-panel-edge bg-panel-raised px-2.5 py-1 text-sm font-semibold text-ink-muted disabled:cursor-not-allowed"
+          onClick={() => setContacting(true)}
+          className={`rounded border border-panel-edge bg-panel-raised px-2.5 py-1 text-sm font-semibold text-ink-muted transition-colors hover:text-ink ${FOCUS}`}
         >
           Contact Admin
         </button>
       </header>
+      {contacting && <ContactAdminModal tableId={tableId} onClose={() => setContacting(false)} />}
 
       <ul aria-label="Chat messages" aria-live="polite" className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 && <li className="pt-6 text-center text-sm text-ink-muted">No messages yet</li>}
