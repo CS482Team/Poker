@@ -114,7 +114,7 @@ export function returnScore(p: PlayerState, ranks: number[], suits: Set<string>)
     }
 }
 
-export function setRanks(p: PlayerState) {
+export function setRanks(p: PlayerState): [Set<string>, number[]] {
     p.winningRanks = [];
     const ranks: number[] = [];
     let suits = new Set<string>();

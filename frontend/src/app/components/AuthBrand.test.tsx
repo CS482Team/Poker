@@ -5,7 +5,7 @@ import { fetchTables } from "@/service/TableService"
 jest.mock("@/service/TableService", () => ({ fetchTables: jest.fn() }))
 
 const seat = { userId: "u1", username: "Maya", seatNumber: 0, stack: 100 }
-const table = { id: "t1", name: "One", status: 0, variant: "five-card-draw", buyIn: 100, minimumBet: 5, ante: 1, maxPlayers: 6, seats: [seat, { ...seat, userId: "u2" }] }
+const table = { id: "t1", name: "One", status: 0, variant: "five-card-draw", buyIn: 100, minimumBet: 5, ante: 1, maxPlayers: 6, botCount: 0, hostId: "u1", chatEnabled: true, turnTimerEnabled: false, seats: [seat, { ...seat, userId: "u2" }] }
 
 describe("AuthBrand", () => {
   it("shows real table and player counts", async () => {

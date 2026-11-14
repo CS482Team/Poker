@@ -41,6 +41,9 @@ const table = {
   minimumBet: 5,
   ante: 1,
   botCount: 0,
+  hostId: "u2",
+  chatEnabled: false,
+  turnTimerEnabled: false,
   seats: [
     { userId: getCurrentUserId(), username: "Alex", seatNumber: 0, stack: 2450 },
     { userId: "u2", username: "Maya", seatNumber: 1, stack: 1840 },

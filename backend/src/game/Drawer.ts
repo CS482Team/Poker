@@ -15,7 +15,7 @@ export function applyDraw(state: GameState, playerId: PlayerId, discard: number[
   me.hand = me.hand.map((card, i) => (discard.includes(i) ? deck.pop()! : card))
   me.hasActed = true
   //Reset bot discard
-  if(me.botToDiscard.length > 0) {
+  if(me.botToDiscard && me.botToDiscard.length > 0) {
 	  me.botToDiscard = [];
   }
   const next = advanceTurn({ ...state, deck, players }, p => isInHand(p) && !p.hasActed)
