@@ -56,11 +56,12 @@ describe("AdManager", () => {
 
   it("changes the image of an ad", async () => {
     render(<AdManager />)
-    fireEvent.click(await screen.findByRole("button", { name: "Edit ad" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Weekend bonus image" }))
     fireEvent.change(screen.getByLabelText("Image"), { target: { files: [new File(["hi"], "ad.png", { type: "image/png" })] } })
     expect(await screen.findByAltText("Preview")).toHaveAttribute("src", "data:image/png;base64,aGk=")
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
     await waitFor(() => expect(editAd).toHaveBeenCalledWith("a1", { title: "Weekend bonus", rewardAmount: 500, imageUrl: "data:image/png;base64,aGk=" }))
+    await waitFor(() => expect(screen.queryByAltText("Preview")).not.toBeInTheDocument())
   })
 
   it("saves with enter and cancels with escape", async () => {

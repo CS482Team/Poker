@@ -9,10 +9,13 @@ export default function ImagePicker({ imageUrl, onChange, className, children }:
   }
 
   return (
-    <label className={`grid cursor-pointer place-items-center overflow-hidden rounded-lg border border-white/10 bg-black/40 text-[#9e9393] transition-colors hover:border-white/30 hover:text-white ${className}`}>
+    <label className={`group relative grid cursor-pointer place-items-center overflow-hidden rounded-lg border border-white/10 bg-black/40 text-[#9e9393] transition-colors hover:border-white/30 hover:text-white focus-within:border-white/40 ${imageUrl ? "mx-auto w-fit" : className}`}>
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt="Preview" className="size-full object-cover" />
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imageUrl} alt="Preview" className="block max-h-[60vh] max-w-full" />
+          <span className="absolute inset-0 grid place-items-center bg-black/60 text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">Change image</span>
+        </>
       ) : (
         <span className="flex flex-col items-center gap-1.5 text-sm">
           <Icon d={IMAGE} size={20} />
