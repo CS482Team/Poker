@@ -78,6 +78,7 @@ function isValidNewAd(body: NewAd) {
     typeof body.title === "string" &&
     body.title.trim() !== "" &&
     Number.isInteger(body.rewardAmount) &&
-    body.rewardAmount >= 0
+    body.rewardAmount >= 0 &&
+    (body.imageUrl == null || (typeof body.imageUrl === "string" && body.imageUrl.startsWith("data:image/")))
   )
 }

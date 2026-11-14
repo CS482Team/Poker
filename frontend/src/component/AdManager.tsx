@@ -2,6 +2,7 @@
 
 import type { Ad } from "@shared/Ad"
 import Icon, { CHECK, CROSS, PENCIL, PLUS, TRASH } from "@/component/Icon"
+import ImagePicker from "@/component/ImagePicker"
 import NewAdForm from "@/component/NewAdForm"
 import { deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
 import { useEffect, useState } from "react"
@@ -18,6 +19,7 @@ export default function AdManager() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [rewardAmount, setRewardAmount] = useState(0)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAds()
@@ -43,11 +45,12 @@ export default function AdManager() {
     setEditingId(ad.id)
     setTitle(ad.title)
     setRewardAmount(ad.rewardAmount)
+    setImageUrl(ad.imageUrl ?? null)
   }
 
   function saveEdit(ad: Ad) {
     return run(async () => {
-      await editAd(ad.id, { title, rewardAmount })
+      await editAd(ad.id, { title, rewardAmount, imageUrl })
       setEditingId(null)
     })
   }
@@ -91,7 +94,10 @@ export default function AdManager() {
               return (
                 <div key={ad.id} className={`${ROW} min-h-14 rounded-md border-b border-white/5 last:border-0 ${editing ? "bg-white/[.04]" : "hover:bg-white/[.02]"}`}>
                   {editing ? (
-                    <input aria-label="Title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => onKey(e, ad)} className={INPUT} />
+                    <div className="flex items-center gap-2">
+                      <ImagePicker imageUrl={imageUrl} onChange={setImageUrl} className="size-9 shrink-0 rounded-md" />
+                      <input aria-label="Title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => onKey(e, ad)} className={`${INPUT} min-w-0`} />
+                    </div>
                   ) : (
                     <span className="truncate text-[15px] font-medium">{ad.title}</span>
                   )}
