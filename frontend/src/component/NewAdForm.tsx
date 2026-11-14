@@ -1,5 +1,6 @@
 "use client"
 
+import ImagePicker from "@/component/ImagePicker"
 import { createAd } from "@/service/AdminService"
 import { useState } from "react"
 
@@ -10,12 +11,13 @@ const numberClass = `${inputClass} [appearance:textfield] [&::-webkit-inner-spin
 export default function NewAdForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: () => void }) {
   const [title, setTitle] = useState("")
   const [rewardAmount, setRewardAmount] = useState(500)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      await createAd({ title, rewardAmount })
+      await createAd({ title, rewardAmount, imageUrl })
       onCreated()
     } catch (err) {
       setError((err as Error).message)
@@ -40,6 +42,12 @@ export default function NewAdForm({ onCancel, onCreated }: { onCancel: () => voi
             Reward (chips)
             <input type="number" min={0} required value={rewardAmount} onChange={(e) => setRewardAmount(Number(e.target.value))} className={numberClass} />
           </label>
+          <div className={labelClass}>
+            Image
+            <ImagePicker imageUrl={imageUrl} onChange={setImageUrl} className="aspect-video w-full">
+              Choose image
+            </ImagePicker>
+          </div>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="mt-3 flex justify-end">
             <button type="submit" className="primary-action">

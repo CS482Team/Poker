@@ -2,7 +2,7 @@ import type { Ad, NewAd } from "../../../shared/Ad"
 
 import { getSupabase } from "../config/Supabase"
 
-const AD_COLUMNS = "id, title, reward_amount, active"
+const AD_COLUMNS = "id, title, reward_amount, active, image_url"
 
 export async function getAllAds(): Promise<Ad[]> {
   const { data, error } = await getSupabase().from("advert").select(AD_COLUMNS).order("created_at", { ascending: false })
@@ -34,6 +34,7 @@ export async function createAd(input: NewAd, createdBy: string): Promise<string>
     .insert({
       title: input.title,
       reward_amount: input.rewardAmount,
+      image_url: input.imageUrl ?? null,
       active: false,
       created_by: createdBy,
     })
@@ -48,7 +49,7 @@ export async function createAd(input: NewAd, createdBy: string): Promise<string>
 export async function editAd(id: string, input: NewAd): Promise<void> {
   const { error } = await getSupabase()
     .from("advert")
-    .update({ title: input.title, reward_amount: input.rewardAmount })
+    .update({ title: input.title, reward_amount: input.rewardAmount, image_url: input.imageUrl ?? null })
     .eq("id", id)
 
   if (error) throw error
@@ -66,11 +67,12 @@ export async function deleteAd(id: string): Promise<void> {
   if (error) throw error
 }
 
-function toAd(row: { id: string; title: string; reward_amount: number; active: boolean }): Ad {
+function toAd(row: { id: string; title: string; reward_amount: number; active: boolean; image_url: string | null }): Ad {
   return {
     id: row.id,
     title: row.title,
     rewardAmount: row.reward_amount,
     active: row.active,
+    imageUrl: row.image_url,
   }
 }

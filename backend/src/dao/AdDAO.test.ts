@@ -9,8 +9,8 @@ beforeEach(resetMock)
 
 describe("AdDAO", () => {
   it("lists ads", async () => {
-    mockState.result = { data: [{ id: "a1", title: "Bonus", reward_amount: 500, active: true }] }
-    expect(await getAllAds()).toEqual([{ id: "a1", title: "Bonus", rewardAmount: 500, active: true }])
+    mockState.result = { data: [{ id: "a1", title: "Bonus", reward_amount: 500, active: true, image_url: "data:image/png;base64,x" }] }
+    expect(await getAllAds()).toEqual([{ id: "a1", title: "Bonus", rewardAmount: 500, active: true, imageUrl: "data:image/png;base64,x" }])
   })
 
   it("lists only active ads", async () => {
@@ -29,12 +29,12 @@ describe("AdDAO", () => {
   it("creates an inactive ad", async () => {
     mockState.result = { data: { id: "a1" } }
     expect(await createAd(newAd, "u1")).toBe("a1")
-    expect(calls).toContainEqual(["insert", [{ title: "Bonus", reward_amount: 500, active: false, created_by: "u1" }]])
+    expect(calls).toContainEqual(["insert", [{ title: "Bonus", reward_amount: 500, image_url: null, active: false, created_by: "u1" }]])
   })
 
   it("edits an ad", async () => {
     await editAd("a1", newAd)
-    expect(calls).toContainEqual(["update", [{ title: "Bonus", reward_amount: 500 }]])
+    expect(calls).toContainEqual(["update", [{ title: "Bonus", reward_amount: 500, image_url: null }]])
     expect(calls).toContainEqual(["eq", ["id", "a1"]])
   })
 

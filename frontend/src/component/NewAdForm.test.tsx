@@ -18,7 +18,18 @@ describe("NewAdForm", () => {
     render(<NewAdForm onCancel={jest.fn()} onCreated={onCreated} />)
     submit()
     await waitFor(() => expect(onCreated).toHaveBeenCalled())
-    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 250 })
+    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 250, imageUrl: null })
+  })
+
+  it("uploads an image", async () => {
+    const onCreated = jest.fn()
+    render(<NewAdForm onCancel={jest.fn()} onCreated={onCreated} />)
+    const file = new File(["hi"], "ad.png", { type: "image/png" })
+    fireEvent.change(screen.getByLabelText("Image"), { target: { files: [file] } })
+    expect(await screen.findByAltText("Preview")).toBeInTheDocument()
+    submit()
+    await waitFor(() => expect(onCreated).toHaveBeenCalled())
+    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 250, imageUrl: "data:image/png;base64,aGk=" })
   })
 
   it("shows the error", async () => {
