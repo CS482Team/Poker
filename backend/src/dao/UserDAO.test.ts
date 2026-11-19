@@ -54,6 +54,11 @@ describe("UserDAO", () => {
     expect(await getUserIdFromToken("bad")).toBeNull()
   })
 
+  it("false when username is taken", async () => {
+    mockState.result = "23505"
+    await expect(setUsername("u1", "test")).toBe(false)
+  })
+
   it("throws when the database fails", async () => {
     mockState.result = failure
     await expect(getBalance("u1")).rejects.toThrow("db down")
@@ -61,5 +66,8 @@ describe("UserDAO", () => {
     await expect(getRole("u1")).rejects.toThrow("db down")
     await expect(getAllPlayers()).rejects.toThrow("db down")
     await expect(getUsername("u1")).rejects.toThrow("db down")
+    await expect(setUsername("u1", "test")).rejects.toThrow("db down")
+    await expect(getProfile("u1")).rejects.toThrow("db down")
+    await expect(setAvatarUrl("u1")).rejects.toThrow("db down")
   })
 })

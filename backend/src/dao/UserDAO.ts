@@ -40,6 +40,29 @@ export async function getUserIdFromToken(token: string): Promise<string | null> 
   return data.user?.id ?? null
 }
 
+export async function getProfile(userId: string): Promise<{ username: string; avatarUrl: string | null; isGuest: boolean }> {
+  const { data, error } = await getSupabase().from("user").select("username, avatar_url, is_guest").eq("id", userId).single()
+
+  if (error) throw error
+
+  return { username: data.username, avatarUrl: data.avatar_url, isGuest: data.is_guest }
+}
+
+export async function setUsername(userId: string, username: string): Promise<boolean> {
+  const { error } = await getSupabase().from("user").update({ username }).eq("id", userId)
+
+  if (error?.code === "23505") return false
+  if (error) throw error
+
+  return true
+}
+
+export async function setAvatarUrl(userId: string, avatarUrl: string | null): Promise<void> {
+  const { error } = await getSupabase().from("user").update({ avatar_url: avatarUrl }).eq("id", userId)
+
+  if (error) throw error
+}
+
 export async function getAllPlayers(): Promise<PlayerSummary[]> {
   const { data, error } = await getSupabase()
     .from("user")
