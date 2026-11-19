@@ -56,3 +56,4 @@ export async function getAllPlayers(): Promise<PlayerSummary[]> {
     handsPlayed: row.match_players[0]?.count ?? 0,
   }))
 }
+

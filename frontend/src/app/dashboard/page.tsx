@@ -8,6 +8,7 @@ export default function Dashboard() {
     <>
       <AdBanner />
       <TableList />
+      <DailyRewards />
     </>
   );
 }
