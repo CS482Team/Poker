@@ -8,6 +8,7 @@ export const LEAVE = "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M8 7l-5 5 5 5M3 1
 export const RETURN = "M5 12h14M13 6l6 6-6 6"
 export const PLAY = "M7 4v16l13-8z"
 export const LOCK = "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"
+export const IMAGE = "M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M15.5 9.5h.01"
 
 export default function Icon({ d, size = 16 }: { d: string; size?: number }) {
   return (

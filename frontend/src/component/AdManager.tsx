@@ -1,12 +1,13 @@
 "use client"
 
 import type { Ad } from "@shared/Ad"
-import Icon, { CHECK, CROSS, PENCIL, PLUS, TRASH } from "@/component/Icon"
+import AdImageModal from "@/component/AdImageModal"
+import Icon, { CHECK, CROSS, IMAGE, PENCIL, PLUS, TRASH } from "@/component/Icon"
 import NewAdForm from "@/component/NewAdForm"
 import { deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
 import { useEffect, useState } from "react"
 
-const ROW = "grid grid-cols-[minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[minmax(0,1fr)_120px_140px_96px] sm:gap-4"
+const ROW = "grid grid-cols-[48px_minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[64px_minmax(0,1fr)_120px_140px_96px] sm:gap-4"
 const ICON = "grid size-8 place-items-center rounded-md text-[#9e9393] transition-colors hover:bg-white/10 hover:text-white"
 const INPUT = "w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[15px] text-[#f5f2ef] outline-none focus:border-white/40 [color-scheme:dark]"
 
@@ -18,6 +19,7 @@ export default function AdManager() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [rewardAmount, setRewardAmount] = useState(0)
+  const [imageAd, setImageAd] = useState<Ad | null>(null)
 
   useEffect(() => {
     fetchAds()
@@ -47,7 +49,7 @@ export default function AdManager() {
 
   function saveEdit(ad: Ad) {
     return run(async () => {
-      await editAd(ad.id, { title, rewardAmount })
+      await editAd(ad.id, { title, rewardAmount, imageUrl: ad.imageUrl ?? null })
       setEditingId(null)
     })
   }
@@ -61,6 +63,7 @@ export default function AdManager() {
 
   return (
     <>
+      {imageAd && <AdImageModal ad={imageAd} onCancel={() => setImageAd(null)} onSaved={() => run(async () => setImageAd(null))} />}
       {creating && <NewAdForm onCancel={() => setCreating(false)} onCreated={() => run(async () => setCreating(false))} />}
 
       <section className="panel padded">
@@ -79,6 +82,7 @@ export default function AdManager() {
         ) : (
           <>
             <div className={`${ROW} border-b border-white/10 pb-2 text-[13px] text-[#9e9393]`}>
+              <span />
               <span>Title</span>
               <span>Reward</span>
               <span>Status</span>
@@ -90,6 +94,10 @@ export default function AdManager() {
               const deleting = ad.id === deletingId
               return (
                 <div key={ad.id} className={`${ROW} min-h-14 rounded-md border-b border-white/5 last:border-0 ${editing ? "bg-white/[.04]" : "hover:bg-white/[.02]"}`}>
+                  <button type="button" aria-label={`${ad.title} image`} onClick={() => setImageAd(ad)} className="rounded-md">
+                    <Thumbnail imageUrl={ad.imageUrl} />
+                  </button>
+
                   {editing ? (
                     <input aria-label="Title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => onKey(e, ad)} className={INPUT} />
                   ) : (
@@ -148,5 +156,13 @@ export default function AdManager() {
         )}
       </section>
     </>
+  )
+}
+
+function Thumbnail({ imageUrl }: { imageUrl?: string | null }) {
+  return (
+    <span style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined} className={`grid aspect-video w-full place-items-center rounded-md border border-white/10 bg-black bg-cover bg-center text-[#6f6565] transition-colors hover:border-white/50 hover:text-white`}>
+      {!imageUrl && <Icon d={IMAGE} size={14} />}
+    </span>
   )
 }

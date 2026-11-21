@@ -37,6 +37,13 @@ describe("AdWatchModal", () => {
     expect(claimAd).toHaveBeenCalledTimes(1)
   })
 
+  it("shows the ad image", async () => {
+    jest.mocked(startWatching).mockResolvedValue()
+    render(<AdWatchModal ad={{ ...ad, imageUrl: "data:image/png;base64,x" }} onClose={jest.fn()} />)
+    expect(screen.getByAltText("Weekend bonus")).toHaveAttribute("src", "data:image/png;base64,x")
+    await act(async () => {})
+  })
+
   it("can be closed at any time", async () => {
     const onClose = jest.fn()
     jest.mocked(startWatching).mockResolvedValue()
