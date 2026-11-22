@@ -6,7 +6,9 @@ const [profile, setProfile] = useState<MyProfile | null>(null)
 const [editing, setEditing] = useState<"avatar" | "username" | "email" | null>(null)
 const [error, setError] = useState<string | null>(null)
 
-useEffect(() => { fetchMyProfile().then(setProfile).catch((err: Error) => setError(err.message)) }, [])
+export default function ProfileCard() {
+    seEffect(() => { fetchMyProfile().then(setProfile).catch((err: Error) => setError(err.message)) }, [])
+}
 
 async function saveUsername(username: string) {
   try {
