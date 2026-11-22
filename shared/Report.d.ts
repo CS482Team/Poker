@@ -1,6 +1,7 @@
 import type { Card } from "./Card"
 import type { ChatMessage } from "./Chat"
 
+
 export interface Report {
   id: number
   username: string | null
@@ -8,6 +9,9 @@ export interface Report {
   createdAt: string
   tableId: string | null
   tableName: string | null
+  userId: string | null
+  kind: "report" | "password_reset"
+  status: "open" | "resolved"
 }
 
 export interface HandPlayer {

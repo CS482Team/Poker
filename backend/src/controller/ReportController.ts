@@ -34,3 +34,16 @@ export async function showReport(req: Request<{ id: string }>, res: Response) {
   const [hands, chat] = await Promise.all([getTableHands(report.tableId, report.createdAt), messagesBefore(report.tableId, report.createdAt, 100)])
   res.json({ hands, chat })
 }
+
+export async function requestPasswordReset(req: Request<{}, {}, { email: string }>, res: Response) {
+  const email = typeof req.body.email === "string" ? req.body.email.trim() : ""
+  if (!email.includes("@")) {
+    res.status(400).json({ error: "Enter the email you sign in with" })
+    return
+  }
+  const userId = await findUserIdByEmail(email)
+  if (userId && !(await hasOpenReset(userId))) {
+    await createReport(userId, "Asked for a password reset", null, "password_reset")
+  }
+  res.status(202).end()
+}

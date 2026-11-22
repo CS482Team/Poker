@@ -18,3 +18,20 @@ export async function showHand(req: Request<{ id: string }>, res: Response) {
   }
   res.json(hand)
 }
+
+export async function resetPassword(req: Request<{ id: string }, {}, { password: string }>, res: Response) {
+  const id = Number(req.params.id)
+  const report = Number.isInteger(id) ? await getReport(id) : null
+  if (!report || report.kind !== "password_reset" || !report.userId) {
+    res.status(404).json({ error: "Reset request not found" })
+    return
+  }
+  const { password } = req.body
+  if (typeof password !== "string" || password.length < 6) {
+    res.status(400).json({ error: "Passwords are at least 6 characters" })
+    return
+  }
+  await setPassword(report.userId, password)
+  await resolveReport(id)
+  res.json({ email: await getEmail(report.userId) })
+}
