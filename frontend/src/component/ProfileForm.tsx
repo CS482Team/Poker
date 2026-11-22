@@ -48,7 +48,17 @@ export default function ProfileForm({profile, onCancel }: {profile: MyProfile | 
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`${inputClass} pl-7`} />
             </label>
           </div>
+          <ImagePicker imageUrl={imageUrl} onChange={setImageUrl} className="aspect-video w-full">
+            Choose image
+          </ImagePicker>
           {error && <p className="text-sm text-red-400 sm:col-span-2">{error}</p>}
+          <div className="flex items-center gap-2">
+            {imageUrl && (
+              <button type="button" onClick={() => setImageUrl(null)} className="secondary-action small danger">
+                Remove
+              </button>
+            )}
+          </div>
           <div className="mt-3 flex justify-end sm:col-span-2">
             <button type="submit" className="primary-action">
               Save
