@@ -44,7 +44,6 @@ export async function getAllPlayers(): Promise<PlayerSummary[]> {
   const { data, error } = await getSupabase()
     .from("user")
     .select("id, username, chip_balance, match_players(count)")
-    .eq("role", 0)
     .order("username")
 
   if (error) throw error

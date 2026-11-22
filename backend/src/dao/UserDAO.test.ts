@@ -36,7 +36,6 @@ describe("UserDAO", () => {
   it("lists players with their hand counts", async () => {
     mockState.result = { data: [{ id: "u1", username: "Maya", chip_balance: 500, match_players: [{ count: 3 }] }] }
     expect(await getAllPlayers()).toEqual([{ id: "u1", username: "Maya", balance: 500, handsPlayed: 3 }])
-    expect(calls).toContainEqual(["eq", ["role", 0]])
   })
 
   it("reads a role", async () => {
