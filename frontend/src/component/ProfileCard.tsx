@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { fetchMyProfile } from "@/service/UserService"
+import type { MyProfile } from "@shared/User"
 
 const [profile, setProfile] = useState<MyProfile | null>(null)
 const [editing, setEditing] = useState<"avatar" | "username" | "email" | null>(null)
