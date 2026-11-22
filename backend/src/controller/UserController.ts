@@ -1,7 +1,11 @@
 import { Request, Response } from "express"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance, getUsername } from "../dao/UserDAO"
+import { getBalance, getUsername, setBalance, recordDailyClaim, getDailyReward} from "../dao/UserDAO"
+import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { dailyRewardStatus } from "../services/DailyReward"
+import { DAILY_REWARDS } from "../../../shared/Rules"
+
 
 /* handles GET /users/:id/balance */
 export async function getUserBalance(req: Request<{ id: string }>, res: Response) {

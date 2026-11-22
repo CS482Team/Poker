@@ -1,3 +1,4 @@
+
 /* DEMO ONLY: reads the signed-in Supabase user straight from browser storage, where supabase-js
    saves the session, so this stays synchronous for its callers. A real version should use a React
    context fed by supabase.auth.onAuthStateChange. */
