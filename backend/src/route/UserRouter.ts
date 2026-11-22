@@ -1,5 +1,6 @@
 import { Router } from "express"
-import { getMyHandsHistory, getUserBalance, getUserUsername } from "../controller/UserController"
+import { getMyHandsHistory, getUserBalance, getUserUsername, getMe, changeUsername, changeAvatar, changeEmail } from "../controller/UserController"
+import { requireUser } from "../util/RequireUser"
 
 export const userRouter = Router()
 userRouter.get("/me", requireUser, getMe)

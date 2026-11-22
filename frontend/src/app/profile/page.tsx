@@ -8,7 +8,7 @@ export default function Profile() {
     <>
       <AdBanner />
       <MyHistory />
-      <ProfileCard.tsx />
+      <ProfileCard />
     </>
   );
 }
