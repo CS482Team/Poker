@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
 const [profile, setProfile] = useState<MyProfile | null>(null)
 const [editing, setEditing] = useState<"avatar" | "username" | "email" | null>(null)
 const [error, setError] = useState<string | null>(null)
