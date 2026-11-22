@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react"
 import { fetchMyProfile } from "@/service/UserService"
 import type { MyProfile } from "@shared/User"
+import { changeUsername } from "@backend/src/controller/UserController"
 
 const [profile, setProfile] = useState<MyProfile | null>(null)
 const [editing, setEditing] = useState<"avatar" | "username" | "email" | null>(null)
 const [error, setError] = useState<string | null>(null)
 
 export default function ProfileCard() {
-    seEffect(() => { fetchMyProfile().then(setProfile).catch((err: Error) => setError(err.message)) }, [])
+    useEffect(() => { fetchMyProfile().then(setProfile).catch((err: Error) => setError(err.message)) }, [])
 }
 
 async function saveUsername(username: string) {
