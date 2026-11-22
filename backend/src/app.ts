@@ -10,7 +10,8 @@ import { userRouter } from "./route/UserRouter"
 
 export const app = express()
 app.use(cors())
-app.use(express.json())
+// TODO: move ad images to a storage bucket instead of the request body
+app.use(express.json({ limit: "5mb" }))
 app.get("/health", (_, res) => res.json({ ok: true }))
 app.use("/admin", adminRouter)
 app.use("/ads", adRouter)

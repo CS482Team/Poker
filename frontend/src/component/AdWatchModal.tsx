@@ -45,7 +45,12 @@ export default function AdWatchModal({ ad, onClose }: { ad: Ad; onClose: () => v
           </button>
         </div>
         <div className="grid aspect-video place-items-center bg-black text-white/30">
-          <Icon d={PLAY} size={56} />
+          {ad.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={ad.imageUrl} alt={ad.title} className="size-full object-contain" />
+          ) : (
+            <Icon d={PLAY} size={56} />
+          )}
         </div>
         <div className="h-1 bg-white/10">
           <div className="h-full bg-[#6fd099] transition-[width] duration-1000 ease-linear" style={{ width: `${Math.min(seconds / AD_WATCH_SECONDS, 1) * 100}%` }} />
