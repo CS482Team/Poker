@@ -4,6 +4,7 @@
 -- 1. shop_item: make the catalog data-driven
 alter table public.shop_item
   alter column item_type set not null,
+  add column description text not null default '',
   add column rarity text not null default 'common',
   add column style jsonb not null default '{}'::jsonb,
   add column is_active boolean not null default true,

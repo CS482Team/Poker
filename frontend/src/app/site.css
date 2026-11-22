@@ -1378,3 +1378,151 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
   /* no gliding: the winnings just stay where the pot was */
   .pot-slide { left: 50%; top: var(--pot-top); animation: none; }
 }
+/* ---------- Cosmetics: rarity colours, item previews, name tags, My items ---------- */
+
+/* Each rarity sets --rarity; badges, tile edges and name tag titles read it */
+.rarity-common    { --rarity: #b8b0b0; }
+.rarity-rare      { --rarity: #5aa9ff; }
+.rarity-epic      { --rarity: #c084fc; }
+.rarity-legendary { --rarity: #f2c14e; }
+
+.rarity-badge {
+  color: var(--rarity);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+/* Name + name tag title, e.g. charley / BIG SPENDER */
+.name-tag { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.name-tag.md { font-size: 16px; }
+.name-tag.lg { font-size: 22px; }
+.name-tag-name { font-weight: 700; }
+.name-tag-title {
+  color: var(--rarity, #f2c14e);
+  font-size: .72em;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Portraits: the picture or initial fills a ring; borders recolour the ring via --ring */
+.cosmetic-portrait {
+  position: relative;
+  display: grid;
+  width: 84px;
+  height: 84px;
+  place-items: center;
+  overflow: hidden;
+  border: 4px solid #d8d4d4;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #6e4a4c, #2f1a1c);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .55);
+  color: #f5f2ef;
+  font-size: 26px;
+  font-weight: 700;
+}
+.cosmetic-portrait.large { width: 104px; height: 104px; font-size: 32px; }
+
+/* Card backs drawn from pattern + colours, with the H&D diamond in the accent colour */
+.card-back-preview {
+  position: relative;
+  width: 88px;
+  height: 124px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 4px solid #f5f2ef;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .55);
+  object-fit: cover;
+}
+div.card-back-preview::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--accent);
+  background: rgba(0, 0, 0, .55);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.emote-preview {
+  display: grid;
+  width: 84px;
+  height: 84px;
+  place-items: center;
+  border: 3px solid var(--rarity);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, .12), rgba(0, 0, 0, .35));
+  font-size: 44px;
+  line-height: 1;
+}
+
+.theme-swatch { width: 120px; height: 84px; border: 3px solid rgba(255, 255, 255, .8); border-radius: 8px; }
+.name-tag-preview { padding: 12px 4px; text-align: center; }
+
+/* Item tiles: preview on the left, details on the right, rarity colour along the top */
+.shop-tile { display: flex; min-height: 200px; overflow: hidden; border-top: 3px solid var(--rarity); }
+.shop-tile-preview {
+  display: grid;
+  width: 150px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-right: 1px solid rgba(255, 255, 255, .06);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .06), rgba(0, 0, 0, .3));
+}
+@media (max-width: 420px) { .shop-tile-preview { width: 116px; } }
+
+.equipped-label { color: #7ddc9a; font-size: 15px; font-weight: 700; }
+.equipped-label::before { content: "✓ "; }
+
+/* Emote wheel slots in "Your look", and the 1–4 slot picker on each emote */
+.emote-slot {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 2px dashed rgba(255, 255, 255, .25);
+  border-radius: 50%;
+  color: #9e9393;
+  font-size: 12px;
+}
+.emote-slot.filled { border-style: solid; border-color: rgba(255, 255, 255, .6); background: rgba(0, 0, 0, .35); color: inherit; font-size: 28px; cursor: pointer; }
+.emote-slot.filled:hover { border-color: #ff6b6b; }
+
+.slot-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, .35);
+  font-size: 16px;
+  font-weight: 700;
+}
+.slot-button:hover { border-color: rgba(255, 255, 255, .5); }
+.slot-button.active { border-color: #f2c14e; background: rgba(242, 193, 78, .18); color: #f2c14e; }
+
+/* Animations: glow pulses the ring in its own colour; shimmer sweeps light across */
+@keyframes cosmetic-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px color-mix(in srgb, var(--ring) 35%, transparent), 0 4px 10px rgba(0, 0, 0, .55); }
+  50%      { box-shadow: 0 0 18px 6px color-mix(in srgb, var(--ring) 75%, transparent), 0 4px 10px rgba(0, 0, 0, .55); }
+}
+@keyframes cosmetic-shimmer { to { background-position: -200% 0; } }
+@keyframes cosmetic-shine { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.4); } }
+
+.animate-glow { animation: cosmetic-glow 2.2s ease-in-out infinite; }
+.cosmetic-portrait.animate-shimmer, .card-back-preview.animate-shimmer { animation: cosmetic-shine 2.4s ease-in-out infinite; }
+.name-tag-title.animate-shimmer {
+  background: linear-gradient(90deg, currentColor 0%, currentColor 40%, #fff6d5 50%, currentColor 60%, currentColor 100%) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: cosmetic-shimmer 2.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow, .animate-shimmer { animation: none; }
+}

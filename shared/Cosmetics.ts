@@ -7,18 +7,24 @@ export type CosmeticType = (typeof COSMETIC_TYPES)[number]
 export const RARITIES = ["common", "rare", "epic", "legendary"] as const // lowest to highest
 export type Rarity = (typeof RARITIES)[number]
 
+// Card back designs drawn in CSS; each colour combination is its own shop item
+export const CARD_BACK_PATTERNS = ["solid", "lattice", "rays", "rings"] as const
+export type CardBackPattern = (typeof CARD_BACK_PATTERNS)[number]
+
 export interface CosmeticStyle {
   // optional CSS values, read by that type's renderer
+  pattern?: CardBackPattern // card backs only
   color?: string
   accent?: string
   gradient?: string
-  text?: string // e.g. the name tag subtitle "Big Spender"
+  text?: string // the name tag subtitle ("Big Spender") or an emote's emoji
   animation?: "shimmer" | "glow"
 }
 
 export interface ShopItem {
   id: string
   name: string
+  description: string // one line shown on the shop card, e.g. "A polished gold ring for your portrait."
   type: CosmeticType
   cost: number
   rarity: Rarity
