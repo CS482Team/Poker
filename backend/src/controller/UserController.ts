@@ -1,7 +1,8 @@
 import { Request, Response } from "express"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance, getUsername } from "../dao/UserDAO"
+import { getBalance, getUsername, setUsername, getProfile, setAvatarUrl } from "../dao/UserDAO"
+import { getEmail, setEmail, checkPassword } from "../dao/AuthDAO"
 
 /* handles GET /users/:id/balance */
 export async function getUserBalance(req: Request<{ id: string }>, res: Response) {
@@ -38,7 +39,7 @@ export async function getUserUsername(req: Request<{ id: string }>, res: Respons
 export async function getMe(_req: Request, res: Response) {
   const userId = res.locals.userId
   const [profile, email] = await Promise.all([getProfile(userId), getEmail(userId)])
-  res.json({ id: userId, ...profile, email })
+  res.json({ userId, ...profile, email })
 }
 
 /* handles PATCH /users/me/username */

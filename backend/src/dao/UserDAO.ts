@@ -1,5 +1,6 @@
 import { getSupabase } from "../config/Supabase"
 import type { PlayerSummary } from "../../../shared/PlayerHistory"
+import type { MyProfile } from "../../../shared/User"
 
 /* gets a user's chips */
 export async function getBalance(userId: string): Promise<number> {
@@ -40,12 +41,12 @@ export async function getUserIdFromToken(token: string): Promise<string | null> 
   return data.user?.id ?? null
 }
 
-export async function getProfile(userId: string): Promise<{ username: string; avatarUrl: string | null; isGuest: boolean }> {
-  const { data, error } = await getSupabase().from("user").select("username, avatar_url, is_guest").eq("id", userId).single()
+export async function getProfile(userId: string): Promise<MyProfile> {
+  const { data, error } = await getSupabase().from("user").select("id, username, avatar_url, is_guest").eq("id", userId).single()
 
   if (error) throw error
 
-  return { username: data.username, avatarUrl: data.avatar_url, isGuest: data.is_guest }
+  return { id: userId, username: data.username, avatarUrl: data.avatar_url, email: "", isGuest: data.is_guest }
 }
 
 export async function setUsername(userId: string, username: string): Promise<boolean> {

@@ -18,8 +18,6 @@ export const changeUsername = (username: string) => patchMe("username", { userna
 export const changeAvatar = (avatarUrl: string | null) => patchMe("avatar", { avatarUrl });
 export const changeEmail = (password: string, email: string) => patchMe("email", { password, email });
 
-
-
 /* DEMO ONLY: reads the signed-in Supabase user straight from browser storage, where supabase-js
    saves the session, so this stays synchronous for its callers. A real version should use a React
    context fed by supabase.auth.onAuthStateChange. */
