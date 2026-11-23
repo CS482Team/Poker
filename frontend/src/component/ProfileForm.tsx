@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { fetchMyProfile, getCurrentUserId } from "@/service/UserService"
 import { MyProfile } from "@shared/User"
+import ImagePicker from "@/component/ImagePicker"
 
 const labelClass = "grid gap-1.5 text-sm text-[#b5a9a9]"
 const inputClass = "w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[#f5f2ef] [color-scheme:dark]"
@@ -48,13 +49,13 @@ export default function ProfileForm({profile, onCancel }: {profile: MyProfile | 
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`${inputClass} pl-7`} />
             </label>
           </div>
-          <ImagePicker imageUrl={imageUrl} onChange={setImageUrl} className="aspect-video w-full">
+          <ImagePicker avatarUrl={avatarUrl} onChange={setAvatarUrl} className="aspect-video w-full">
             Choose image
           </ImagePicker>
           {error && <p className="text-sm text-red-400 sm:col-span-2">{error}</p>}
           <div className="flex items-center gap-2">
             {imageUrl && (
-              <button type="button" onClick={() => setImageUrl(null)} className="secondary-action small danger">
+              <button type="button" onClick={() => setAvatarUrl(null)} className="secondary-action small danger">
                 Remove
               </button>
             )}

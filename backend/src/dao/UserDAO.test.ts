@@ -1,4 +1,4 @@
-import { getAllPlayers, getBalance, getRole, getUserIdFromToken, getUsername, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
+import { getAllPlayers, getBalance, getRole, getUserIdFromToken, getUsername, removeUser, setBalance, unbanUser, setUsername, getProfile, setAvatarUrl } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -72,8 +72,8 @@ describe("UserDAO", () => {
   })
 
   it("false when username is taken", async () => {
-    mockState.result = "23505"
-    await expect(setUsername("u1", "test")).toBe(false)
+    mockState.awaited = { error: { code: "23505" } }
+    expect(await setUsername("u1", "test")).toBe(false)
   })
 
   it("throws when the database fails", async () => {
@@ -86,6 +86,6 @@ describe("UserDAO", () => {
     await expect(removeUser("u1")).rejects.toThrow("db down")
     await expect(setUsername("u1", "test")).rejects.toThrow("db down")
     await expect(getProfile("u1")).rejects.toThrow("db down")
-    await expect(setAvatarUrl("u1")).rejects.toThrow("db down")
+    await expect(setAvatarUrl("u1", "user")).rejects.toThrow("db down")
   })
 })
