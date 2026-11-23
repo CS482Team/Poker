@@ -1,0 +1,123 @@
+"use client"
+
+/* body of /shop: your balance, a tab per category and the item grid */
+import ShopItemCard from "@/component/ShopItemCard"
+import { announceBalance, fetchBalance } from "@/service/BalanceService"
+import { buyItem, fetchShopItems } from "@/service/ShopService"
+import { fetchUsername, getCurrentUserId } from "@/service/UserService"
+import { COSMETIC_LABELS } from "@/util/Cosmetic"
+import { COSMETIC_TYPES, type CosmeticType, type ShopItem } from "@shared/Cosmetics"
+import Link from "next/link"
+import { useEffect, useState, useSyncExternalStore } from "react"
+
+// the session never changes while the shop is open, so there's nothing to subscribe to
+const noSubscribe = () => () => {}
+
+export default function Shop() {
+  // null on the server render (no browser storage there), "" for a guest
+  const userId = useSyncExternalStore(noSubscribe, getCurrentUserId, () => null)
+  const [items, setItems] = useState<ShopItem[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [username, setUsername] = useState("You")
+  const [balance, setBalance] = useState<number | null>(null)
+  const [tab, setTab] = useState<CosmeticType | null>(null)
+
+  useEffect(() => {
+    fetchShopItems()
+      .then(setItems)
+      .catch((e: Error) => setError(e.message))
+  }, [])
+
+  useEffect(() => {
+    if (!userId) return
+    fetchBalance(userId).then(setBalance).catch(console.error)
+    fetchUsername(userId).then(setUsername).catch(console.error)
+  }, [userId])
+
+  async function handleBuy(item: ShopItem) {
+    const newBalance = await buyItem(item.id)
+    setBalance(newBalance)
+    setItems((current) => current?.map((i) => (i.id === item.id ? { ...i, owned: true } : i)) ?? null)
+    announceBalance(newBalance)
+  }
+
+  const signedIn = userId !== ""
+  const categories = COSMETIC_TYPES.filter((type) => items?.some((item) => item.type === type))
+  const active = tab ?? categories[0]
+  const shown = items?.filter((item) => item.type === active) ?? []
+  const ownedCount = shown.filter((item) => item.owned).length
+
+  return (
+    <div className="page-shell">
+      <ShopHeader balance={balance} signedIn={signedIn} />
+
+      {error && (
+        <p role="alert" className="shop-error panel p-4">
+          {error}
+        </p>
+      )}
+      {!items && !error && <p className="py-10 text-center text-lg text-[#9e9393]">Loading the shop…</p>}
+      {items && categories.length === 0 && <p className="py-10 text-center text-lg text-[#9e9393]">Nothing for sale right now. Check back soon.</p>}
+
+      {active && (
+        <>
+          <div role="tablist" aria-label="Categories" className="shop-tabs">
+            {categories.map((type) => (
+              <button key={type} type="button" role="tab" id={`tab-${type}`} aria-controls="shop-panel" aria-selected={type === active} className={type === active ? "shop-tab active" : "shop-tab"} onClick={() => setTab(type)}>
+                {COSMETIC_LABELS[type]}
+              </button>
+            ))}
+          </div>
+
+          <section role="tabpanel" id="shop-panel" aria-labelledby={`tab-${active}`}>
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-[28px] font-bold">{COSMETIC_LABELS[active]}</h2>
+                <p className="text-base text-[#b8aeae]">Cosmetics are yours to keep once purchased.</p>
+              </div>
+              {signedIn && (
+                <p className="text-base text-[#b8aeae]">
+                  {ownedCount} of {shown.length} owned
+                </p>
+              )}
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {shown.map((item) => (
+                <ShopItemCard key={item.id} item={item} username={username} balance={balance} signedIn={signedIn} onBuy={handleBuy} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ShopHeader({ balance, signedIn }: { balance: number | null; signedIn: boolean }) {
+  return (
+    <section className="panel shop-hero">
+      <div>
+        <p className="shop-eyebrow">The Vault</p>
+        <h1 className="shop-title">Shop</h1>
+        <p className="text-base text-[#cfc6c6] sm:text-lg">Bring your own style to the table with collectible player cosmetics.</p>
+      </div>
+      {signedIn ? (
+        <div className="flex flex-col items-stretch gap-3 max-sm:w-full sm:items-end">
+          <div className="shop-balance" aria-label="Available balance">
+            <span className="text-sm text-[#b8aeae]">Available balance</span>
+            <span>
+              <strong>{balance === null ? "…" : balance.toLocaleString()}</strong> chips
+            </span>
+          </div>
+          <Link href="/shop/my-items" className="secondary-action">
+            My items
+          </Link>
+        </div>
+      ) : (
+        <Link href="/" className="primary-action buy-action">
+          Sign in to start collecting
+        </Link>
+      )}
+    </section>
+  )
+}

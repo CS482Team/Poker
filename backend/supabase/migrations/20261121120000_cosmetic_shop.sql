@@ -136,6 +136,12 @@ begin
     raise exception 'not_owned';
   end if;
 
+  -- an emote lives in one wheel slot at a time: putting it in a new slot moves it
+  if v_type = 'emote' then
+    delete from public.user_loadout
+    where user_id = p_user and item_id = p_item and slot <> p_slot;
+  end if;
+
   insert into public.user_loadout (user_id, slot, item_id)
   values (p_user, p_slot, p_item)
   on conflict (user_id, slot)

@@ -1,12 +1,6 @@
-/**
- * Test helper for building ShopItems without repeating every field.
- */
+/* test helper: builds a ShopItem from just the fields you care about */
 import type { ShopItem } from "@shared/Cosmetics"
 
-/**
- * Returns a plain common card back, with any fields you pass replacing the defaults.
- * @example makeItem({ name: "Big Laugh", type: "emote", style: { text: "😂" } })
- */
 export function makeItem(overrides: Partial<ShopItem> = {}): ShopItem {
   return {
     id: "item-1",

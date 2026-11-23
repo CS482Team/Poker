@@ -1,26 +1,17 @@
 "use client"
 
-/**
- * Avatar: the inside of a portrait circle (a picture, or the player's initial).
- * The parent element sets the size, shape and border, so the same Avatar works in
- * a small chat bubble, a seat at the table or a large preview.
- */
+/* the inside of a portrait: the player's picture or initial */
 import { initialOf } from "@/util/Cosmetic"
 import { useState } from "react"
 
 interface Props {
-  /** Used for the fallback initial. */
   username: string
-  /** The avatar picture, e.g. "/cosmetic/avatar/sly-fox.svg". Empty means show the initial. */
+  /** empty, or an image that fails to load, shows the initial */
   url?: string | null | undefined
 }
 
-/**
- * Shows the avatar picture, or the player's initial if there's no picture or it
- * fails to load (a broken image would otherwise show the browser's broken-image icon).
- */
+/* fills its parent, which sets the size and border; shows the initial if there's no picture or it fails to load */
 export default function Avatar({ username, url }: Props) {
-  // flips to true if the image fails, so we switch to the initial instead
   const [broken, setBroken] = useState(false)
 
   if (url && !broken) {

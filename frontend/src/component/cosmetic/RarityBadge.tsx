@@ -1,15 +1,7 @@
-/**
- * RarityBadge: the small coloured rarity label on shop and My items tiles.
- */
+/* the coloured rarity label on item tiles */
 import type { Rarity } from "@shared/Cosmetics"
 
-/**
- * Shows an item's rarity, e.g. LEGENDARY in gold.
- *
- * The colours live in site.css: each `.rarity-*` class sets a `--rarity` variable,
- * which the tile's top edge and name tag titles also read. To change a rarity's
- * colour, change it there and every place updates together.
- */
+/* the colours live in site.css (.rarity-*), shared with tile edges and name tag titles */
 export default function RarityBadge({ rarity }: { rarity: Rarity }) {
   return <span className={`rarity-badge rarity-${rarity}`}>{rarity}</span>
 }

@@ -1,14 +1,4 @@
-/**
- * MyItems: the locker where players see their look and equip what they own.
- *
- * Layout, top to bottom:
- *   1. "Your look": avatar + border, name tag, card back, and the 4-slot emote wheel
- *   2. One section per category the player owns something in, each a grid of item tiles
- *
- * This component only displays data and reports clicks through onEquip / onUnequip.
- * It doesn't fetch or save anything, so the page that uses it decides what equipping
- * means (calling the API, updating context, etc.) and the component stays easy to test.
- */
+/* the locker: your look, then everything you own grouped by category */
 import Avatar from "@/component/cosmetic/Avatar"
 import ItemPreview from "@/component/cosmetic/ItemPreview"
 import NameTag from "@/component/cosmetic/NameTag"
@@ -20,22 +10,19 @@ import Link from "next/link"
 import type { CSSProperties } from "react"
 
 interface Props {
-  /** The signed-in player's name, shown in the previews. */
   username: string
-  /** Every item the player owns. */
+  /** everything you own */
   items: ShopItem[]
-  /** What the player currently has equipped, by slot. */
+  /** what you have on, by slot */
   loadout: Loadout
-  /** Called when the player wants `item` in `slot` (replacing whatever was there). */
+  /** replaces whatever is in the slot */
   onEquip: (item: ShopItem, slot: LoadoutSlot) => void
-  /** Called when the player wants `slot` emptied. */
   onUnequip: (slot: LoadoutSlot) => void
 }
 
-/** ["emote_1", "emote_2", "emote_3", "emote_4"], built from the shared slot count. */
 const EMOTE_SLOTS = Array.from({ length: EMOTE_SLOT_COUNT }, (_, i) => `emote_${i + 1}` as EmoteSlot)
 
-/** The whole locker; shows an empty state with a shop link if the player owns nothing. */
+/* only displays and reports clicks; the page decides what equipping does */
 export default function MyItems({ username, items, loadout, onEquip, onUnequip }: Props) {
   if (items.length === 0) {
     return (
@@ -48,7 +35,6 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
     )
   }
 
-  // keep the shared category order (COSMETIC_TYPES) and skip categories with nothing owned
   const groups = COSMETIC_TYPES.map((type) => ({ type, owned: items.filter((item) => item.type === type) })).filter((group) => group.owned.length > 0)
 
   return (
@@ -71,19 +57,13 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
   )
 }
 
-/**
- * The player's full look in one place: everything equipped, as other players will see it.
- * Filled emote wheel slots are buttons that empty the slot.
- */
 function YourLook({ username, loadout, onUnequip }: Pick<Props, "username" | "loadout" | "onUnequip">) {
-  // the equipped border recolours the portrait ring; --ring lets the glow animation match it
   const border = loadout.avatar_border
   const ring = border ? ({ borderColor: border.style.color, "--ring": border.style.color } as CSSProperties) : undefined
   const ringAnimation = border?.style.animation ? `animate-${border.style.animation}` : ""
 
   return (
     <section aria-labelledby="your-look" className="panel flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
-      {/* visually hidden, but names the region for screen readers */}
       <h2 id="your-look" className="sr-only">
         Your look
       </h2>
@@ -96,7 +76,6 @@ function YourLook({ username, loadout, onUnequip }: Pick<Props, "username" | "lo
       </div>
 
       <div className="flex items-center gap-6 sm:ml-auto">
-        {/* no card back equipped means the house deck everyone starts with */}
         {loadout.card_back ? (
           <ItemPreview item={loadout.card_back} username={username} />
         ) : (
@@ -128,10 +107,6 @@ function YourLook({ username, loadout, onUnequip }: Pick<Props, "username" | "lo
   )
 }
 
-/**
- * One owned item: preview on the left; rarity, name and equip controls on the right.
- * Emotes get a slot picker; everything else gets a single Equip / Unequip button.
- */
 function ItemTile({ item, username, loadout, onEquip, onUnequip }: Omit<Props, "items"> & { item: ShopItem }) {
   return (
     <article aria-label={item.name} className={`panel shop-tile rarity-${item.rarity}`}>
@@ -150,10 +125,8 @@ function ItemTile({ item, username, loadout, onEquip, onUnequip }: Omit<Props, "
   )
 }
 
-/** Props shared by the equip controls. */
 type ActionProps = Pick<Props, "loadout" | "onEquip" | "onUnequip"> & { item: ShopItem }
 
-/** "Equip" when the item isn't on, or "✓ Equipped" plus "Unequip" when it is. */
 function EquipButton({ item, slot, loadout, onEquip, onUnequip }: ActionProps & { slot: LoadoutSlot }) {
   if (loadout[slot]?.id !== item.id) {
     return (
@@ -173,10 +146,6 @@ function EquipButton({ item, slot, loadout, onEquip, onUnequip }: ActionProps & 
   )
 }
 
-/**
- * Buttons 1–4 for choosing which wheel slot an emote sits in.
- * The slot(s) it's already in are highlighted; pressing one of those takes it out.
- */
 function EmoteSlotPicker({ item, loadout, onEquip, onUnequip }: ActionProps) {
   return (
     <div>

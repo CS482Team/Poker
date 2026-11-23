@@ -45,8 +45,10 @@ describe("ItemPreview", () => {
     expect(screen.getByRole("img", { name: "Big Laugh preview" })).toHaveTextContent("😂")
   })
 
-  it("shows a theme as a swatch of its colours", () => {
-    render(<ItemPreview username="charley" item={makeItem({ name: "Emerald", type: "theme", style: { color: "#0b6b3a", accent: "#e9c46a" } })} />)
-    expect(screen.getByRole("img", { name: "Emerald preview" })).toHaveClass("theme-swatch")
+  it("shows a theme as a mini table in its felt", () => {
+    render(<ItemPreview username="charley" item={makeItem({ name: "Emerald", type: "theme", style: { pattern: "lattice", color: "#0b6b3a", accent: "#e9c46a" } })} />)
+    const table = screen.getByRole("img", { name: "Emerald preview" })
+    expect(table).toHaveClass("theme-preview")
+    expect(table.style.getPropertyValue("--felt")).toBe("#0b6b3a")
   })
 })
