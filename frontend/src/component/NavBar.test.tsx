@@ -14,6 +14,12 @@ jest.mock("next/navigation", () => ({
 describe("Nav", () => {
   beforeEach(() => jest.mocked(getCurrentTableId).mockReturnValue(null))
 
+  it("has the sound settings button", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    render(<Nav />)
+    expect(screen.getByRole("button", { name: /^Sound settings/ })).toBeInTheDocument()
+  })
+
   it("links to the shop", () => {
     jest.mocked(usePathname).mockReturnValue("/dashboard")
     render(<Nav />)

@@ -5,6 +5,7 @@ import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act as playAction, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
 import { watchEmotes } from "@/service/EmoteService"
+import { playEffect } from "@/service/SoundService"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
@@ -30,6 +31,7 @@ jest.mock("@/service/SocketService", () => ({
 
 jest.mock("@/service/GameService", () => ({ act: jest.fn(), draw: jest.fn() }))
 jest.mock("@/service/EmoteService", () => ({ watchEmotes: jest.fn() }))
+jest.mock("@/service/SoundService", () => ({ playEffect: jest.fn() }))
 jest.mock("@/hook/useMyLoadout", () => ({ useMyLoadout: jest.fn(() => ({})) }))
 
 jest.mock("@/service/CurrentTableService", () => ({
@@ -335,6 +337,25 @@ describe("GameTable", () => {
       render(<GameTable id="t1" />)
       await screen.findByText("Maya")
       expect(screen.queryByRole("button", { name: "Emotes" })).not.toBeInTheDocument()
+    })
+  })
+
+  describe("sounds", () => {
+    it("stays quiet on the first view, then plays the sounds for what changed", async () => {
+      await showView({ ...view, handNumber: 1, players: [alex, maya] })
+      expect(playEffect).not.toHaveBeenCalled()
+
+      const push = jest.mocked(watchTable).mock.calls[0]![3]
+      act(() => push({ ...view, handNumber: 2, players: [alex, maya] } as never))
+      expect(playEffect).toHaveBeenCalledWith("deal")
+    })
+
+    it("pops when someone plays an emote", async () => {
+      render(<GameTable id="t1" />)
+      await screen.findByText("Maya")
+      const onPlayed = jest.mocked(watchEmotes).mock.calls[0]![1]
+      act(() => onPlayed({ tableId: "t1", userId: "u2", emote: makeItem({ name: "Big Laugh", type: "emote", style: { text: "😂" } }) }))
+      expect(playEffect).toHaveBeenCalledWith("emote")
     })
   })
 })

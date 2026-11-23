@@ -3,11 +3,13 @@ import Shop from "@/component/Shop"
 import { makeItem } from "@/component/cosmetic/makeItem"
 import { announceBalance, fetchBalance } from "@/service/BalanceService"
 import { buyItem, fetchShopItems } from "@/service/ShopService"
+import { playEffect } from "@/service/SoundService"
 import { fetchUsername, getCurrentUserId } from "@/service/UserService"
 
 jest.mock("@/service/ShopService", () => ({ fetchShopItems: jest.fn(), buyItem: jest.fn() }))
 jest.mock("@/service/BalanceService", () => ({ fetchBalance: jest.fn(), announceBalance: jest.fn() }))
 jest.mock("@/service/UserService", () => ({ getCurrentUserId: jest.fn(), fetchUsername: jest.fn() }))
+jest.mock("@/service/SoundService", () => ({ playEffect: jest.fn() }))
 
 const fox = makeItem({ id: "a1", name: "Sly Fox", type: "avatar", cost: 1400, owned: false })
 const panda = makeItem({ id: "a2", name: "Panda", type: "avatar", cost: 200, owned: true })
@@ -61,6 +63,7 @@ describe("Shop", () => {
     expect(screen.getByLabelText("Available balance")).toHaveTextContent("700")
     expect(buyItem).toHaveBeenCalledWith("c1")
     expect(announceBalance).toHaveBeenCalledWith(700)
+    expect(playEffect).toHaveBeenCalledWith("purchase")
   })
 
   it("lets guests browse with a sign in prompt instead of a balance", async () => {

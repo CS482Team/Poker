@@ -8,6 +8,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import BalanceDisplay from "@/component/BalanceDisplay"
+import VolumeControl from "@/component/VolumeControl"
 
 export default function Nav() {
   const pathname = usePathname()
@@ -50,6 +51,7 @@ export default function Nav() {
           )}
         </div>
         <div className="flex items-center justify-end gap-3">
+          <VolumeControl />
           <BalanceDisplay />
           <Link href="/shop" className={pathname === "/shop" ? "shop-nav-button active" : "shop-nav-button"}>
             Shop

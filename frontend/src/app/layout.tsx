@@ -1,3 +1,4 @@
+import MusicPlayer from "@/component/MusicPlayer";
 import Nav from "@/component/NavBar";
 import ThemeApplier from "@/component/ThemeApplier";
 import { Suspense } from "react";
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense>
           <Nav />
           <ThemeApplier />
+          <MusicPlayer />
         </Suspense>
         {children}
       </body>

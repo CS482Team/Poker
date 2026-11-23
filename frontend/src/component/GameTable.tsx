@@ -13,9 +13,11 @@ import RoomSettings from "@/component/RoomSettings"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
 import { watchEmotes, type EmoteConnection } from "@/service/EmoteService"
+import { playEffect } from "@/service/SoundService"
 import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
+import { soundsForViewChange } from "@/util/Sound"
 import PlayerHand from "@/component/PlayerHand"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import type { EmotePlayed, ShopItem } from "@shared/Cosmetics"
@@ -68,6 +70,7 @@ export default function GameTable({ id }: { id: string }) {
   const seated = tableSeats.some((s) => s.userId === getCurrentUserId())
   const [bubbles, setBubbles] = useState<Record<string, { emote: ShopItem; key: number }>>({})
   const emotes = useRef<EmoteConnection | null>(null)
+  const lastView = useRef<PlayerView | null>(null)
 
   useEffect(() => {
     fetchTable(id)
@@ -83,6 +86,7 @@ export default function GameTable({ id }: { id: string }) {
   }, [id])
 
   function showEmote({ userId, emote }: EmotePlayed) {
+    playEffect("emote")
     const key = Date.now() + Math.random()
     setBubbles((current) => ({ ...current, [userId]: { emote, key } }))
     // remove it later, unless a newer emote from the same player has replaced it by then
@@ -101,6 +105,12 @@ export default function GameTable({ id }: { id: string }) {
     emotes.current = connection
     return () => connection.stop()
   }, [id])
+
+  // the sounds for whatever just changed: a deal, someone's action, your turn, a win
+  useEffect(() => {
+    soundsForViewChange(lastView.current, view).forEach((sound) => playEffect(sound))
+    lastView.current = view
+  }, [view])
 
   useEffect(() => {
     if (!canDraw) setSelected([])
