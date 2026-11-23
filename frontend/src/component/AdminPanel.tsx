@@ -1,6 +1,7 @@
 "use client"
 
 import AdManager from "@/component/AdManager"
+import PromoManager from "@/component/PromoManager"
 import PlayerHistory from "@/component/PlayerHistory"
 import { isAdmin } from "@/service/AdminService"
 import { useRouter } from "next/navigation"
@@ -22,6 +23,7 @@ export default function AdminPanel() {
     <div className="page-shell flex flex-col gap-6">
       <h1 className="page-title">Admin</h1>
       <PlayerHistory />
+      <PromoManager />
       <AdManager />
     </div>
   )

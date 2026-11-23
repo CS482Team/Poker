@@ -4,13 +4,13 @@
 
 set session_replication_role = replica;
 
-insert into auth.users (id, email)
+insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data, confirmation_token, recovery_token, email_change_token_new, email_change, created_at, updated_at)
 values
-  ('00000000-0000-0000-0000-000000000001', 'maya@test.local'),
-  ('00000000-0000-0000-0000-000000000002', 'theo@test.local'),
-  ('00000000-0000-0000-0000-000000000003', 'lina@test.local'),
-  ('00000000-0000-0000-0000-000000000004', 'noah@test.local'),
-  ('00000000-0000-0000-0000-000000000005', 'alex@test.local');
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'maya@test.local', '{}', '{}', '', '', '', '', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated', 'theo@test.local', '{}', '{}', '', '', '', '', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated', 'lina@test.local', '{}', '{}', '', '', '', '', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000004', 'authenticated', 'authenticated', 'noah@test.local', '{}', '{}', '', '', '', '', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000005', 'authenticated', 'authenticated', 'alex@test.local', '{}', '{}', '', '', '', '', now(), now());
 
 insert into public."user" (id, username, chip_balance)
 values
@@ -90,3 +90,6 @@ values
 
 insert into public.advert (title, reward_amount, active, created_by)
 values ('THIS IS AN EXTERNAL AD', 500, true, '00000000-0000-0000-0000-000000000006');
+
+insert into public.event (name, multiplier, expires_at, created_by)
+values ('Double Chips Weekend', 2, now() + interval '7 days', '00000000-0000-0000-0000-000000000006');
