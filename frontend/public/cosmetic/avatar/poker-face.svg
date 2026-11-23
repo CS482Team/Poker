@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-09-poker-face"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-09-poker-face)">
+    <rect width="128" height="128" fill="#b03a5b"/>
+    <radialGradient id="g-poker" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ffe66d"/><stop offset="1" stop-color="#f5b700"/>
+    </radialGradient>
+    <circle cx="64" cy="64" r="46" fill="url(#g-poker)"/>
+
+    <ellipse cx="48" cy="56" rx="9" ry="6" fill="#fff"/>
+    <ellipse cx="80" cy="56" rx="9" ry="6" fill="#fff"/>
+    <circle cx="52" cy="57" r="4" fill="#3b2314"/>
+    <circle cx="84" cy="57" r="4" fill="#3b2314"/>
+    <path d="M38 52 L58 52 M70 52 L90 52" stroke="#c98a00" stroke-width="3" stroke-linecap="round"/>
+    <path d="M38 48 L56 46 M72 46 L90 48" stroke="#7a4a00" stroke-width="3" stroke-linecap="round"/>
+    <path d="M48 82 L80 82" stroke="#7a4a00" stroke-width="4" stroke-linecap="round"/>
+    <path d="M98 38 Q104 48 98 52 Q92 48 98 38Z" fill="#7fc8f8"/>
+
+  </g>
+</svg>

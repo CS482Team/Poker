@@ -36,14 +36,23 @@ export async function getRole(userId: string): Promise<number> {
 
 export async function getUserIdFromToken(token: string): Promise<string | null> {
   const { data } = await getSupabase().auth.getUser(token)
+  const user = data.user
+  if (!user || (user.banned_until && new Date(user.banned_until) > new Date())) return null
 
-  return data.user?.id ?? null
+  return user.id
+}
+
+export async function removeUser(userId: string): Promise<void> {
+  const { error } = await getSupabase().auth.admin.updateUserById(userId, { ban_duration: "876000h" })
+  if (error) throw error
+  const { error: dbError } = await getSupabase().from("user").update({ banned: true }).eq("id", userId)
+  if (dbError) throw dbError
 }
 
 export async function getAllPlayers(): Promise<PlayerSummary[]> {
   const { data, error } = await getSupabase()
     .from("user")
-    .select("id, username, chip_balance, match_players(count)")
+    .select("id, username, chip_balance, banned, match_players(count)")
     .eq("role", 0)
     .order("username")
 
@@ -54,6 +63,7 @@ export async function getAllPlayers(): Promise<PlayerSummary[]> {
     username: row.username,
     balance: row.chip_balance,
     handsPlayed: row.match_players[0]?.count ?? 0,
+    banned: row.banned,
   }))
 }
 
@@ -74,4 +84,11 @@ export async function recordDailyClaim(userId: string, previous: string | null, 
   if (error) throw error
 
   return data.length === 1
+}
+
+export async function unbanUser(userId: string): Promise<void> {
+  const { error } = await getSupabase().auth.admin.updateUserById(userId, { ban_duration: "none" })
+  if (error) throw error
+  const { error: dbError } = await getSupabase().from("user").update({ banned: false }).eq("id", userId)
+  if (dbError) throw dbError
 }

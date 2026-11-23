@@ -1,6 +1,6 @@
 import { configForTable, getTableView, leaveGame, startGame, takeAction } from "../services/GameService"
 import { gameDAO } from "../dao/GameDAO"
-import { insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { insertMatch, insertMatchAction, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
 
 jest.mock("../dao/MatchDAO")
@@ -18,6 +18,7 @@ beforeEach(() => {
   jest.mocked(nextMatchNumber).mockResolvedValue(3)
   jest.mocked(insertMatch).mockResolvedValue("m1")
   jest.mocked(insertMatchPlayers).mockResolvedValue(undefined)
+  jest.mocked(insertMatchAction).mockResolvedValue(undefined)
 })
 
 describe("configForTable", () => {
@@ -47,9 +48,9 @@ describe("startGame", () => {
     expect(gameDAO.get(game.id)?.phase).toBe("predraw-betting")
     expect(insertMatch).toHaveBeenCalledWith({ tableId: "t1", tableName: "Ruby", matchNumber: 3, pot: 3, dealerSeat: 0 })
     expect(insertMatchPlayers).toHaveBeenCalledWith("m1", [
-      { seatNumber: 0, userId: "a", botName: null },
-      { seatNumber: 1, userId: "b", botName: null },
-      { seatNumber: 2, userId: "c", botName: null },
+      { seatNumber: 0, userId: "a", botName: null, dealt: game.players[0]!.hand },
+      { seatNumber: 1, userId: "b", botName: null, dealt: game.players[1]!.hand },
+      { seatNumber: 2, userId: "c", botName: null, dealt: game.players[2]!.hand },
     ])
   })
 
@@ -84,6 +85,12 @@ describe("takeAction", () => {
     const result = takeAction(game.id, "b", { type: "bet", amount: 2 })
     expect(result.ok).toBe(true)
     expect(gameDAO.get(game.id)?.pot).toBe(5)
+  })
+
+  it("logs the action with the chips put in", async () => {
+    const game = await started()
+    takeAction(game.id, "b", { type: "bet", amount: 2 })
+    expect(insertMatchAction).toHaveBeenCalledWith({ matchId: "m1", seatNumber: 1, userId: "b", type: "bet", amount: 2, cardsDiscarded: null })
   })
 
   it("leaves the game alone when the action is refused", async () => {

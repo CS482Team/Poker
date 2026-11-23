@@ -36,7 +36,7 @@ export default function AdWatchModal({ ad, onClose }: { ad: Ad; onClose: () => v
   if (error) message = error
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
+    <div onClick={(e) => e.target === e.currentTarget && onClose()} className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
       <div className="w-full max-w-[640px] overflow-hidden rounded-lg border border-black/70 bg-[#181414] text-[#f5f2ef] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
           <h2 className="truncate text-lg font-bold">{ad.title}</h2>
@@ -45,7 +45,12 @@ export default function AdWatchModal({ ad, onClose }: { ad: Ad; onClose: () => v
           </button>
         </div>
         <div className="grid aspect-video place-items-center bg-black text-white/30">
-          <Icon d={PLAY} size={56} />
+          {ad.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={ad.imageUrl} alt={ad.title} className="size-full object-contain" />
+          ) : (
+            <Icon d={PLAY} size={56} />
+          )}
         </div>
         <div className="h-1 bg-white/10">
           <div className="h-full bg-[#6fd099] transition-[width] duration-1000 ease-linear" style={{ width: `${Math.min(seconds / AD_WATCH_SECONDS, 1) * 100}%` }} />

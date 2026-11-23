@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import type { NewTable, Table, TableSettings } from "../../../shared/Table"
 import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { getActiveEvent } from "../dao/EventDAO"
 import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
@@ -9,6 +10,7 @@ import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
 import { playBotLater, sendGame } from "./GameController"
+import { withCosmetics } from "../services/ShopService"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -23,7 +25,7 @@ export async function getTableById(req: Request<{ id: string }>, res: Response) 
     res.status(404).json({ error: "Table not found" })
     return
   }
-  res.json(table)
+  res.json(await withCosmetics(table))
 }
 
 /* handles POST /tables and tells the lobby */
@@ -46,7 +48,7 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
   if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
   if ((await countPlayers(id)) === 0) {
     endGame(id)
-    await deleteTable(id) // its chat is deleted with it, so there's no one to tell
+    await deleteTable(id)
   } else if (stack !== null) {
     await announce(id, userId, "left the table")
   }
@@ -80,7 +82,8 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
     res.status(409).json({ error: "Insufficient balance" })
     return
   }
-  await addPlayer(table.id, userId, seatNumber, table.buyIn)
+  const event = await getActiveEvent()
+  await addPlayer(table.id, userId, seatNumber, Math.round(table.buyIn * (event?.multiplier ?? 1)))
   await changeBalance(userId, -table.buyIn, "buy_in")
   await announce(table.id, userId, "joined the table")
   await broadcastChange(table.id)
@@ -141,7 +144,6 @@ function firstFreeSeat(table: Table) {
   }
   return -1
 }
-
 
 /* checks the new table settings */
 function isValidNewTable(body: NewTable) {

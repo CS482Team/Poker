@@ -1,6 +1,6 @@
 "use client"
 
-import { fetchBalance } from "@/service/BalanceService"
+import { fetchBalance, onBalanceChange } from "@/service/BalanceService"
 import { getCurrentUserId } from "@/service/UserService"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -17,6 +17,8 @@ export default function BalanceDisplay() {
       window.addEventListener("balance-changed", load)
       return () => window.removeEventListener("balance-changed", load)
   }, [pathname])
+
+  useEffect(() => onBalanceChange(setBalance), [])
 
   return (
     <span className="flex items-center gap-2 rounded-full border border-white/10 bg-black/40 py-1.5 pl-2 pr-4 text-base font-semibold text-white">

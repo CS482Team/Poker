@@ -127,6 +127,18 @@ describe("ads", () => {
     expect(createAd).toHaveBeenCalledWith({ title: "Bonus", rewardAmount: 500 }, "admin")
   })
 
+  it("creates an ad with an image", async () => {
+    jest.mocked(createAd).mockResolvedValue("a1")
+    const res = await asAdmin(request(app).post("/ads")).send({ ...validAd, imageUrl: "data:image/png;base64,x" })
+    expect(res.status).toBe(201)
+    expect(createAd).toHaveBeenCalledWith({ title: "Bonus", rewardAmount: 500, imageUrl: "data:image/png;base64,x" }, "admin")
+  })
+
+  it("rejects an image that is not an image", async () => {
+    const res = await asAdmin(request(app).post("/ads")).send({ ...validAd, imageUrl: "javascript:alert(1)" })
+    expect(res.status).toBe(400)
+  })
+
   it("rejects an invalid ad", async () => {
     const res = await asAdmin(request(app).post("/ads")).send({ title: " ", rewardAmount: -1 })
     expect(res.status).toBe(400)

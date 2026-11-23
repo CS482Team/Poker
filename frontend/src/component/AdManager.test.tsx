@@ -42,7 +42,7 @@ describe("AdManager", () => {
     fireEvent.change(screen.getByLabelText("Title"), { target: { value: "New ad" } })
     fireEvent.click(screen.getByRole("button", { name: "Create" }))
     await waitFor(() => expect(screen.queryByRole("button", { name: "Create" })).not.toBeInTheDocument())
-    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 500 })
+    expect(createAd).toHaveBeenCalledWith({ title: "New ad", rewardAmount: 500, imageUrl: null })
   })
 
   it("edits an ad in place", async () => {
@@ -51,7 +51,17 @@ describe("AdManager", () => {
     fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Better bonus" } })
     fireEvent.change(screen.getByLabelText("Reward"), { target: { value: "750" } })
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
-    await waitFor(() => expect(editAd).toHaveBeenCalledWith("a1", { title: "Better bonus", rewardAmount: 750 }))
+    await waitFor(() => expect(editAd).toHaveBeenCalledWith("a1", { title: "Better bonus", rewardAmount: 750, imageUrl: null }))
+  })
+
+  it("changes the image of an ad", async () => {
+    render(<AdManager />)
+    fireEvent.click(await screen.findByRole("button", { name: "Weekend bonus image" }))
+    fireEvent.change(screen.getByLabelText("Image"), { target: { files: [new File(["hi"], "ad.png", { type: "image/png" })] } })
+    expect(await screen.findByAltText("Preview")).toHaveAttribute("src", "data:image/png;base64,aGk=")
+    fireEvent.click(screen.getByRole("button", { name: "Save" }))
+    await waitFor(() => expect(editAd).toHaveBeenCalledWith("a1", { title: "Weekend bonus", rewardAmount: 500, imageUrl: "data:image/png;base64,aGk=" }))
+    await waitFor(() => expect(screen.queryByAltText("Preview")).not.toBeInTheDocument())
   })
 
   it("saves with enter and cancels with escape", async () => {
