@@ -1,4 +1,4 @@
-import { getAllPlayers, getBalance, getRole, getUserIdFromToken, getUsername, removeUser, setBalance, unbanUser, setUsername, getProfile, setAvatarUrl } from "../dao/UserDAO"
+import { getAllPlayers, getBalance, getProfile, getRole, getUserIdFromToken, getUsername, removeUser, setBalance, unbanUser, setUsername, setAvatarUrl } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -54,6 +54,12 @@ describe("UserDAO", () => {
     expect(await getUserIdFromToken("token")).toBeNull()
   })
 
+  it("saves a new username", async () => {
+    mockState.awaited = { error: null }
+    expect(await setUsername("u1", "test")).toBe(true)
+    expect(calls).toContainEqual(["update", [{ username: "test" }]])
+  })
+
   it("removes a user", async () => {
     await removeUser("u1")
     expect(calls).toContainEqual(["updateUserById", ["u1", { ban_duration: "876000h" }]])
@@ -76,6 +82,19 @@ describe("UserDAO", () => {
     expect(await setUsername("u1", "test")).toBe(false)
   })
 
+  it("reads a profile", async () => {
+    mockState.result = { data: { username: "Maya", avatar_url: null, is_guest: false } }
+    expect(await getProfile("u1")).toEqual({ id: "u1", username: "Maya", avatarUrl: null, email: "", isGuest: false })
+  })
+
+  it("saves or clears an avatar", async () => {
+    mockState.awaited = { error: null }
+    await setAvatarUrl("u1", "https://example.com/me.png")
+    expect(calls).toContainEqual(["update", [{ avatar_url: "https://example.com/me.png" }]])
+    await setAvatarUrl("u1", null)
+    expect(calls).toContainEqual(["update", [{ avatar_url: null }]])
+  })
+
   it("throws when the database fails", async () => {
     mockState.result = failure
     await expect(getBalance("u1")).rejects.toThrow("db down")
@@ -86,6 +105,6 @@ describe("UserDAO", () => {
     await expect(removeUser("u1")).rejects.toThrow("db down")
     await expect(setUsername("u1", "test")).rejects.toThrow("db down")
     await expect(getProfile("u1")).rejects.toThrow("db down")
-    await expect(setAvatarUrl("u1", "user")).rejects.toThrow("db down")
+    await expect(setAvatarUrl("u1", null)).rejects.toThrow("db down")
   })
 })
