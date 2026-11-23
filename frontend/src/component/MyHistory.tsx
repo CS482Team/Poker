@@ -15,29 +15,29 @@ export default function MyHistory() {
   }, [])
 
   return (
-       <section className="panel p-5">
-       <h2 className="mb-3 text-lg font-bold">Game History</h2>
-       {error && <p className="mb-4 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-       {hands === null && !error && <p className="py-6 text-center text-sm text-[#9e9393]">Loading…</p>}
-       {hands?.length === 0 && <p className="py-6 text-center text-sm text-[#9e9393]">No hands yet.</p>}
-       <ul>
-         {hands?.map((hand) => (
-           <li key={hand.matchId} className="flex items-center justify-between gap-4 border-b border-white/5 py-2.5 last:border-0">
-             <div className="min-w-0">
-               <p className="truncate">
-                 <span className={resultColor(hand.netResult)}>{resultText(hand.netResult)}</span>
-                 {` at ${hand.tableName}`}
-               </p>
-               <small>
-                 Hand #{hand.handNumber} · Pot ${hand.pot.toLocaleString()}
-                 {hand.winner && ` · Won by ${hand.winner}`}
-               </small>
-             </div>
-             <small className="whitespace-nowrap">{formatTime(hand.endedAt)}</small>
-           </li>
-         ))}
-       </ul>
-     </section>
+    <section className="panel p-5">
+      <h2 className="mb-3 text-lg font-bold">Game History</h2>
+      {error && <p className="mb-4 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {hands === null && !error && <p className="py-6 text-center text-sm text-[#9e9393]">Loading…</p>}
+      {hands?.length === 0 && <p className="py-6 text-center text-sm text-[#9e9393]">No hands yet.</p>}
+      <ul>
+        {hands?.map((hand) => (
+          <li key={hand.matchId} className="flex items-center justify-between gap-4 border-b border-white/5 py-2.5 last:border-0">
+            <div className="min-w-0">
+              <p className="truncate">
+                <span className={resultColor(hand.netResult)}>{resultText(hand.netResult)}</span>
+                {` at ${hand.tableName}`}
+              </p>
+              <small>
+                Hand #{hand.handNumber} · Pot ${hand.pot.toLocaleString()}
+                {hand.winner && ` · Won by ${hand.winner}`}
+              </small>
+            </div>
+            <small className="whitespace-nowrap">{formatTime(hand.endedAt)}</small>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

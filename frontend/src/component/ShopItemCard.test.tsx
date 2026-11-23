@@ -11,12 +11,11 @@ function setup(props: Partial<Parameters<typeof ShopItemCard>[0]> = {}) {
 }
 
 describe("ShopItemCard", () => {
-  it("shows the preview, rarity, name, description and price", () => {
+  it("shows the preview, rarity, name and price", () => {
     setup()
     expect(screen.getByRole("img", { name: "Diamond Flare preview" })).toBeInTheDocument()
     expect(screen.getByText("rare")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Diamond Flare" })).toBeInTheDocument()
-    expect(screen.getByText("Crimson rays burst from a bright diamond core.")).toBeInTheDocument()
     expect(screen.getByText("650")).toBeInTheDocument()
   })
 

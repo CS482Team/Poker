@@ -125,7 +125,7 @@ button:disabled {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 1px 2px rgba(0, 0, 0, .3);
 }
 .primary-action.small, .secondary-action.small { height: 32px; padding: 0 12px; border-radius: 5px; font-size: 16px; }
-.primary-action.icon-action { width: 40px; padding: 0; }
+.primary-action.icon-action, .secondary-action.icon-action { width: 40px; padding: 0; }
 .page-header.tables-header { align-items: flex-end; }
 .primary-action:hover, .secondary-action:hover { filter: brightness(1.15); }
 .primary-action:active, .secondary-action:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
@@ -776,12 +776,12 @@ input[type="checkbox"]:checked::after {
 .nav-tab:hover, .nav-tab.active { color: white; }
 /* the nav bar logo, engraved: a shade lighter than the bar, dark edge on top, faint highlight underneath */
 .nav-mark {
-  color: rgba(255, 255, 255, .22);
-  font-weight: 600;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .07);
-  transition: color .2s;
+  color: #d8cfcf;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+  transition: opacity .2s;
 }
-.nav-mark:hover { color: rgba(255, 255, 255, .4); }
+.nav-mark:hover { opacity: .85; }
 .turn-dot {
   position: absolute;
   top: 50%;
@@ -1375,11 +1375,11 @@ html[data-table-shimmer] .poker-table::before, .theme-preview.shimmer::before { 
 .theme-preview-wrap { isolation: isolate; padding: 8px; }
 .theme-preview {
   position: relative;
-  width: 116px;
-  height: 74px;
+  width: 100px;
+  height: 64px;
   border-radius: 44% / 50%;
 }
-.theme-preview::before { inset: -8px; box-shadow: 0 6px 12px rgba(0, 0, 0, .5), inset 0 0 0 2px var(--rail-inlay, transparent); }
+.theme-preview::before { inset: -7px; box-shadow: 0 6px 12px rgba(0, 0, 0, .5), inset 0 0 0 2px var(--rail-inlay, transparent); }
 
 .seat-portrait {
   display: grid;
@@ -1438,7 +1438,7 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
   from { opacity: 0; transform: translateY(-24px) scale(0.9); }
   to   { opacity: 1; transform: none; }
 }
-.seat-portrait.on-turn { position: relative; }
+.seat-portrait.on-turn { position: relative; box-shadow: none; }
 .seat-portrait.on-turn::before {
   content: "";
   position: absolute;
@@ -1512,6 +1512,12 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
 .cosmetic-portrait.large { width: 104px; height: 104px; font-size: 38px; }
 
 /* Card backs drawn from pattern + colours, with the H&D diamond in the accent colour */
+.avatar-picker { position: relative; flex-shrink: 0; }
+.avatar-picker-badge { position: absolute; right: 0; bottom: 0; display: grid; width: 28px; height: 28px; place-items: center; border: 2px solid #181414; border-radius: 50%; background: #3a3535; color: #f5f2ef; pointer-events: none; }
+.avatar-picker label { width: 88px; height: 88px; margin: 0; border: 3px solid #d8d4d4; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #6e4a4c, #2f1a1c); color: #f5f2ef; font-size: 36px; font-weight: 700; }
+.avatar-picker label svg { display: none; }
+.avatar-picker img { width: 100%; height: 100%; max-height: none; object-fit: cover; }
+
 .card-back-preview {
   position: relative;
   width: 88px;
@@ -1550,10 +1556,10 @@ div.card-back-preview::after {
 }
 
 .name-tag-preview { padding: 12px 4px; text-align: center; }
-.name-tag-preview .name-tag-title { white-space: nowrap; }
+.name-tag-preview .name-tag-title { display: block; overflow-wrap: anywhere; }
 
 /* Item tiles: preview on the left, details on the right, rarity colour along the top */
-.shop-tile { display: flex; min-height: 200px; overflow: hidden; }
+.shop-tile { display: flex; overflow: hidden; }
 .shop-tile .secondary-action:disabled { opacity: .45; cursor: not-allowed; }
 .shop-tile-preview {
   display: grid;
@@ -1654,7 +1660,7 @@ div.card-back-preview::after {
 .shop-tab:focus-visible { outline: 2px solid rgba(255, 255, 255, .5); outline-offset: -2px; border-radius: 6px; }
 
 .shop-price { color: #f5f2ef; font-size: 15px; }
-.shop-price span { font-size: 26px; font-weight: 700; }
+.shop-price span { color: #e0a65e; font-size: 26px; font-weight: 700; }
 
 /* the red buy button, matching the Shop button in the navbar */
 .primary-action.buy-action {

@@ -1,8 +1,7 @@
 "use client"
 
-
-/* your profile at the top of the profile page: picture, name and email, with an Edit button */
 import Avatar from "@/component/cosmetic/Avatar"
+import Icon, { PENCIL } from "@/component/Icon"
 import ProfileForm from "@/component/ProfileForm"
 import { fetchMyProfile } from "@/service/ProfileService"
 import type { MyProfile } from "@shared/User"
@@ -11,10 +10,7 @@ import { useEffect, useState } from "react"
 export default function ProfileCard() {
   const [profile, setProfile] = useState<MyProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
-  
   const [editing, setEditing] = useState(false)
-
-
 
   useEffect(() => {
     fetchMyProfile()
@@ -34,19 +30,21 @@ export default function ProfileCard() {
 
   return (
     <>
-    <section aria-label="Your profile" className="panel mb-6 flex flex-wrap items-center gap-5 p-5">
-        <div className="cosmetic-portrait large">
+      <section aria-label="Your profile" className="mb-6 flex items-center gap-4">
+        <div className="cosmetic-portrait">
           <Avatar username={profile.username} url={profile.avatarUrl} />
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-[26px] font-bold">{profile.username}</h2>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="page-title truncate">{profile.username}</h1>
+            <button type="button" aria-label="Edit profile" title="Edit profile" onClick={() => setEditing(true)} className="grid size-9 shrink-0 place-items-center rounded-md text-[#b5a9a9] transition-colors hover:bg-white/10 hover:text-white">
+              <Icon d={PENCIL} size={18} />
+            </button>
+          </div>
           <p className="text-[#b8aeae]">{profile.isGuest ? "Guest account" : profile.email}</p>
         </div>
-        <button type="button" className="secondary-action" onClick={() => setEditing(true)}>
-          Edit profile
-        </button>
       </section>
-    {editing && (
+      {editing && (
         <ProfileForm
           profile={profile}
           onCancel={() => setEditing(false)}

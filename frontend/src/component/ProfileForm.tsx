@@ -1,8 +1,9 @@
+import Icon, { PENCIL } from "@/component/Icon"
 import ImagePicker from "@/component/ImagePicker"
 import { changeAvatar, changeEmail, changeUsername } from "@/service/ProfileService"
+import { compressImage } from "@/util/Image"
 import type { MyProfile } from "@shared/User"
 import { useState, type FormEvent } from "react"
-
 
 const labelClass = "grid gap-1.5 text-sm text-[#b5a9a9]"
 const inputClass = "w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[#f5f2ef] [color-scheme:dark]"
@@ -10,7 +11,6 @@ const inputClass = "w-full rounded-lg border border-white/10 bg-black/40 px-3 py
 interface Props {
   profile: MyProfile
   onCancel: () => void
-  /** called with the profile as saved, so the page can show it straight away */
   onSaved: (profile: MyProfile) => void
 }
 
@@ -22,10 +22,8 @@ export default function ProfileForm({ profile, onCancel, onSaved }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const newEmail = email.trim().toLowerCase()
-  // changing the email needs the current password (the backend checks it)
   const emailChanged = !profile.isGuest && newEmail !== (profile.email ?? "")
 
-  // only sends what changed; stops at the first refusal and shows why
   async function submit(e: FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -53,6 +51,24 @@ export default function ProfileForm({ profile, onCancel, onSaved }: Props) {
         </div>
 
         <div className="grid gap-4 p-5">
+          <div className="mb-1 flex items-center gap-4">
+            <div className="avatar-picker">
+              <ImagePicker imageUrl={avatarUrl} onChange={(url) => compressImage(url).then(setAvatarUrl, (err: Error) => setError(err.message))} className="">
+                {username.trim()[0]?.toUpperCase()}
+              </ImagePicker>
+              <span className="avatar-picker-badge" aria-hidden>
+                <Icon d={PENCIL} size={13} />
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold">Profile Picture</p>
+              {avatarUrl && (
+                <button type="button" onClick={() => setAvatarUrl(null)} className="mt-1 text-sm text-red-300 hover:underline">
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
           <label className={labelClass}>
             Username
             <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} minLength={3} maxLength={20} className={inputClass} />
@@ -70,27 +86,12 @@ export default function ProfileForm({ profile, onCancel, onSaved }: Props) {
             </label>
           )}
 
-          <div className="grid gap-2">
-            <span className={labelClass}>Picture</span>
-            <ImagePicker imageUrl={avatarUrl} onChange={setAvatarUrl} className="aspect-square w-32">
-              Choose image
-            </ImagePicker>
-            {avatarUrl && (
-              <button type="button" onClick={() => setAvatarUrl(null)} className="secondary-action small danger w-fit">
-                Remove picture
-              </button>
-            )}
-          </div>
-
           {error && (
             <p role="alert" className="text-sm text-red-400">
               {error}
             </p>
           )}
-          <div className="flex justify-end gap-2">
-            <button type="button" className="secondary-action" onClick={onCancel}>
-              Cancel
-            </button>
+          <div className="flex justify-end">
             <button type="submit" className="primary-action" disabled={saving}>
               {saving ? "Saving…" : "Save"}
             </button>

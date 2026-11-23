@@ -10,6 +10,7 @@ import { COSMETIC_LABELS } from "@/util/Cosmetic"
 import { COSMETIC_TYPES, type CosmeticType, type ShopItem } from "@shared/Cosmetics"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
+import Icon, { ITEMS } from "@/component/Icon"
 
 // the session never changes while the shop is open, so there's nothing to subscribe to
 const noSubscribe = () => () => {}
@@ -51,7 +52,7 @@ export default function Shop() {
 
   return (
     <div className="page-shell">
-      <ShopHeader balance={balance} signedIn={signedIn} />
+      <ShopHeader signedIn={signedIn} />
 
       {error && (
         <p role="alert" className="shop-error panel p-4">
@@ -91,14 +92,13 @@ export default function Shop() {
   )
 }
 
-function ShopHeader({ balance, signedIn }: { balance: number | null; signedIn: boolean }) {
+function ShopHeader({ signedIn }: { signedIn: boolean }) {
   return (
     <div className="page-header">
-      <h1 className="page-title">
-        Shop {signedIn && <small aria-label="Available balance">{balance === null ? "…" : balance.toLocaleString()} chips</small>}
-      </h1>
+      <h1 className="page-title">Shop</h1>
       {signedIn ? (
-        <Link href="/shop/my-items" className="secondary-action">
+        <Link href="/shop/my-items" className="secondary-action gap-2">
+          <Icon d={ITEMS} size={18} />
           My Items
         </Link>
       ) : (

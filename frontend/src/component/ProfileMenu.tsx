@@ -5,6 +5,7 @@ import Avatar from "@/component/cosmetic/Avatar"
 import Icon, { ITEMS, LEAVE, SHIELD, USER } from "@/component/Icon"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import { isAdmin } from "@/service/AdminService"
+import { fetchMyProfile } from "@/service/ProfileService"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
@@ -13,6 +14,7 @@ export default function ProfileMenu() {
   const router = useRouter()
   const [admin, setAdmin] = useState(false)
   const [open, setOpen] = useState(false)
+  const [picture, setPicture] = useState<string | null>(null)
   const loadout = useMyLoadout()
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -20,6 +22,12 @@ export default function ProfileMenu() {
     isAdmin()
       .then(setAdmin)
       .catch(() => setAdmin(false))
+  }, [])
+
+  useEffect(() => {
+    fetchMyProfile()
+      .then((profile) => setPicture(profile.avatarUrl))
+      .catch(() => setPicture(null))
   }, [])
 
   useEffect(() => {
@@ -37,7 +45,7 @@ export default function ProfileMenu() {
     router.push("/")
   }
 
-  const avatarUrl = loadout.avatar?.assetUrl
+  const avatarUrl = loadout.avatar?.assetUrl ?? picture
   const border = loadout.avatar_border
   const ring = border ? ({ borderColor: border.style.color, "--ring": border.style.color } as CSSProperties) : undefined
   const ringAnimation = border?.style.animation ? `animate-${border.style.animation}` : ""

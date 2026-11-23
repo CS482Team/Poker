@@ -9,6 +9,7 @@ import { supabase } from "@/app/supabaseClient"
 const mockPush = jest.fn()
 
 jest.mock("@/service/AdminService", () => ({ isAdmin: jest.fn() }))
+jest.mock("@/service/ProfileService", () => ({ fetchMyProfile: jest.fn().mockRejectedValue(new Error("Sign in")) }))
 jest.mock("next/navigation", () => ({ usePathname: () => "/dashboard", useRouter: () => ({ push: mockPush }) }))
 jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1" }))
 jest.mock("@/service/ShopService", () => {

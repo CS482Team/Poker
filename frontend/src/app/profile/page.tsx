@@ -8,14 +8,10 @@ export default function Profile() {
   return (
     <>
       <AdBanner />
-       {/* one heading for the page; the card and the history are sections under it */}
-       <div className="page-shell">
-         <div className="page-header">
-           <h1 className="page-title">Profile</h1>
-         </div>
-         <ProfileCard />
-         <MyHistory />
-       </div>
+      <div className="page-shell">
+        <ProfileCard />
+        <MyHistory />
+      </div>
     </>
   );
 }

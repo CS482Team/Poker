@@ -1,4 +1,3 @@
-/* the signed in player's own profile: loading it and saving changes (backend /users/me routes) */
 import { authHeaders } from "@/service/AuthService"
 import type { MyProfile } from "@shared/User"
 
@@ -10,7 +9,6 @@ export async function fetchMyProfile(): Promise<MyProfile> {
   return res.json()
 }
 
-/* throws with the server's own message when it refuses (e.g. "That username is taken") */
 async function patchMe(path: string, body: object): Promise<void> {
   const res = await fetch(`${API_URL}/users/me/${path}`, { method: "PATCH", headers: await authHeaders(), body: JSON.stringify(body) })
   if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `Could not save (${res.status})`)

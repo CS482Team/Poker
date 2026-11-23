@@ -4,7 +4,7 @@ import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { getActiveEvent } from "../dao/EventDAO"
 import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
-import { getBalance, getUserIdFromToken, getUsername, setBalance } from "../dao/UserDAO"
+import { getBalance, getProfile, getUserIdFromToken, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
 
 jest.mock("../dao/TableDAO", () => ({
@@ -21,6 +21,7 @@ jest.mock("../dao/TablePlayersDAO", () => ({
 }))
 jest.mock("../dao/UserDAO", () => ({
   getUserIdFromToken: jest.fn(),
+  getProfile: jest.fn(),
   getBalance: jest.fn(),
   getUsername: jest.fn(),
   setBalance: jest.fn(),
@@ -43,6 +44,7 @@ const detail = { id: "t1", name: "Table", hostId: "u1", maxPlayers: 2, buyIn: 15
 beforeEach(() => {
   jest.resetAllMocks()
   jest.mocked(getUserIdFromToken).mockImplementation(async (token) => token)
+  jest.mocked(getProfile).mockResolvedValue({ id: "u1", username: "Maya", avatarUrl: null, email: "", isGuest: false })
 })
 
 describe("tables", () => {
@@ -69,6 +71,13 @@ describe("tables", () => {
     const res = await request(app).post("/tables").set("Authorization", "Bearer u1").send(validTable)
     expect(res.status).toBe(201)
     expect(res.body).toEqual({ id: "new-id" })
+  })
+
+  it("does not let guests create tables", async () => {
+    jest.mocked(getProfile).mockResolvedValue({ id: "u1", username: "Guest1234", avatarUrl: null, email: "", isGuest: true })
+    const res = await request(app).post("/tables").set("Authorization", "Bearer u1").send(validTable)
+    expect(res.status).toBe(403)
+    expect(createTable).not.toHaveBeenCalled()
   })
 
   it("rejects an invalid table", async () => {

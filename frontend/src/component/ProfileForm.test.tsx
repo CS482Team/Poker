@@ -40,7 +40,7 @@ describe("ProfileForm", () => {
 
   it("lets you remove your picture", async () => {
     const { onSaved } = setup({ ...maya, avatarUrl: "data:image/png;base64,AAAA" })
-    fireEvent.click(screen.getByRole("button", { name: "Remove picture" }))
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }))
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
     await waitFor(() => expect(onSaved).toHaveBeenCalled())
     expect(changeAvatar).toHaveBeenCalledWith(null)

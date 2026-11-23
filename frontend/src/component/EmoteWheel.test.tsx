@@ -55,4 +55,11 @@ describe("EmoteWheel", () => {
     open()
     expect(screen.queryByRole("button", { name: "Send Big Laugh" })).not.toBeInTheDocument()
   })
+
+  it("closes when you click somewhere else", () => {
+    render(<EmoteWheel wheel={[]} onSend={jest.fn()} />)
+    fireEvent.click(screen.getByRole("button", { name: "Emotes" }))
+    fireEvent.mouseDown(document.body)
+    expect(screen.getByRole("button", { name: "Emotes" })).toHaveAttribute("aria-expanded", "false")
+  })
 })

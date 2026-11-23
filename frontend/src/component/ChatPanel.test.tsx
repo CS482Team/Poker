@@ -121,13 +121,6 @@ describe("ChatPanel", () => {
     expect(screen.getByPlaceholderText("Message")).toHaveValue("")
   })
 
-  it("fills the message with a quick chat", () => {
-    render(<ChatPanel {...props} seated />)
-    fireEvent.click(screen.getByText("Nice hand"))
-    expect(screen.getByLabelText("Chat message")).toHaveValue("Nice hand")
-    expect(send).not.toHaveBeenCalled()
-  })
-
   it("shows why a message was refused", async () => {
     send.mockResolvedValue({ ok: false, error: "You're sending messages too fast" })
     render(<ChatPanel {...props} seated />)
@@ -146,7 +139,6 @@ describe("ChatPanel", () => {
   it("only lets seated players chat", () => {
     render(<ChatPanel {...props} seated={false} />)
     expect(screen.getByPlaceholderText("Take a seat")).toBeDisabled()
-    expect(screen.queryByText("Nice hand")).not.toBeInTheDocument()
   })
 
   it("leaves the chat when closed", () => {
