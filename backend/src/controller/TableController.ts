@@ -9,6 +9,7 @@ import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
 import { playBotLater, sendGame } from "./GameController"
+import { withCosmetics } from "../services/ShopService"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -23,7 +24,7 @@ export async function getTableById(req: Request<{ id: string }>, res: Response) 
     res.status(404).json({ error: "Table not found" })
     return
   }
-  res.json(table)
+  res.json(await withCosmetics(table))
 }
 
 /* handles POST /tables and tells the lobby */
@@ -141,7 +142,6 @@ function firstFreeSeat(table: Table) {
   }
   return -1
 }
-
 
 /* checks the new table settings */
 function isValidNewTable(body: NewTable) {

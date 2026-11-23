@@ -26,6 +26,8 @@ jest.mock("../dao/UserDAO", () => ({
 jest.mock("../dao/BalanceLogDAO", () => ({
   logBalanceChange: jest.fn(),
 }))
+// cosmetics are tested in ShopService.test.ts; here the table passes straight through
+jest.mock("../services/ShopService", () => ({ withCosmetics: async (table: unknown) => table }))
 jest.mock("../services/ChatService", () => ({
   ...jest.requireActual("../services/ChatService"),
   sendSystemMessage: jest.fn(),

@@ -1,4 +1,5 @@
 import Nav from "@/component/NavBar";
+import ThemeApplier from "@/component/ThemeApplier";
 import { Suspense } from "react";
 import "./globals.css";
 import "./site.css";
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="app-shell min-h-screen text-[#f5f2ef]">
         <Suspense>
           <Nav />
+          <ThemeApplier />
         </Suspense>
         {children}
       </body>

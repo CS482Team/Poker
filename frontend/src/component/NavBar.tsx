@@ -51,6 +51,9 @@ export default function Nav() {
         </div>
         <div className="flex items-center justify-end gap-3">
           <BalanceDisplay />
+          <Link href="/shop" className={pathname === "/shop" ? "shop-nav-button active" : "shop-nav-button"}>
+            Shop
+          </Link>
           <ProfileMenu />
         </div>
 

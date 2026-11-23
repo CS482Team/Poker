@@ -14,6 +14,12 @@ jest.mock("next/navigation", () => ({
 describe("Nav", () => {
   beforeEach(() => jest.mocked(getCurrentTableId).mockReturnValue(null))
 
+  it("links to the shop", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    render(<Nav />)
+    expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop")
+  })
+
   it("hides the table tab when not at a table", () => {
     jest.mocked(usePathname).mockReturnValue("/dashboard")
     render(<Nav />)

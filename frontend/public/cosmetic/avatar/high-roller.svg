@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-04-high-roller"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-04-high-roller)">
+    <rect width="128" height="128" fill="#2b2b2b"/>
+    <path d="M10 128 C10 100 34 90 64 90 C94 90 118 100 118 128Z" fill="#111"/>
+    <rect x="54" y="76" width="20" height="18" rx="4" fill="#74441c"/>
+    <circle cx="40" cy="62" r="6" fill="#74441c"/>
+    <circle cx="88" cy="62" r="6" fill="#74441c"/>
+    <ellipse cx="64" cy="58" rx="24" ry="27" fill="#8d5524"/>
+    <path d="M52 90 L64 112 L76 90Z" fill="#f4f4f4"/>
+    <path d="M44 100 Q64 118 84 100" stroke="#f1c40f" stroke-width="3" fill="none"/>
+    <circle cx="64" cy="112" r="5" fill="#f1c40f"/>
+    <path d="M40 60 Q40 88 64 90 Q88 88 88 60 Q84 74 76 74 Q64 70 52 74 Q44 74 40 60Z" fill="#1e120a"/>
+    <circle cx="55" cy="58" r="2.8" fill="#140b05"/>
+    <circle cx="73" cy="58" r="2.8" fill="#140b05"/>
+    <path d="M50 52 Q55 49 59 52" stroke="#1e120a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M69 52 Q73 49 78 52" stroke="#1e120a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M57 77 Q64 82 71 77" stroke="#f4f4f4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M42 44 Q42 18 64 20 Q86 18 86 44Z" fill="#555"/>
+    <path d="M54 22 Q64 30 74 22" stroke="#444" stroke-width="3" fill="none"/>
+    <rect x="42" y="36" width="44" height="7" fill="#8e1f2f"/>
+    <path d="M26 46 Q30 40 42 42 L86 42 Q98 40 102 46 Q90 50 64 49 Q38 50 26 46Z" fill="#666"/>
+
+  </g>
+</svg>
