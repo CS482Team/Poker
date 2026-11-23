@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import PlayerHistory from "@/component/PlayerHistory"
-import { fetchPlayerHands, fetchPlayers, modifyChips } from "@/service/AdminService"
+import { fetchPlayerHands, fetchPlayers, modifyChips, removePlayer, unbanPlayer } from "@/service/AdminService"
 
-jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), modifyChips: jest.fn() }))
+jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), modifyChips: jest.fn(), removePlayer: jest.fn(), unbanPlayer: jest.fn() }))
 
-const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3 }
-const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0 }
+const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3, banned: false }
+const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0, banned: false }
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -37,6 +37,26 @@ describe("PlayerHistory", () => {
     fireEvent.click(screen.getByRole("button", { name: /Theo/ }))
     expect(await screen.findByText("No hands yet.")).toBeInTheDocument()
     expect(fetchPlayerHands).toHaveBeenCalledWith("u2")
+  })
+
+  it("removes a player", async () => {
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Ban player" }))
+    fireEvent.click(screen.getByRole("button", { name: "Ban" }))
+    expect(await screen.findByText("Banned")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Maya/ })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Ban player" })).not.toBeInTheDocument()
+    expect(removePlayer).toHaveBeenCalledWith("u1")
+  })
+
+  it("unbans a player", async () => {
+    jest.mocked(fetchPlayers).mockResolvedValue([{ ...maya, banned: true }])
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Unban player" }))
+    expect(await screen.findByRole("button", { name: "Ban player" })).toBeInTheDocument()
+    expect(unbanPlayer).toHaveBeenCalledWith("u1")
   })
 
   it("modifies a player's chips", async () => {
