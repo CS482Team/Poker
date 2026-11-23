@@ -43,6 +43,7 @@ export default function ReportList() {
                     <span className="truncate font-medium">
                       {report.username ?? "Deleted player"}
                       {report.tableName && <span className="font-normal text-[#9e9393]"> · {report.tableName}</span>}
+                      {report.kind === "password_reset" && <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-xs font-semibold text-[#e8a3a5]">Password reset</span>}
                     </span>
                     <small className="whitespace-nowrap">{formatTime(report.createdAt)}</small>
                   </span>

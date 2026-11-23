@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import ReportModal from "@/component/ReportModal"
-import { fetchReport } from "@/service/AdminService"
+import { fetchReport, resetPassword } from "@/service/AdminService"
+import { waitFor } from "@testing-library/react"
 
-jest.mock("@/service/AdminService", () => ({ fetchReport: jest.fn() }))
+jest.mock("@/service/AdminService", () => ({ fetchReport: jest.fn(), resetPassword: jest.fn() }))
 
-const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "m1", kind: "report", status: "open" }
+const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "u1", kind: "report" as const, status: "open" as const }
 const hand = {
   id: "m1",
   handNumber: 3,
@@ -44,5 +45,34 @@ describe("ReportModal", () => {
     jest.mocked(fetchReport).mockRejectedValue(new Error("Failed to load report (500)"))
     render(<ReportModal report={report} onClose={jest.fn()} />)
     expect(await screen.findByText("Failed to load report (500)")).toBeInTheDocument()
+  })
+
+  describe("password reset requests", () => {
+
+    const resetRequest = { ...report, id: 7, body: "Asked for a password reset", tableId: null, tableName: null, kind: "password_reset" as const }
+
+    it("lets the admin set a new password, then says who to tell", async () => {
+      jest.mocked(resetPassword).mockResolvedValue({ email: "maya@test.local" })
+      render(<ReportModal report={resetRequest} onClose={jest.fn()} />)
+      expect(fetchReport).not.toHaveBeenCalled() // no table, so no hands or chat to load
+      fireEvent.change(screen.getByLabelText("New password"), { target: { value: "newpass1" } })
+      fireEvent.click(screen.getByRole("button", { name: "Set password" }))
+      expect(await screen.findByRole("status")).toHaveTextContent("maya@test.local")
+      expect(resetPassword).toHaveBeenCalledWith(7, "newpass1")
+    })
+
+    it("shows why it failed", async () => {
+      jest.mocked(resetPassword).mockRejectedValue(new Error("Passwords are at least 6 characters"))
+      render(<ReportModal report={resetRequest} onClose={jest.fn()} />)
+      fireEvent.change(screen.getByLabelText("New password"), { target: { value: "newpass1" } })
+      fireEvent.click(screen.getByRole("button", { name: "Set password" }))
+      expect(await screen.findByRole("alert")).toHaveTextContent("Passwords are at least 6 characters")
+    })
+
+    it("says when it's already been dealt with", async () => {
+      render(<ReportModal report={{ ...resetRequest, status: "resolved" }} onClose={jest.fn()} />)
+      await waitFor(() => expect(screen.getByText(/already reset/i)).toBeInTheDocument())
+      expect(screen.queryByRole("button", { name: "Set password" })).not.toBeInTheDocument()
+    })
   })
 })

@@ -2,9 +2,13 @@ import request from "supertest"
 import { app } from "../app"
 import { getHand, getPlayerHands } from "../dao/MatchDAO"
 import { getAllPlayers, getRole, getUserIdFromToken, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
+import { getEmail, setPassword } from "../dao/AuthDAO"
+import { getReport, resolveReport } from "../dao/ReportDAO"
 
 jest.mock("../dao/MatchDAO", () => ({ getHand: jest.fn(), getPlayerHands: jest.fn() }))
 jest.mock("../dao/UserDAO", () => ({ getAllPlayers: jest.fn(), getRole: jest.fn(), getUserIdFromToken: jest.fn(), removeUser: jest.fn(), setBalance: jest.fn(), unbanUser: jest.fn() }))
+jest.mock("../dao/AuthDAO", () => ({ getEmail: jest.fn(), setPassword: jest.fn() }))
+jest.mock("../dao/ReportDAO", () => ({ getReport: jest.fn(), resolveReport: jest.fn(), getReports: jest.fn() }))
 
 const player = { id: "u1", username: "Maya", balance: 500, handsPlayed: 3, banned: false }
 const hand = { matchId: "m1", tableName: "Ruby", handNumber: 2, pot: 80, winner: "Maya", netResult: 40, endedAt: "2026-11-08" }
@@ -65,5 +69,42 @@ describe("AdminRouter", () => {
     jest.mocked(getRole).mockResolvedValue(0)
     const res = await request(app).get("/admin/players").set("Authorization", "Bearer token")
     expect(res.status).toBe(403)
+  })
+})
+
+describe("POST /admin/reports/:id/password", () => {
+  const resetRequest = { id: 7, username: "Maya", body: "Asked for a password reset", createdAt: "2026-11-18", tableId: null, tableName: null, userId: "u1", kind: "password_reset" as const, status: "open" as const }
+
+  function asAdmin(req: request.Test) {
+    return req.set("Authorization", "Bearer token")
+  }
+
+  it("sets the new password, closes the request and returns the email to pass it on to", async () => {
+    jest.mocked(getReport).mockResolvedValue(resetRequest)
+    jest.mocked(getEmail).mockResolvedValue("maya@test.local")
+    const res = await asAdmin(request(app).post("/admin/reports/7/password")).send({ password: "newpass1" })
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ email: "maya@test.local" })
+    expect(setPassword).toHaveBeenCalledWith("u1", "newpass1")
+    expect(resolveReport).toHaveBeenCalledWith(7)
+  })
+
+  it("only works on password reset requests", async () => {
+    jest.mocked(getReport).mockResolvedValue({ ...resetRequest, kind: "report" })
+    expect((await asAdmin(request(app).post("/admin/reports/7/password")).send({ password: "newpass1" })).status).toBe(404)
+    jest.mocked(getReport).mockResolvedValue(null)
+    expect((await asAdmin(request(app).post("/admin/reports/7/password")).send({ password: "newpass1" })).status).toBe(404)
+    expect(setPassword).not.toHaveBeenCalled()
+  })
+
+  it("rejects a password under 6 characters", async () => {
+    jest.mocked(getReport).mockResolvedValue(resetRequest)
+    expect((await asAdmin(request(app).post("/admin/reports/7/password")).send({ password: "123" })).status).toBe(400)
+    expect(setPassword).not.toHaveBeenCalled()
+  })
+
+  it("is for admins only", async () => {
+    jest.mocked(getRole).mockResolvedValue(0)
+    expect((await asAdmin(request(app).post("/admin/reports/7/password")).send({ password: "newpass1" })).status).toBe(403)
   })
 })
