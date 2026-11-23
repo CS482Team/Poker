@@ -4,6 +4,7 @@ import { messagesBefore } from "../dao/ChatDAO"
 import { getTableHands } from "../dao/MatchDAO"
 import { createReport, getReport, getReports } from "../dao/ReportDAO"
 import { getTable } from "../dao/TableDAO"
+import { findUserIdByEmail } from "../dao/AuthDAO"
 
 export async function addReport(req: Request<{}, {}, { message: string; tableId?: string }>, res: Response) {
   const message = typeof req.body.message === "string" ? req.body.message.trim() : ""

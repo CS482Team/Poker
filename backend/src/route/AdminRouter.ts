@@ -1,8 +1,9 @@
 import { Router } from "express"
-import { listPlayerHands, listPlayers, showHand } from "../controller/AdminController"
+import { listPlayerHands, listPlayers, showHand, resetPassword } from "../controller/AdminController"
 import { listReports, showReport } from "../controller/ReportController"
 import { requireAdmin } from "../util/RequireAdmin"
 import { requireUser } from "../util/RequireUser"
+
 
 export const adminRouter = Router()
 adminRouter.use(requireUser, requireAdmin)

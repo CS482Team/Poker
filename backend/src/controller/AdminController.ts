@@ -1,6 +1,8 @@
 import { Request, Response } from "express"
 import { getHand, getPlayerHands } from "../dao/MatchDAO"
 import { getAllPlayers } from "../dao/UserDAO"
+import { getEmail } from "../dao/AuthDAO"
+import { getReport } from "../dao/ReportDAO"
 
 export async function listPlayers(_req: Request, res: Response) {
   res.json(await getAllPlayers())
