@@ -1741,3 +1741,32 @@ div.card-back-preview::after {
 @media (prefers-reduced-motion: reduce) {
   .emote-bubble { animation: none; }
 }
+
+/* ---------- Sound settings (navbar) ---------- */
+.sound-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .4);
+  color: #d8cfcf;
+}
+.sound-button:hover, .sound-button[aria-expanded="true"] { color: white; border-color: rgba(255, 255, 255, .3); }
+
+.sound-menu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 240px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: #1e1a1a;
+  padding: 14px;
+  box-shadow: 0 20px 50px rgba(24, 0, 5, .4);
+}
+.sound-slider { display: block; margin-bottom: 12px; font-size: 14px; font-weight: 600; }
+.sound-slider input { width: 100%; margin-top: 6px; accent-color: #c9373e; }
+.sound-slider input:disabled { opacity: .4; }

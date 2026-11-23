@@ -4,6 +4,7 @@
 import ShopItemCard from "@/component/ShopItemCard"
 import { announceBalance, fetchBalance } from "@/service/BalanceService"
 import { buyItem, fetchShopItems } from "@/service/ShopService"
+import { playEffect } from "@/service/SoundService"
 import { fetchUsername, getCurrentUserId } from "@/service/UserService"
 import { COSMETIC_LABELS } from "@/util/Cosmetic"
 import { COSMETIC_TYPES, type CosmeticType, type ShopItem } from "@shared/Cosmetics"
@@ -39,6 +40,7 @@ export default function Shop() {
     setBalance(newBalance)
     setItems((current) => current?.map((i) => (i.id === item.id ? { ...i, owned: true } : i)) ?? null)
     announceBalance(newBalance)
+    playEffect("purchase")
   }
 
   const signedIn = userId !== ""
