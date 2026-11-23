@@ -5,7 +5,7 @@ import { fetchReports } from "@/service/AdminService"
 jest.mock("@/service/AdminService", () => ({ fetchReports: jest.fn() }))
 jest.mock("@/component/ReportModal", () => () => <p>Report details</p>)
 
-const report = { id: 1, username: "Maya", body: "Table froze", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby" }
+const report = { id: 1, username: "Maya", body: "Table froze", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "m1", kind: "report", status: "open"  }
 
 beforeEach(() => jest.resetAllMocks())
 

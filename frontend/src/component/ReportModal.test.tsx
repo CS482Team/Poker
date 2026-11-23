@@ -4,7 +4,7 @@ import { fetchReport } from "@/service/AdminService"
 
 jest.mock("@/service/AdminService", () => ({ fetchReport: jest.fn() }))
 
-const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby" }
+const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "m1", kind: "report", status: "open" }
 const hand = {
   id: "m1",
   handNumber: 3,

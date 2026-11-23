@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import { MAX_REPORT_LENGTH } from "../../../shared/Rules"
 import { messagesBefore } from "../dao/ChatDAO"
 import { getTableHands } from "../dao/MatchDAO"
-import { createReport, getReport, getReports } from "../dao/ReportDAO"
+import { createReport, getReport, getReports, hasOpenReset } from "../dao/ReportDAO"
 import { getTable } from "../dao/TableDAO"
 import { findUserIdByEmail } from "../dao/AuthDAO"
 
