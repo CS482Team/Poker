@@ -1,6 +1,7 @@
 "use client"
 
 import BanModal from "@/component/BanModal"
+import HandModal from "@/component/HandModal"
 import Icon, { GAVEL, RESTORE } from "@/component/Icon"
 import ModifyChipsModal from "@/component/ModifyChipsModal"
 import { fetchPlayerHands, fetchPlayers, removePlayer, unbanPlayer } from "@/service/AdminService"
@@ -15,6 +16,7 @@ export default function PlayerHistory() {
   const [hands, setHands] = useState<HandRecord[] | null>(null)
   const [search, setSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [openHand, setOpenHand] = useState<HandRecord | null>(null)
   const [removing, setRemoving] = useState(false)
   const [editingChips, setEditingChips] = useState(false)
 
@@ -86,6 +88,7 @@ export default function PlayerHistory() {
 
   return (
     <section className="panel overflow-hidden">
+      {openHand && <HandModal matchId={openHand.matchId} tableName={openHand.tableName} onClose={() => setOpenHand(null)} />}
       {removing && selected && <BanModal player={selected} onCancel={() => setRemoving(false)} onBan={() => remove(selected.id)} />}
       {editingChips && selected && <ModifyChipsModal player={selected} onCancel={() => setEditingChips(false)} onSaved={saveChips} />}
       <div className="panel-head flush">
@@ -139,18 +142,20 @@ export default function PlayerHistory() {
             {hands?.length === 0 && <p className="py-6 text-center text-sm text-[#9e9393]">No hands yet.</p>}
             <ul className="max-h-[280px] min-h-0 flex-1 overflow-y-auto md:max-h-none">
               {hands?.map((hand) => (
-                <li key={hand.matchId} className="flex items-center justify-between gap-4 border-b border-white/5 py-2.5 last:border-0">
-                  <div className="min-w-0">
-                    <p className="truncate">
-                      <span className={resultColor(hand.netResult)}>{resultText(hand.netResult)}</span>
-                      {` at ${hand.tableName}`}
-                    </p>
-                    <small>
-                      Hand #{hand.handNumber} · Pot ${hand.pot.toLocaleString()}
-                      {hand.winner && ` · Won by ${hand.winner}`}
-                    </small>
-                  </div>
-                  <small className="whitespace-nowrap">{formatTime(hand.endedAt)}</small>
+                <li key={hand.matchId} className="border-b border-white/5 last:border-0">
+                  <button type="button" onClick={() => setOpenHand(hand)} className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-2.5 text-left transition-colors hover:bg-white/[.04]">
+                    <span className="min-w-0">
+                      <span className="block truncate">
+                        <span className={resultColor(hand.netResult)}>{resultText(hand.netResult)}</span>
+                        {` at ${hand.tableName}`}
+                      </span>
+                      <small>
+                        Hand #{hand.handNumber} · Pot ${hand.pot.toLocaleString()}
+                        {hand.winner && ` · Won by ${hand.winner}`}
+                      </small>
+                    </span>
+                    <small className="whitespace-nowrap">{formatTime(hand.endedAt)}</small>
+                  </button>
                 </li>
               ))}
             </ul>

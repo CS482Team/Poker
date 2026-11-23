@@ -52,3 +52,17 @@ function toMessage(row: ChatRow): ChatMessage {
     createdAt: row.created_at,
   }
 }
+
+export async function messagesBefore(tableId: string, before: string, limit: number): Promise<ChatMessage[]> {
+  const { data, error } = await getSupabase()
+    .from("chat_message")
+    .select(COLUMNS)
+    .eq("table_id", tableId)
+    .lte("created_at", before)
+    .order("id", { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+
+  return (data as unknown as ChatRow[]).map(toMessage).reverse()
+}

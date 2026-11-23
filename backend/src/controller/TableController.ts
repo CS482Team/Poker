@@ -48,7 +48,7 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
   if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
   if ((await countPlayers(id)) === 0) {
     endGame(id)
-    await deleteTable(id) // its chat is deleted with it, so there's no one to tell
+    await deleteTable(id)
   } else if (stack !== null) {
     await announce(id, userId, "left the table")
   }

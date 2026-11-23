@@ -20,6 +20,8 @@ jest.mock("@/service/ChatService", () => ({
   watchChat: () => ({ send: jest.fn(), stop: jest.fn() }),
 }))
 
+jest.mock("@/service/ReportService", () => ({ sendReport: jest.fn() }))
+
 jest.mock("@/service/TableService", () => ({
   fetchTable: jest.fn(),
   leaveTable: jest.fn(),

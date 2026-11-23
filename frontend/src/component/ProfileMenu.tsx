@@ -1,12 +1,16 @@
 "use client"
 
+import { supabase } from "@/app/supabaseClient"
 import Avatar from "@/component/cosmetic/Avatar"
+import Icon, { ITEMS, LEAVE, SHIELD, USER } from "@/component/Icon"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import { isAdmin } from "@/service/AdminService"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 
 export default function ProfileMenu() {
+  const router = useRouter()
   const [admin, setAdmin] = useState(false)
   const [open, setOpen] = useState(false)
   const loadout = useMyLoadout()
@@ -26,6 +30,12 @@ export default function ProfileMenu() {
     document.addEventListener("mousedown", closeOutside)
     return () => document.removeEventListener("mousedown", closeOutside)
   }, [open])
+
+  async function logOut() {
+    await supabase.auth.signOut()
+    setOpen(false)
+    router.push("/")
+  }
 
   const avatarUrl = loadout.avatar?.assetUrl
   const border = loadout.avatar_border
@@ -47,16 +57,23 @@ export default function ProfileMenu() {
       {open && (
         <div className="profile-menu">
           <Link href="/profile" onClick={() => setOpen(false)}>
+            <Icon d={USER} />
             Profile
           </Link>
           <Link href="/shop/my-items" onClick={() => setOpen(false)}>
-            My items
+            <Icon d={ITEMS} />
+            My Items
           </Link>
           {admin && (
             <Link href="/admin" onClick={() => setOpen(false)}>
+              <Icon d={SHIELD} />
               Admin
             </Link>
           )}
+          <button type="button" className="sign-out" onClick={logOut}>
+            <Icon d={LEAVE} />
+            Log out
+          </button>
         </div>
       )}
     </div>

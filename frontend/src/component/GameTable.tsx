@@ -194,7 +194,6 @@ export default function GameTable({ id }: { id: string }) {
       </div>
       <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
-          <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
           {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
               the words stay for screen readers */}
           {view && Object.keys(view.winnings ?? {}).length > 0 ? (

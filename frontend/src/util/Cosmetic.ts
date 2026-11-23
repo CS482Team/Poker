@@ -3,9 +3,9 @@ import type { CosmeticType, ShopItem } from "@shared/Cosmetics"
 
 export const COSMETIC_LABELS: Record<CosmeticType, string> = {
   avatar: "Avatars",
-  card_back: "Card backs",
-  avatar_border: "Avatar borders",
-  name_tag: "Name tags",
+  card_back: "Card Backs",
+  avatar_border: "Avatar Borders",
+  name_tag: "Name Tags",
   emote: "Emotes",
   theme: "Themes",
 }
@@ -51,14 +51,14 @@ export function themeVariables(item: ShopItem): Record<string, string> {
     "--felt": felt,
     "--felt-lo": mix(felt, "black", 32),
     "--felt-pattern": feltPattern(item.style.pattern, accent),
-    "--trim": `${accent}99`,
-    "--trim-style": "dashed",
     "--rail-hi": mix(rail, "white", 30),
     "--rail-mid": mix(rail, "white", 8),
     "--rail": rail,
     "--rail-lo": mix(rail, "black", 40),
     "--rail-edge": mix(rail, "white", 18),
     "--rail-inlay": `${accent}cc`,
+    "--site": mix(mix(felt, "black", 26), "#444", 4),
+    "--site-glow": `color-mix(in srgb, ${mix(mix(felt, "white", 20), "#888", 4)} 32%, transparent)`,
   }
 }
 

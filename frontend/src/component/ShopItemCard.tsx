@@ -1,6 +1,7 @@
 "use client"
 
 /* one item for sale: preview, details and buy controls (Buy, confirm, buying, owned) */
+import BuyModal from "@/component/BuyModal"
 import ItemPreview from "@/component/cosmetic/ItemPreview"
 import RarityBadge from "@/component/cosmetic/RarityBadge"
 import type { ShopItem } from "@shared/Cosmetics"
@@ -28,11 +29,16 @@ export default function ShopItemCard({ item, username, balance, signedIn, onBuy 
     setError(null)
     try {
       await onBuy(item)
-      // on success the page marks the item owned, which swaps this card to "Owned"
+      setStage("idle")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Purchase failed")
-      setStage("idle")
+      setStage("confirming")
     }
+  }
+
+  function close() {
+    setStage("idle")
+    setError(null)
   }
 
   return (
@@ -50,27 +56,19 @@ export default function ShopItemCard({ item, username, balance, signedIn, onBuy 
           <p className="shop-price">
             <span>{item.cost.toLocaleString()}</span> chips
           </p>
-          <Actions item={item} balance={balance} signedIn={signedIn} stage={stage} onStart={() => setStage("confirming")} onConfirm={confirm} onCancel={() => setStage("idle")} />
+          <Actions item={item} balance={balance} signedIn={signedIn} onStart={() => setStage("confirming")} />
         </div>
-
-        {error && (
-          <p role="alert" className="shop-error">
-            {error}
-          </p>
-        )}
       </div>
+      {stage !== "idle" && balance !== null && <BuyModal item={item} balance={balance} buying={stage === "buying"} error={error} onBuy={confirm} onClose={close} />}
     </article>
   )
 }
 
 interface ActionProps extends Pick<Props, "item" | "balance" | "signedIn"> {
-  stage: "idle" | "confirming" | "buying"
   onStart: () => void
-  onConfirm: () => void
-  onCancel: () => void
 }
 
-function Actions({ item, balance, signedIn, stage, onStart, onConfirm, onCancel }: ActionProps) {
+function Actions({ item, balance, signedIn, onStart }: ActionProps) {
   if (item.owned) return <span className="equipped-label">Owned</span>
 
   if (!signedIn) {
@@ -84,39 +82,19 @@ function Actions({ item, balance, signedIn, stage, onStart, onConfirm, onCancel 
   // balance still loading: show the button, but don't let it be pressed yet
   if (balance === null) {
     return (
-      <button type="button" className="primary-action buy-action" disabled>
+      <button type="button" className="secondary-action" disabled>
         Buy
       </button>
     )
   }
 
   if (balance < item.cost) {
-    return (
-      <button type="button" className="secondary-action" disabled>
-        Need {(item.cost - balance).toLocaleString()} more
-      </button>
-    )
-  }
-
-  if (stage === "idle") {
-    return (
-      <button type="button" className="primary-action buy-action" aria-label={`Buy ${item.name}`} onClick={onStart}>
-        Buy
-      </button>
-    )
+    return <span className="text-sm text-[#9e9393]">Not enough chips</span>
   }
 
   return (
-    <div className="shop-confirm">
-      <p>Balance after: {(balance - item.cost).toLocaleString()} chips</p>
-      <div className="flex gap-2">
-        <button type="button" className="primary-action buy-action" onClick={onConfirm} disabled={stage === "buying"}>
-          {stage === "buying" ? "Buying…" : "Confirm"}
-        </button>
-        <button type="button" className="secondary-action" onClick={onCancel} disabled={stage === "buying"}>
-          Cancel
-        </button>
-      </div>
-    </div>
+    <button type="button" className="secondary-action" aria-label={`Buy ${item.name}`} onClick={onStart}>
+      Buy
+    </button>
   )
 }

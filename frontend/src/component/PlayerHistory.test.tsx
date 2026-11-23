@@ -3,6 +3,7 @@ import PlayerHistory from "@/component/PlayerHistory"
 import { fetchPlayerHands, fetchPlayers, modifyChips, removePlayer, unbanPlayer } from "@/service/AdminService"
 
 jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), modifyChips: jest.fn(), removePlayer: jest.fn(), unbanPlayer: jest.fn() }))
+jest.mock("@/component/HandModal", () => ({ matchId }: { matchId: string }) => <p>Hand {matchId} details</p>)
 
 const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3, banned: false }
 const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0, banned: false }
@@ -28,6 +29,13 @@ describe("PlayerHistory", () => {
     expect(fetchPlayerHands).toHaveBeenCalledWith("u1")
   })
 
+  it("opens a hand", async () => {
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(await screen.findByText("Won $240"))
+    expect(screen.getByText("Hand m1 details")).toBeInTheDocument()
+  })
+
   it("searches and picks another player", async () => {
     render(<PlayerHistory />)
     expect(await screen.findByText("Select a player to see their history.")).toBeInTheDocument()
@@ -45,7 +53,7 @@ describe("PlayerHistory", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ban player" }))
     fireEvent.click(screen.getByRole("button", { name: "Ban" }))
     expect(await screen.findByText("Banned")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Maya/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /^M Maya/ })).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Ban player" })).not.toBeInTheDocument()
     expect(removePlayer).toHaveBeenCalledWith("u1")
   })

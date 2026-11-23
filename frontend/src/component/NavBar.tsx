@@ -8,6 +8,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import BalanceDisplay from "@/component/BalanceDisplay"
+import Icon, { SHOP } from "@/component/Icon"
 import VolumeControl from "@/component/VolumeControl"
 
 export default function Nav() {
@@ -52,10 +53,10 @@ export default function Nav() {
         </div>
         <div className="flex items-center justify-end gap-3">
           <VolumeControl />
-          <BalanceDisplay />
-          <Link href="/shop" className={pathname === "/shop" ? "shop-nav-button active" : "shop-nav-button"}>
-            Shop
+          <Link href="/shop" aria-label="Shop" title="Shop" className={pathname === "/shop" ? "shop-nav-button active" : "shop-nav-button"}>
+            <Icon d={SHOP} size={20} />
           </Link>
+          <BalanceDisplay />
           <ProfileMenu />
         </div>
 
