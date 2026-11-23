@@ -128,8 +128,10 @@ wait_for "$WEB/" "The frontend" frontend.log
 
 # 4. An empty demo table. Players join it from the lobby; the hand deals once two are seated.
 say "Creating the demo table..."
-TABLE_ID=$(curl -sf -X POST "$API/tables" -H "Content-Type: application/json" \
-  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1,\"hostId\":\"$ALICE_ID\"}" |
+ALICE_TOKEN=$(curl -s -X POST "$API_URL/auth/v1/token?grant_type=password" -H "apikey: $ANON_KEY" -H "Content-Type: application/json" \
+  -d "{\"email\":\"alice@demo.local\",\"password\":\"$DEMO_PASSWORD\"}" | sed -nE 's/.*"access_token":"([^"]+)".*/\1/p')
+TABLE_ID=$(curl -sf -X POST "$API/tables" -H "Content-Type: application/json" -H "Authorization: Bearer $ALICE_TOKEN" \
+  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1}" |
   sed -E 's/.*"id":"([^"]+)".*/\1/') || fail "Couldn't create the demo table. See .demo/backend.log"
 # Compile the pages now so they open fast during the demo
 for page in / /dashboard "/table/$TABLE_ID"; do curl -s -o /dev/null --max-time 60 "$WEB$page"; done

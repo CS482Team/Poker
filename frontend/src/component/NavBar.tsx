@@ -3,7 +3,6 @@
 import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import { watchTable } from "@/service/SocketService"
-import { getCurrentUserId } from "@/service/UserService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -22,7 +21,7 @@ export default function Nav() {
   useEffect(() => {
     setMyTurn(false)
     if (!tableId) return
-    return watchTable(tableId, getCurrentUserId(), () => {}, (view) => setMyTurn(!!view && view.you.seat >= 0 && view.toActSeat === view.you.seat))
+    return watchTable(tableId, () => {}, (view) => setMyTurn(!!view && view.you.seat >= 0 && view.toActSeat === view.you.seat))
   }, [tableId])
 
   // The sign-in and sign-up pages have their own full-screen layout

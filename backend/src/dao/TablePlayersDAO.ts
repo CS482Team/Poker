@@ -1,19 +1,19 @@
 import { getSupabase } from "../config/Supabase"
 
 /* seats a player at a table */
-export async function addPlayer(tableId: string, userId: string, seatNumber: number, stack: number): Promise<void> {
+export async function addPlayer(tableId: string, userId: string, seatNumber: number, stack: number, bonus = 0): Promise<void> {
   const { error } = await getSupabase()
     .from("table_players")
-    .insert({ table_id: tableId, user_id: userId, seat_number: seatNumber, stack })
+    .insert({ table_id: tableId, user_id: userId, seat_number: seatNumber, stack, bonus })
 
   if (error) throw error
 }
 
 /* unseats a player */
-export async function removePlayer(tableId: string, userId: string): Promise<number | null> {
+export async function removePlayer(tableId: string, userId: string): Promise<{ stack: number; bonus: number } | null> {
   const { data, error } = await getSupabase()
     .from("table_players")
-    .select("stack")
+    .select("stack, bonus")
     .eq("table_id", tableId)
     .eq("user_id", userId)
     .maybeSingle()
@@ -25,7 +25,7 @@ export async function removePlayer(tableId: string, userId: string): Promise<num
 
   if (deleteError) throw deleteError
 
-  return data.stack
+  return { stack: data.stack, bonus: data.bonus }
 }
 
 export async function updateStack(tableId: string, userId: string, stack: number): Promise<void> {

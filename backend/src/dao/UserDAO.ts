@@ -67,6 +67,24 @@ export async function getAllPlayers(): Promise<PlayerSummary[]> {
   }))
 }
 
+export async function getDailyReward(userId: string): Promise<{ lastClaimAt: string | null; streak: number }> {
+  const { data, error } = await getSupabase().from("user").select("last_daily_reward_at, current_streak").eq("id", userId).single()
+
+  if (error) throw error
+
+  return { lastClaimAt: data.last_daily_reward_at, streak: data.current_streak }
+}
+
+export async function recordDailyClaim(userId: string, previous: string | null, now: Date, day: number): Promise<boolean> {
+  let query = getSupabase().from("user").update({ last_daily_reward_at: now.toISOString(), current_streak: day }).eq("id", userId)
+  query = previous ? query.eq("last_daily_reward_at", previous) : query.is("last_daily_reward_at", null)
+  const { data, error } = await query.select("id")
+
+  if (error) throw error
+
+  return data.length === 1
+}
+
 export async function unbanUser(userId: string): Promise<void> {
   const { error } = await getSupabase().auth.admin.updateUserById(userId, { ban_duration: "none" })
   if (error) throw error

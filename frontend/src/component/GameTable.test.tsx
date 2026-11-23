@@ -81,7 +81,7 @@ function seatOf(name: string) {
 async function showView(shown: object = view) {
   render(<GameTable id="t1" />)
   await screen.findByText("Maya")
-  act(() => jest.mocked(watchTable).mock.calls[0][3](shown as never))
+  act(() => jest.mocked(watchTable).mock.calls[0][2](shown as never))
 }
 
 const sendEmote = jest.fn()
@@ -103,7 +103,7 @@ describe("GameTable", () => {
   it("shows a player who joins over the socket", async () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
-    const push = jest.mocked(watchTable).mock.calls[0][2]
+    const push = jest.mocked(watchTable).mock.calls[0][1]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 2, stack: 100 }] }))
     expect(screen.getByText("Sam")).toBeInTheDocument()
   })
@@ -119,14 +119,14 @@ describe("GameTable", () => {
     render(<GameTable id="t1" />)
     fireEvent.click(await screen.findByRole("button", { name: "Leave" }))
     await screen.findByText("Maya")
-    expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
+    expect(leaveTable).toHaveBeenCalledWith("t1")
     expect(mockPush).toHaveBeenCalledWith("/dashboard")
   })
 
   it("sends an action from the action bar", async () => {
     await showView()
     fireEvent.click(screen.getByRole("button", { name: "Check" }))
-    expect(playAction).toHaveBeenCalledWith("g1", getCurrentUserId(), "check", undefined)
+    expect(playAction).toHaveBeenCalledWith("g1", "check", undefined)
   })
 
   it("shows a refused action", async () => {
@@ -198,7 +198,7 @@ describe("GameTable", () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
     const before = seatOf("Maya").style.left
-    const push = jest.mocked(watchTable).mock.calls[0][2]
+    const push = jest.mocked(watchTable).mock.calls[0][1]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 4, stack: 100 }] }))
     expect(seatOf("Maya").style.left).toBe(before)
     expect(screen.getAllByRole("img", { name: "Open seat" })).toHaveLength(3)
@@ -290,7 +290,7 @@ describe("GameTable", () => {
     await showView({ ...view, phase: "draw", you: { seat: 0, hand, legalActions: [] } })
     fireEvent.click(screen.getAllByRole("button", { pressed: false })[1]!)
     fireEvent.click(screen.getByRole("button", { name: "Draw" }))
-    expect(draw).toHaveBeenCalledWith("g1", getCurrentUserId(), [1])
+    expect(draw).toHaveBeenCalledWith("g1", [1])
   })
 
   it("seats bots in the open seats with a blue ring", async () => {
@@ -347,7 +347,7 @@ describe("GameTable", () => {
       await showView({ ...view, handNumber: 1, players: [alex, maya] })
       expect(playEffect).not.toHaveBeenCalled()
 
-      const push = jest.mocked(watchTable).mock.calls[0]![3]
+      const push = jest.mocked(watchTable).mock.calls[0]![2]
       act(() => push({ ...view, handNumber: 2, players: [alex, maya] } as never))
       expect(playEffect).toHaveBeenCalledWith("deal")
     })

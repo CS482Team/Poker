@@ -32,10 +32,10 @@ describe("EmoteService", () => {
     expect(socket.disconnect).toHaveBeenCalled()
   })
 
-  it("sends an emote with the session token and gives back the server's reply", async () => {
+  it("sends an emote and gives back the server's reply", async () => {
     socket.emit.mockImplementation((_event: string, _payload: unknown, ack?: (reply: unknown) => void) => ack?.({ ok: true }))
     const emotes = watchEmotes("t1", jest.fn())
     await expect(emotes.send("emote_2")).resolves.toEqual({ ok: true })
-    expect(socket.emit).toHaveBeenCalledWith("emote:send", { tableId: "t1", slot: "emote_2", token: "token" }, expect.any(Function))
+    expect(socket.emit).toHaveBeenCalledWith("emote:send", { tableId: "t1", slot: "emote_2" }, expect.any(Function))
   })
 })

@@ -1,12 +1,12 @@
 "use client"
 
 import type { Table } from "@shared/Table"
+import DailyRewards from "@/component/DailyRewards"
 import Icon, { JOIN, LOCK, PLUS, RETURN } from "@/component/Icon"
 import NewTableForm from "@/component/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 import { watchTables } from "@/service/SocketService"
 import { fetchTables, joinTable } from "@/service/TableService"
-import { getCurrentUserId } from "@/service/UserService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -47,7 +47,7 @@ export default function TableList() {
   async function enter(table: Table, isCurrent: boolean) {
     try {
       if (!isCurrent) {
-        await joinTable(table.id, getCurrentUserId())
+        await joinTable(table.id)
         setCurrentTableId(table.id)
       }
       router.push(`/table/${table.id}`)
@@ -58,14 +58,16 @@ export default function TableList() {
 
   return (
     <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">
-          Tables <small>{tables.length} tables</small>
-        </h1>
-        <button type="button" onClick={() => setCreating(true)} className="primary-action gap-2">
-          <Icon d={PLUS} size={18} />
-          New Table
-        </button>
+      <div className="page-header tables-header">
+        <div className="flex items-center gap-3">
+          <button type="button" aria-label="New Table" title="New Table" onClick={() => setCreating(true)} className="primary-action icon-action">
+            <Icon d={PLUS} size={20} weight={2.5} />
+          </button>
+          <h1 className="page-title">
+            Tables <small>{tables.length} tables</small>
+          </h1>
+        </div>
+        <DailyRewards />
       </div>
 
       {creating && <NewTableForm onCancel={() => setCreating(false)} />}

@@ -2,11 +2,8 @@
 import type { Socket } from "socket.io"
 import type { EmotePlayed, EmoteReply, EmoteSend } from "../../../shared/Cosmetics"
 import { EMOTE_COOLDOWN_SECONDS } from "../../../shared/Rules"
-import { getUserIdFromToken } from "../dao/UserDAO"
 import { EmoteError, playEmote } from "../services/EmoteService"
 import { RateLimiter } from "./RateLimiter"
-
-// emotes identify the sender by session token, not a userId the browser could fake
 
 // keyed by player, not socket, so opening another tab doesn't get around the cooldown
 // TODO like chat's limiter, this lives in memory: it resets on restart and needs one backend server
@@ -23,7 +20,7 @@ export function registerEmotes(socket: Socket, broadcast: (played: EmotePlayed) 
   })
 
   socket.on("emote:send", async (send: EmoteSend, ack?: (reply: EmoteReply) => void) => {
-    const userId = typeof send?.token === "string" ? await getUserIdFromToken(send.token) : null
+    const userId = socket.data.userId
     if (!userId) {
       ack?.({ ok: false, error: "Sign in to use emotes" })
       return

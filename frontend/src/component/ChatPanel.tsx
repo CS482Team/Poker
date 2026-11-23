@@ -23,7 +23,7 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
   const bottom = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
-    const connection = watchChat(tableId, userId, setMessages, (message) =>
+    const connection = watchChat(tableId, setMessages, (message) =>
       setMessages((previous) => [...previous, message]),
     )
     chat.current = connection

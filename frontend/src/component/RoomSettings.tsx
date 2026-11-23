@@ -2,7 +2,6 @@
 
 import Stepper from "@/component/Stepper"
 import { updateTableSettings } from "@/service/TableService"
-import { getCurrentUserId } from "@/service/UserService"
 import type { Table } from "@shared/Table"
 import { useState } from "react"
 
@@ -22,7 +21,7 @@ export default function RoomSettings({ table, onClose }: { table: Table; onClose
     setSaving(true)
     setError(null)
     try {
-      await updateTableSettings(table.id, getCurrentUserId(), { name, botCount, chatEnabled, turnTimerEnabled })
+      await updateTableSettings(table.id, { name, botCount, chatEnabled, turnTimerEnabled })
       onClose()
     } catch (err) {
       setError((err as Error).message)

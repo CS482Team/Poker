@@ -23,7 +23,7 @@ export async function getTable(id: string): Promise<Table | null> {
 }
 
 /* saves a new table with its host */
-export async function createTable(input: NewTable): Promise<string> {
+export async function createTable(input: NewTable & { hostId: string }): Promise<string> {
   const { data, error } = await getSupabase()
     .from("table")
     .insert({

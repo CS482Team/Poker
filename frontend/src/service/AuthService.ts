@@ -6,6 +6,10 @@ export async function accessToken(): Promise<string | undefined> {
   return data.session?.access_token;
 }
 
+export function socketAuth(send: (data: { token?: string }) => void) {
+  accessToken().then((token) => send({ token }));
+}
+
 export async function authHeaders() {
   return { "Content-Type": "application/json", Authorization: `Bearer ${await accessToken()}` };
 }

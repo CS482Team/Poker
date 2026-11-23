@@ -62,7 +62,6 @@ export type EquipError = (typeof EQUIP_ERRORS)[number]
 export interface EmoteSend {
   tableId: string
   slot: EmoteSlot
-  token: string
 }
 export interface EmotePlayed {
   tableId: string

@@ -22,7 +22,7 @@ let onMessage: (message: ChatMessage) => void
 
 beforeEach(() => {
   jest.clearAllMocks()
-  jest.mocked(watchChat).mockImplementation((_tableId, _userId, onHistory, handler) => {
+  jest.mocked(watchChat).mockImplementation((_tableId, onHistory, handler) => {
     onHistory([hello])
     onMessage = handler
     return { send, stop }
@@ -93,7 +93,7 @@ describe("ChatPanel", () => {
   })
 
   it("shows system messages", () => {
-    jest.mocked(watchChat).mockImplementation((_t, _u, onHistory) => {
+    jest.mocked(watchChat).mockImplementation((_t, onHistory) => {
       onHistory([{ ...hello, userId: null, name: null, body: "Bob joined the table" }])
       return { send, stop }
     })
