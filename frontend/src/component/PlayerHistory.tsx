@@ -1,6 +1,7 @@
 "use client"
 
 import BanModal from "@/component/BanModal"
+import HandModal from "@/component/HandModal"
 import Icon, { GAVEL, RESTORE } from "@/component/Icon"
 import ModifyChipsModal from "@/component/ModifyChipsModal"
 import { fetchPlayerHands, fetchPlayers, removePlayer, unbanPlayer } from "@/service/AdminService"
@@ -15,6 +16,7 @@ export default function PlayerHistory() {
   const [hands, setHands] = useState<HandRecord[] | null>(null)
   const [search, setSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [openHand, setOpenHand] = useState<HandRecord | null>(null)
   const [removing, setRemoving] = useState(false)
   const [editingChips, setEditingChips] = useState(false)
 
@@ -86,6 +88,7 @@ export default function PlayerHistory() {
 
   return (
     <section className="panel overflow-hidden">
+      {openHand && <HandModal matchId={openHand.matchId} tableName={openHand.tableName} onClose={() => setOpenHand(null)} />}
       {removing && selected && <BanModal player={selected} onCancel={() => setRemoving(false)} onBan={() => remove(selected.id)} />}
       {editingChips && selected && <ModifyChipsModal player={selected} onCancel={() => setEditingChips(false)} onSaved={saveChips} />}
       <div className="panel-head flush">

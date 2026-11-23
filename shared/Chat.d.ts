@@ -10,7 +10,6 @@ export interface ChatMessage {
 
 export interface ChatSend {
   tableId: string
-  userId: string
   body: string
 }
 

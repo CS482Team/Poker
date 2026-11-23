@@ -24,6 +24,7 @@ export default function AdminPanel() {
     <div className="page-shell flex flex-col gap-6">
       <h1 className="page-title">Admin</h1>
       <PlayerHistory />
+      <ReportList />
       <PromoManager />
       <AdManager />
     </div>

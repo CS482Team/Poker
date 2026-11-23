@@ -27,7 +27,7 @@ describe("MyItemsPage", () => {
   it("shows your items once they load", async () => {
     render(<MyItemsPage />)
     expect(await screen.findByRole("article", { name: "Midnight Lattice" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "My items" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "My Items" })).toBeInTheDocument()
   })
 
   it("equips an item and shows it on your look", async () => {
@@ -73,6 +73,6 @@ describe("MyItemsPage", () => {
 
   it("links back to the shop", async () => {
     render(<MyItemsPage />)
-    expect(await screen.findByRole("link", { name: "Back to the shop" })).toHaveAttribute("href", "/shop")
+    expect(await screen.findByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop")
   })
 })

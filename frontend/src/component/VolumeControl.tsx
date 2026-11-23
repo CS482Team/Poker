@@ -28,12 +28,15 @@ export default function VolumeControl() {
 
       {open && (
         <div className="sound-menu">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="sound-menu-title">Sound</p>
+            <button type="button" aria-label={muted ? "Unmute" : "Mute all sound"} title={muted ? "Unmute" : "Mute all sound"} onClick={() => setSoundSettings({ muted: !muted })} className="sound-mute">
+              <SpeakerIcon silent={muted} loud />
+            </button>
+          </div>
           <VolumeSlider label="Music" value={music} disabled={muted} onChange={(value) => setSoundSettings({ music: value })} />
           {/* a sample on release, so you can hear the level you picked */}
           <VolumeSlider label="Effects" value={effects} disabled={muted} onChange={(value) => setSoundSettings({ effects: value })} onRelease={() => playEffect("chips")} />
-          <button type="button" className="secondary-action small mt-3 w-full" onClick={() => setSoundSettings({ muted: !muted })}>
-            {muted ? "Unmute" : "Mute all sound"}
-          </button>
         </div>
       )}
     </div>
@@ -55,7 +58,7 @@ function VolumeSlider({ label, value, disabled, onChange, onRelease }: SliderPro
     <label className="sound-slider">
       <span className="flex justify-between">
         <span>{label}</span>
-        <span className="text-ink-muted">{percent}%</span>
+        <span className="tabular-nums text-ink-muted">{percent}%</span>
       </span>
       <input
         type="range"
@@ -64,6 +67,7 @@ function VolumeSlider({ label, value, disabled, onChange, onRelease }: SliderPro
         value={percent}
         disabled={disabled}
         aria-label={`${label} volume`}
+        style={{ "--fill": `${percent}%` } as React.CSSProperties}
         onChange={(e) => onChange(Number(e.target.value) / 100)}
         onPointerUp={onRelease}
         onKeyUp={onRelease}

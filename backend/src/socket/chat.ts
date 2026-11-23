@@ -22,14 +22,17 @@ export function registerChat(socket: Socket, broadcast: (message: ChatMessage) =
     }
   })
 
-  // TODO use the logged in user once auth exists
   socket.on("chat:send", async (send: ChatSend, ack?: (reply: ChatReply) => void) => {
+    if (!socket.data.userId) {
+      ack?.({ ok: false, error: "Sign in to chat" })
+      return
+    }
     if (!limiter.allow(socket.id)) {
       ack?.({ ok: false, error: "You're sending messages too fast" })
       return
     }
     try {
-      broadcast(await sendMessage(send.tableId, send.userId, send.body))
+      broadcast(await sendMessage(send.tableId, socket.data.userId, send.body))
       ack?.({ ok: true })
     } catch (err) {
       ack?.({ ok: false, error: err instanceof ChatError ? err.message : "Message not sent" })

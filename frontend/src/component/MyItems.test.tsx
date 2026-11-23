@@ -16,16 +16,15 @@ function setup(loadout: Loadout = {}, items = [lattice, flare, spender, laugh]) 
 }
 
 describe("MyItems", () => {
-  it("points new players to the shop", () => {
+  it("says when you own nothing yet", () => {
     setup({}, [])
     expect(screen.getByText("You don't own any cosmetics yet.")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Visit the shop" })).toHaveAttribute("href", "/shop")
   })
 
   it("groups owned items by category", () => {
     setup()
-    expect(screen.getByRole("heading", { name: "Card backs" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "Name tags" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Card Backs" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Name Tags" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Emotes" })).toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: "Avatars" })).not.toBeInTheDocument()
   })

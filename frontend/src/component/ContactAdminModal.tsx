@@ -69,10 +69,7 @@ export default function ContactAdminModal({ tableId, onClose }: { tableId: strin
               </span>
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
-            <div className="mt-1 flex justify-end gap-2">
-              <button type="button" onClick={onClose} className="secondary-action small">
-                Cancel
-              </button>
+            <div className="mt-1 flex justify-end">
               <button type="submit" disabled={sending || !message.trim()} className="primary-action small disabled:cursor-not-allowed disabled:opacity-50">
                 {sending ? "Sending…" : "Send"}
               </button>

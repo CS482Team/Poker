@@ -8,6 +8,7 @@ jest.mock("next/navigation", () => ({ useRouter: () => mockRouter }))
 jest.mock("@/service/AdminService", () => ({ isAdmin: jest.fn() }))
 jest.mock("@/component/AdManager", () => () => <p>Ad list</p>)
 jest.mock("@/component/PlayerHistory", () => () => <p>Player list</p>)
+jest.mock("@/component/ReportList", () => () => <p>Report list</p>)
 jest.mock("@/component/PromoManager", () => () => <p>Promo</p>)
 
 beforeEach(() => jest.resetAllMocks())

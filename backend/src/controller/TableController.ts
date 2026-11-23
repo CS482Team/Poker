@@ -34,22 +34,23 @@ export async function addTable(req: Request<{}, {}, NewTable>, res: Response) {
     res.status(400).json({ error: "Invalid table" })
     return
   }
-  const id = await createTable({ ...req.body, name: req.body.name.trim() })
+  const id = await createTable({ ...req.body, hostId: res.locals.userId, name: req.body.name.trim() })
   await broadcastChange(id)
   res.status(201).json({ id })
 }
 
 /* handles leaving, deletes an empty table and tells watchers */
-export async function leaveTable(req: Request<{ id: string; userId: string }>, res: Response) {
-  const { id, userId } = req.params
+export async function leaveTable(req: Request<{ id: string }>, res: Response) {
+  const id = req.params.id
+  const userId = res.locals.userId
   const game = leaveGame(id, userId)
-  const stack = await removePlayer(id, userId)
+  const seat = await removePlayer(id, userId)
   const gameStack = game?.players.find((p) => p.id === userId)?.stack
-  if (stack !== null) await changeBalance(userId, gameStack ?? stack, "cash_out")
+  if (seat) await changeBalance(userId, Math.max(0, (gameStack ?? seat.stack) - seat.bonus), "cash_out")
   if ((await countPlayers(id)) === 0) {
     endGame(id)
     await deleteTable(id)
-  } else if (stack !== null) {
+  } else if (seat) {
     await announce(id, userId, "left the table")
   }
   await broadcastChange(id)
@@ -58,12 +59,8 @@ export async function leaveTable(req: Request<{ id: string; userId: string }>, r
 }
 
 /* handles joining, seats the user and tells watchers */
-export async function joinTable(req: Request<{ id: string }, {}, { userId: string }>, res: Response) {
-  const { userId } = req.body
-  if (typeof userId !== "string") {
-    res.status(400).json({ error: "Invalid user" })
-    return
-  }
+export async function joinTable(req: Request<{ id: string }>, res: Response) {
+  const userId = res.locals.userId
   const table = await getTable(req.params.id)
   if (!table) {
     res.status(404).json({ error: "Table not found" })
@@ -83,7 +80,8 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
     return
   }
   const event = await getActiveEvent()
-  await addPlayer(table.id, userId, seatNumber, Math.round(table.buyIn * (event?.multiplier ?? 1)))
+  const bonus = Math.round(table.buyIn * (event?.multiplier ?? 1)) - table.buyIn
+  await addPlayer(table.id, userId, seatNumber, table.buyIn + bonus, bonus)
   await changeBalance(userId, -table.buyIn, "buy_in")
   await announce(table.id, userId, "joined the table")
   await broadcastChange(table.id)
@@ -91,13 +89,13 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
   res.status(204).end()
 }
 
-export async function updateSettings(req: Request<{ id: string }, {}, { userId: string } & TableSettings>, res: Response) {
+export async function updateSettings(req: Request<{ id: string }, {}, TableSettings>, res: Response) {
   const table = await getTable(req.params.id)
   if (!table) {
     res.status(404).json({ error: "Table not found" })
     return
   }
-  if (req.body.userId !== table.hostId) {
+  if (res.locals.userId !== table.hostId) {
     res.status(403).json({ error: "Only the host can change settings" })
     return
   }
@@ -148,7 +146,6 @@ function firstFreeSeat(table: Table) {
 /* checks the new table settings */
 function isValidNewTable(body: NewTable) {
   return (
-    typeof body.hostId === "string" &&
     typeof body.name === "string" &&
     body.name.trim() !== "" &&
     Number.isInteger(body.maxPlayers) &&

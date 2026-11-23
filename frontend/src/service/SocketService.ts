@@ -1,10 +1,11 @@
 import type { Table } from "@shared/Table"
 import type { PlayerView } from "@shared/PlayerView"
 import { io } from "socket.io-client"
+import { socketAuth } from "@/service/AuthService"
 
 /* opens one socket, joins its rooms and handles their events */
 function listen(joins: [string, unknown][], handlers: Record<string, (data: any) => void>) {
-  const socket = io(process.env.NEXT_PUBLIC_API_URL)
+  const socket = io(process.env.NEXT_PUBLIC_API_URL, { auth: socketAuth })
   socket.on("connect", () => joins.forEach(([event, payload]) => socket.emit(event, payload)))
   for (const [event, handler] of Object.entries(handlers)) socket.on(event, handler)
   return () => {
@@ -13,8 +14,8 @@ function listen(joins: [string, unknown][], handlers: Record<string, (data: any)
 }
 
 /* gives live updates for one table and this user's view of its game */
-export function watchTable(tableId: string, userId: string, onTable: (table: Table) => void, onView: (view: PlayerView | null) => void) {
-  return listen([["watch", tableId], ["watchHand", { tableId, userId }]], { table: onTable, view: onView })
+export function watchTable(tableId: string, onTable: (table: Table) => void, onView: (view: PlayerView | null) => void) {
+  return listen([["watch", tableId], ["watchHand", tableId]], { table: onTable, view: onView })
 }
 
 /* gives live updates for the table list */

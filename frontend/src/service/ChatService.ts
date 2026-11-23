@@ -1,5 +1,6 @@
 import type { ChatMessage, ChatReply } from "@shared/Chat"
 import { io } from "socket.io-client"
+import { socketAuth } from "@/service/AuthService"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -12,15 +13,14 @@ export interface ChatConnection {
 // TODO chat opens its own socket; share one with watchTable to save a connection
 export function watchChat(
   tableId: string,
-  userId: string,
   onHistory: (messages: ChatMessage[]) => void,
   onMessage: (message: ChatMessage) => void,
 ): ChatConnection {
-  const socket = io(API_URL)
+  const socket = io(API_URL, { auth: socketAuth })
   socket.on("connect", () => socket.emit("chat:join", tableId, onHistory))
   socket.on("chat:message", onMessage)
   return {
-    send: (body) => new Promise((resolve) => socket.emit("chat:send", { tableId, userId, body }, resolve)),
+    send: (body) => new Promise((resolve) => socket.emit("chat:send", { tableId, body }, resolve)),
     stop: () => {
       socket.disconnect()
     },

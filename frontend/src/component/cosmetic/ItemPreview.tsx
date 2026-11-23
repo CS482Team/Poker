@@ -87,7 +87,6 @@ function ThemePreview({ item }: PreviewProps) {
     // the wrapper keeps the rail behind the felt (like the real table's wrapper), not on top of it
     <div className="theme-preview-wrap">
       <div role="img" aria-label={label(item)} className={`theme-preview ${shimmer}`} style={themeVariables(item) as CSSProperties}>
-        <span className="table-line theme-preview-line" />
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import request from "supertest"
 import { app } from "../app"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance, getUsername } from "../dao/UserDAO"
+import { getBalance, getDailyReward, getUserIdFromToken, getUsername, recordDailyClaim, setBalance } from "../dao/UserDAO"
 
 jest.mock("../config/Supabase")
 jest.mock("../dao/MatchDAO", () => ({ getPlayerHands: jest.fn() }))
@@ -11,7 +11,11 @@ jest.mock("../dao/UserDAO", () => ({
   getBalance: jest.fn(),
   getUsername: jest.fn(),
   setBalance: jest.fn(),
+  getUserIdFromToken: jest.fn(),
+  getDailyReward: jest.fn(),
+  recordDailyClaim: jest.fn(),
 }))
+jest.mock("../dao/BalanceLogDAO", () => ({ logBalanceChange: jest.fn() }))
 
 const getUser = jest.fn()
 
@@ -21,9 +25,10 @@ beforeEach(() => {
 })
 
 describe("users", () => {
-  it("returns a user's balance", async () => {
+  it("returns your balance", async () => {
+    jest.mocked(getUserIdFromToken).mockResolvedValue("u1")
     jest.mocked(getBalance).mockResolvedValue(2500)
-    const res = await request(app).get("/users/u1/balance")
+    const res = await request(app).get("/users/me/balance").set("Authorization", "Bearer good")
     expect(res.status).toBe(200)
     expect(res.body).toEqual({ balance: 2500 })
     expect(getBalance).toHaveBeenCalledWith("u1")
@@ -50,6 +55,31 @@ describe("users", () => {
     expect(res.status).toBe(200)
     expect(res.body).toEqual([hand])
     expect(getPlayerHands).toHaveBeenCalledWith("u1")
+  })
+
+  it("returns the daily reward status", async () => {
+    jest.mocked(getUserIdFromToken).mockResolvedValue("u1")
+    jest.mocked(getDailyReward).mockResolvedValue({ lastClaimAt: null, streak: 0 })
+    const res = await request(app).get("/users/me/daily-reward").set("Authorization", "Bearer good")
+    expect(res.body).toEqual({ day: 1, canClaim: true, nextClaimAt: null })
+  })
+
+  it("claims the daily reward", async () => {
+    jest.mocked(getUserIdFromToken).mockResolvedValue("u1")
+    jest.mocked(getDailyReward).mockResolvedValue({ lastClaimAt: null, streak: 0 })
+    jest.mocked(recordDailyClaim).mockResolvedValue(true)
+    jest.mocked(getBalance).mockResolvedValue(500)
+    const res = await request(app).post("/users/me/daily-reward").set("Authorization", "Bearer good")
+    expect(res.body).toEqual({ day: 1, reward: 100, balance: 600 })
+    expect(setBalance).toHaveBeenCalledWith("u1", 600)
+  })
+
+  it("refuses a second claim", async () => {
+    jest.mocked(getUserIdFromToken).mockResolvedValue("u1")
+    jest.mocked(getDailyReward).mockResolvedValue({ lastClaimAt: new Date().toISOString(), streak: 1 })
+    const res = await request(app).post("/users/me/daily-reward").set("Authorization", "Bearer good")
+    expect(res.status).toBe(409)
+    expect(setBalance).not.toHaveBeenCalled()
   })
 
   it("returns a user's username", async () => {

@@ -55,23 +55,3 @@ CI requires 80% coverage.
 cd backend && npm test             # or: npm run test:coverage
 cd frontend && npm test            # or: npm run test:coverage
 ```
-
-## Implemented
-- Create accounts and log in as user or guest
-- List of tables shown live as people create, join and leave them
-- Betting, the draw, a second betting round, and showdown done
-
-### Details
-
-#### Accounts
-- Users can create and log into their accounts, but accounts and auth are not wired to any other parts
-- Dev toggle still exists to allow simulating actions from different users
-
-#### Gameplay
-- The winner is shown at round end, and the next hand is dealt a few seconds later
-- Leaving mid-hand folds you and cashes out the chips you have left
-- The game ends if only one player remains in room and it is deleted when last player leaves
-
-## TODO 
-- Connect user accounts to tables and gameplay
-- Players with no chips should spectate instead of stay seated

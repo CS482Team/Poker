@@ -45,13 +45,12 @@ const ACT_ERROR_STATUS: Record<ActError, number> = {
   "illegal-action": 400,
 }
 
-// TODO take playerId from the auth token once auth exists
 export function actionController(req: Request, res: Response): void {
-  const playerId: unknown = req.body?.playerId
+  const playerId: string = res.locals.userId
   const type: unknown = req.body?.action?.type
   const amount: unknown = req.body?.action?.amount
   const validAmount = amount === undefined || typeof amount === "number"
-  if (typeof playerId !== "string" || !ACTION_TYPES.includes(type as ActionType) || !validAmount) {
+  if (!ACTION_TYPES.includes(type as ActionType) || !validAmount) {
     res.status(400).json({ error: "invalid-action" })
     return
   }
@@ -78,11 +77,10 @@ function isDiscardList(discard: unknown): discard is number[] {
     && new Set(discard).size === discard.length
 }
 
-// TODO take playerId from the auth token once auth exists
 export function drawController(req: Request, res: Response): void {
-  const playerId: unknown = req.body?.playerId
+  const playerId: string = res.locals.userId
   const discard: unknown = req.body?.discard
-  if (typeof playerId !== "string" || !isDiscardList(discard)) {
+  if (!isDiscardList(discard)) {
     res.status(400).json({ error: "invalid-draw" })
     return
   }
