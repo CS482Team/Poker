@@ -10,10 +10,12 @@ describe("ResetPasswordModal", () => {
   it("sets a random password and shows it with the email", async () => {
     jest.mocked(resetPassword).mockResolvedValue({ email: "maya@test.local" })
     render(<ResetPasswordModal player={maya} onClose={jest.fn()} />)
-    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Reset Password" })))
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Reset" })))
     const password = jest.mocked(resetPassword).mock.calls[0]![1]
     expect(password).toHaveLength(10)
+    expect(screen.queryByText(password)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }))
     expect(screen.getByText(password)).toBeInTheDocument()
-    expect(screen.getByText("Send this to maya@test.local.")).toBeInTheDocument()
+    expect(screen.getByText("Send this to maya@test.local")).toBeInTheDocument()
   })
 })
