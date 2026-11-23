@@ -1,6 +1,7 @@
 import request from "supertest"
 import { app } from "../app"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { getActiveEvent } from "../dao/EventDAO"
 import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
@@ -23,6 +24,7 @@ jest.mock("../dao/UserDAO", () => ({
   getUsername: jest.fn(),
   setBalance: jest.fn(),
 }))
+jest.mock("../dao/EventDAO", () => ({ getActiveEvent: jest.fn() }))
 jest.mock("../dao/BalanceLogDAO", () => ({
   logBalanceChange: jest.fn(),
 }))
@@ -87,6 +89,15 @@ describe("players", () => {
     expect(addPlayer).toHaveBeenCalledWith("t1", "me", 1, 150)
     expect(setBalance).toHaveBeenCalledWith("me", 850)
     expect(logBalanceChange).toHaveBeenCalledWith("me", -150, "buy_in")
+  })
+
+  it("multiplies the stack during a promo event", async () => {
+    jest.mocked(getTable).mockResolvedValue(detail)
+    jest.mocked(getBalance).mockResolvedValue(1000)
+    jest.mocked(getActiveEvent).mockResolvedValue({ id: "e1", name: "Double", multiplier: 2, expiresAt: "2999-01-01" })
+    await request(app).post("/tables/t1/players").send({ userId: "me" })
+    expect(addPlayer).toHaveBeenCalledWith("t1", "me", 1, 300)
+    expect(setBalance).toHaveBeenCalledWith("me", 850)
   })
 
   it("rejects a join without enough balance", async () => {
