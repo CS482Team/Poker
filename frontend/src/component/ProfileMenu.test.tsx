@@ -4,15 +4,18 @@ import { isAdmin } from "@/service/AdminService"
 import { announceLoadout, fetchLoadout } from "@/service/ShopService"
 import { makeItem } from "@/component/cosmetic/makeItem"
 import { act, waitFor } from "@testing-library/react"
+import { supabase } from "@/app/supabaseClient"
+
+const mockPush = jest.fn()
 
 jest.mock("@/service/AdminService", () => ({ isAdmin: jest.fn() }))
-jest.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }))
+jest.mock("next/navigation", () => ({ usePathname: () => "/dashboard", useRouter: () => ({ push: mockPush }) }))
 jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1" }))
 jest.mock("@/service/ShopService", () => {
   const actual = jest.requireActual("@/service/ShopService")
   return { ...actual, fetchLoadout: jest.fn() }
 })
-jest.mock("@/app/supabaseClient", () => ({ supabase: { auth: { getSession: jest.fn() } } }))
+jest.mock("@/app/supabaseClient", () => ({ supabase: { auth: { getSession: jest.fn(), signOut: jest.fn() } } }))
 
 beforeEach(() => jest.mocked(fetchLoadout).mockRejectedValue(new Error("Sign in to see your items")))
 
@@ -50,12 +53,23 @@ describe("ProfileMenu", () => {
   })
 })
 
+describe("ProfileMenu log out", () => {
+  it("signs you out and goes to the login page", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    render(<ProfileMenu />)
+    fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
+    fireEvent.click(screen.getByRole("button", { name: "Log out" }))
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/"))
+    expect(supabase.auth.signOut).toHaveBeenCalled()
+  })
+})
+
 describe("ProfileMenu shop links", () => {
   it("links to your cosmetics", async () => {
     jest.mocked(isAdmin).mockResolvedValue(false)
     render(<ProfileMenu />)
     fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
-    expect(await screen.findByRole("link", { name: "My items" })).toHaveAttribute("href", "/shop/my-items")
+    expect(await screen.findByRole("link", { name: "My Items" })).toHaveAttribute("href", "/shop/my-items")
   })
 })
 

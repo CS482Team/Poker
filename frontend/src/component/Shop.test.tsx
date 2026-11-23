@@ -34,7 +34,7 @@ describe("Shop", () => {
   it("has a tab for each category that has items, avatars first", async () => {
     render(<Shop />)
     const tabs = await screen.findAllByRole("tab")
-    expect(tabs.map((tab) => tab.textContent)).toEqual(["Avatars", "Card backs"])
+    expect(tabs.map((tab) => tab.textContent)).toEqual(["Avatars", "Card Backs"])
     expect(tabs[0]).toHaveAttribute("aria-selected", "true")
   })
 
@@ -43,21 +43,21 @@ describe("Shop", () => {
     const panel = await screen.findByRole("tabpanel")
     expect(within(panel).getByRole("heading", { name: "Sly Fox" })).toBeInTheDocument()
     expect(within(panel).queryByRole("heading", { name: "Midnight Lattice" })).not.toBeInTheDocument()
-    expect(within(panel).getByText("1 of 2 owned")).toBeInTheDocument()
+    expect(screen.getByText("1 of 2 owned")).toBeInTheDocument()
   })
 
   it("switches category when you pick a tab", async () => {
     render(<Shop />)
-    fireEvent.click(await screen.findByRole("tab", { name: "Card backs" }))
+    fireEvent.click(await screen.findByRole("tab", { name: "Card Backs" }))
     expect(within(screen.getByRole("tabpanel")).getByRole("heading", { name: "Midnight Lattice" })).toBeInTheDocument()
   })
 
   it("after buying, marks the item owned and updates the balance everywhere", async () => {
     jest.mocked(buyItem).mockResolvedValue(700)
     render(<Shop />)
-    fireEvent.click(await screen.findByRole("tab", { name: "Card backs" }))
+    fireEvent.click(await screen.findByRole("tab", { name: "Card Backs" }))
     fireEvent.click(screen.getByRole("button", { name: "Buy Midnight Lattice" }))
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }))
+    fireEvent.click(screen.getByRole("button", { name: /^Buy for/ }))
 
     expect(await screen.findByText("Owned")).toBeInTheDocument()
     expect(screen.getByLabelText("Available balance")).toHaveTextContent("700")
@@ -84,6 +84,6 @@ describe("Shop", () => {
 describe("Shop links", () => {
   it("links signed in players to their items", async () => {
     render(<Shop />)
-    expect(await screen.findByRole("link", { name: "My items" })).toHaveAttribute("href", "/shop/my-items")
+    expect(await screen.findByRole("link", { name: "My Items" })).toHaveAttribute("href", "/shop/my-items")
   })
 })

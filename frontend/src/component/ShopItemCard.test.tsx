@@ -20,41 +20,41 @@ describe("ShopItemCard", () => {
     expect(screen.getByText("650")).toBeInTheDocument()
   })
 
-  it("asks you to confirm, showing your balance afterwards, before buying", async () => {
+  it("confirms in a modal with your balance afterwards", async () => {
     const { onBuy } = setup()
     fireEvent.click(screen.getByRole("button", { name: "Buy Diamond Flare" }))
-    expect(screen.getByText("Balance after: 350 chips")).toBeInTheDocument()
+    expect(screen.getByRole("dialog", { name: "Buy Diamond Flare" })).toHaveTextContent("350 chips")
     expect(onBuy).not.toHaveBeenCalled()
 
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }))
+    fireEvent.click(screen.getByRole("button", { name: /^Buy for/ }))
     expect(onBuy).toHaveBeenCalledWith(flare)
   })
 
-  it("can back out of the confirm", () => {
+  it("can close the modal", () => {
     setup()
     fireEvent.click(screen.getByRole("button", { name: "Buy Diamond Flare" }))
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
-    expect(screen.getByRole("button", { name: "Buy Diamond Flare" })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Close" }))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
   })
 
-  it("disables the confirm while the purchase is in flight, so it can't be sent twice", async () => {
+  it("disables buying while the purchase is in flight", async () => {
     setup({ onBuy: () => new Promise(() => {}) })
     fireEvent.click(screen.getByRole("button", { name: "Buy Diamond Flare" }))
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }))
+    fireEvent.click(screen.getByRole("button", { name: /^Buy for/ }))
     expect(await screen.findByRole("button", { name: "Buying…" })).toBeDisabled()
   })
 
-  it("shows the reason on the card when a purchase fails", async () => {
+  it("shows the reason when a purchase fails", async () => {
     setup({ onBuy: jest.fn().mockRejectedValue(new Error("You don't have enough chips.")) })
     fireEvent.click(screen.getByRole("button", { name: "Buy Diamond Flare" }))
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }))
+    fireEvent.click(screen.getByRole("button", { name: /^Buy for/ }))
     expect(await screen.findByRole("alert")).toHaveTextContent("You don't have enough chips.")
-    expect(screen.getByRole("button", { name: "Buy Diamond Flare" })).toBeInTheDocument()
   })
 
-  it("says how many more chips you need when you can't afford it", () => {
+  it("can't be bought without enough chips", () => {
     setup({ balance: 400 })
-    expect(screen.getByRole("button", { name: "Need 250 more" })).toBeDisabled()
+    expect(screen.getByText("Not enough chips")).toBeInTheDocument()
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 
   it("shows owned items as owned instead of for sale", () => {

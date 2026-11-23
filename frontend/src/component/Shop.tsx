@@ -63,26 +63,22 @@ export default function Shop() {
 
       {active && (
         <>
-          <div role="tablist" aria-label="Categories" className="shop-tabs">
-            {categories.map((type) => (
-              <button key={type} type="button" role="tab" id={`tab-${type}`} aria-controls="shop-panel" aria-selected={type === active} className={type === active ? "shop-tab active" : "shop-tab"} onClick={() => setTab(type)}>
-                {COSMETIC_LABELS[type]}
-              </button>
-            ))}
+          <div className="panel shop-tabbar">
+            <div role="tablist" aria-label="Categories" className="shop-tabs">
+              {categories.map((type) => (
+                <button key={type} type="button" role="tab" id={`tab-${type}`} aria-controls="shop-panel" aria-selected={type === active} className={type === active ? "shop-tab active" : "shop-tab"} onClick={() => setTab(type)}>
+                  {COSMETIC_LABELS[type]}
+                </button>
+              ))}
+            </div>
+            {signedIn && (
+              <p className="shrink-0 pr-5 text-sm text-[#9e9393]">
+                {ownedCount} of {shown.length} owned
+              </p>
+            )}
           </div>
 
           <section role="tabpanel" id="shop-panel" aria-labelledby={`tab-${active}`}>
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 className="text-[28px] font-bold">{COSMETIC_LABELS[active]}</h2>
-                <p className="text-base text-[#b8aeae]">Cosmetics are yours to keep once purchased.</p>
-              </div>
-              {signedIn && (
-                <p className="text-base text-[#b8aeae]">
-                  {ownedCount} of {shown.length} owned
-                </p>
-              )}
-            </div>
             <div className="grid gap-4 lg:grid-cols-2">
               {shown.map((item) => (
                 <ShopItemCard key={item.id} item={item} username={username} balance={balance} signedIn={signedIn} onBuy={handleBuy} />
@@ -97,29 +93,19 @@ export default function Shop() {
 
 function ShopHeader({ balance, signedIn }: { balance: number | null; signedIn: boolean }) {
   return (
-    <section className="panel shop-hero">
-      <div>
-        <p className="shop-eyebrow">The Vault</p>
-        <h1 className="shop-title">Shop</h1>
-        <p className="text-base text-[#cfc6c6] sm:text-lg">Bring your own style to the table with collectible player cosmetics.</p>
-      </div>
+    <div className="page-header">
+      <h1 className="page-title">
+        Shop {signedIn && <small aria-label="Available balance">{balance === null ? "…" : balance.toLocaleString()} chips</small>}
+      </h1>
       {signedIn ? (
-        <div className="flex flex-col items-stretch gap-3 max-sm:w-full sm:items-end">
-          <div className="shop-balance" aria-label="Available balance">
-            <span className="text-sm text-[#b8aeae]">Available balance</span>
-            <span>
-              <strong>{balance === null ? "…" : balance.toLocaleString()}</strong> chips
-            </span>
-          </div>
-          <Link href="/shop/my-items" className="secondary-action">
-            My items
-          </Link>
-        </div>
+        <Link href="/shop/my-items" className="secondary-action">
+          My Items
+        </Link>
       ) : (
-        <Link href="/" className="primary-action buy-action">
+        <Link href="/" className="secondary-action">
           Sign in to start collecting
         </Link>
       )}
-    </section>
+    </div>
   )
 }
