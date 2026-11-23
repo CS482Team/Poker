@@ -20,9 +20,10 @@ describe("DailyRewards", () => {
     expect(announceBalance).toHaveBeenCalledWith(1200)
   })
 
-  it("shows errors", async () => {
-    jest.mocked(fetchDailyReward).mockRejectedValue(new Error("Failed to load daily reward (500)"))
-    render(<DailyRewards />)
-    expect(await screen.findByText("Failed to load daily reward (500)")).toBeInTheDocument()
+  it("hides when it can't load", async () => {
+    jest.mocked(fetchDailyReward).mockRejectedValue(new Error("Failed to load daily reward (401)"))
+    const { container } = render(<DailyRewards />)
+    await Promise.resolve()
+    expect(container).toBeEmptyDOMElement()
   })
 })

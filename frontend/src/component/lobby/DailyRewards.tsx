@@ -12,9 +12,7 @@ export default function DailyRewards() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchDailyReward()
-      .then(setStatus)
-      .catch((err: Error) => setError(err.message))
+    fetchDailyReward().then(setStatus, () => {})
   }, [])
 
   async function claim() {
@@ -30,11 +28,11 @@ export default function DailyRewards() {
     setClaiming(false)
   }
 
-  if (!status) return error ? <p className="text-sm text-red-300">{error}</p> : null
+  if (!status) return null
 
   return (
     <div className="flex items-center gap-4">
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm font-medium text-white [text-shadow:0_1px_3px_rgb(0_0_0/0.7)]">{error}</p>}
       <div className="grid gap-2">
         <p className="text-[13px] font-bold uppercase tracking-[.14em] text-[#d8cfcf]">Daily Rewards</p>
         <ol aria-label="Daily rewards" className="daily-chips">

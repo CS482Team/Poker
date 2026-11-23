@@ -27,7 +27,7 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
   if (items.length === 0) {
     return (
       <section className="panel p-8 text-center">
-        <p className="text-lg">You don&apos;t own any cosmetics yet.</p>
+        <p className="text-base">You don&apos;t own any cosmetics yet.</p>
       </section>
     )
   }

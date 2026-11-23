@@ -6,7 +6,7 @@ import Icon, { JOIN, LOCK, PLUS, RETURN } from "@/component/common/Icon"
 import NewTableForm from "@/component/lobby/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 import { watchTables } from "@/service/SocketService"
-import { fetchTables, joinTable } from "@/service/TableService"
+import { fetchTables, joinTable, SIGNED_OUT } from "@/service/TableService"
 import { isGuest } from "@/service/UserService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -56,7 +56,8 @@ export default function TableList() {
       }
       router.push(`/table/${table.id}`)
     } catch (err) {
-      setError((err as Error).message)
+      if ((err as Error).message === SIGNED_OUT) router.push("/")
+      else setError((err as Error).message)
     }
   }
 
@@ -77,6 +78,8 @@ export default function TableList() {
       </div>
 
       {creating && <NewTableForm onCancel={() => setCreating(false)} />}
+
+      {error && <p role="alert" className="mb-4 text-center text-base font-medium text-white [text-shadow:0_1px_3px_rgb(0_0_0/0.7)]">{error}</p>}
 
       <div className="panel overflow-hidden">
         <div className="hidden grid-cols-[1.5fr_.7fr_.6fr_.8fr_220px] gap-4 border-b border-black/60 bg-gradient-to-b from-[#3a3535] to-[#211d1d] px-[22px] py-[15px] text-sm leading-[19px] text-[#b5a9a9] md:grid">
@@ -120,12 +123,6 @@ export default function TableList() {
           </div>
         )}
 
-        {error && (
-          <div className="px-6 py-14 text-center">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
-        
         {!loading && !error && tables.length === 0 && (
           <div className="px-6 py-14 text-center">
             <p className="text-sm text-[#a99898]">No tables yet.</p>

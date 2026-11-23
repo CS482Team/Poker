@@ -104,8 +104,7 @@ cleanup() {
 trap cleanup EXIT
 
 say "Starting the backend and frontend (logs in .demo/)..."
-# The backend runs without "watch" so a saved file can't restart it and wipe the hand in progress
-(cd "$BACKEND" && exec ./node_modules/.bin/tsx src/index.ts) >"$LOGS/backend.log" 2>&1 &
+(cd "$BACKEND" && exec ./node_modules/.bin/tsx watch src/index.ts) >"$LOGS/backend.log" 2>&1 &
 start_frontend() {
   (cd "$FRONTEND" && exec ./node_modules/.bin/next dev -p "$WEB_PORT") >>"$LOGS/frontend.log" 2>&1 &
   FRONTEND_PID=$!

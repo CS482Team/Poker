@@ -2,10 +2,12 @@ import { authHeaders } from "@/service/AuthService";
 import type { NewTable, Table, TableSettings } from "@shared/Table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const SIGNED_OUT = "You're signed out. Sign in again to play.";
 
 /* The error to show for a failed request: the server's reason when it sends one
    (e.g. "Failed to join table: Insufficient balance"), otherwise the status code */
 async function requestError(res: Response, what: string): Promise<Error> {
+  if (res.status === 401) return new Error(SIGNED_OUT);
   const reason = await res.json().then((body) => body?.error, () => undefined);
   return new Error(typeof reason === "string" ? `${what}: ${reason}` : `${what} (${res.status})`);
 }

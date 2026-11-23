@@ -170,8 +170,8 @@ export default function GameTable({ id }: { id: string }) {
   if (!table) return <p className="page-shell text-lg text-[#d8cfcf]">Loading table…</p>
 
   return (
-    <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-8 sm:px-6 md:grid-cols-[260px_minmax(0,1fr)] md:gap-x-12 md:gap-y-12 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-x-14">
-      <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 md:col-span-2">
+    <div className={`mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-8 sm:px-6 md:gap-x-12 md:gap-y-12 xl:gap-x-14 ${table.chatEnabled ? "md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]" : ""}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 md:col-span-full">
       <div className="flex min-w-0 items-center gap-3">
         <button type="button" onClick={leave} className="secondary-action small shrink-0 gap-1.5">
           <Icon d={LEAVE} size={14} />
@@ -191,17 +191,15 @@ export default function GameTable({ id }: { id: string }) {
         <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
       </div>
       </div>
-      <div className="order-last h-[28rem] md:order-none md:h-[520px]">
-        {table.chatEnabled ? (
+      {table.chatEnabled && (
+        <div className="order-last h-[28rem] md:order-none md:h-[520px]">
           <ChatPanel
             tableId={table.id}
             userId={getCurrentUserId()}
             seated={table.seats.some((seat) => seat.userId === getCurrentUserId())}
           />
-        ) : (
-          <p className="panel p-6 text-center text-sm text-[#9e9393]">Chat is turned off at this table.</p>
-        )}
-      </div>
+        </div>
+      )}
       <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
           {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
@@ -296,7 +294,7 @@ export default function GameTable({ id }: { id: string }) {
                     </div>
                   )}
                   {won && (
-                    <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-6 left-1/2 z-10 h-5 w-7 -translate-x-1/2">
+                    <svg viewBox="0 0 24 16" fill="#e8b84a" aria-label="Winner" className="absolute -top-3 left-1/2 z-10 h-5 w-7 -translate-x-1/2">
                       <path d="M0 16 L2 4 L7 9 L12 0 L17 9 L22 4 L24 16 Z" />
                     </svg>
                   )}
@@ -389,8 +387,8 @@ function winnerText(view: PlayerView): string {
 }
 
 function actionText(p: PublicPlayer): string | null {
-  if (p.handName) return p.handName
   if (p.status === "folded") return "Folded"
+  if (p.handName) return p.handName
   if (p.lastAction === "check") return "Check"
   if (p.lastAction === "call") return `Call $${p.betThisRound}`
   if (p.lastAction === "bet") return `Bet $${p.betThisRound}`

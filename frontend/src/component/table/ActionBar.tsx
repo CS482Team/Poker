@@ -2,11 +2,11 @@ import { useState } from "react"
 import type { ActionType, LegalAction } from "@shared/Actions"
 
 const BUTTON =
-  "rounded-md border border-black/40 bg-gradient-to-b from-[#454545] to-[#2e2e2e] px-6 py-3 text-lg font-medium shadow disabled:cursor-not-allowed disabled:opacity-50"
+  "rounded-md border border-black/40 bg-gradient-to-b from-[#322e2e] to-[#1c1919] px-5 py-2 text-base font-medium shadow disabled:cursor-not-allowed disabled:opacity-50"
 
 // the small square - and + buttons beside the amount box
 const STEP_BUTTON =
-  "h-12 w-12 rounded-md border border-black/40 bg-gradient-to-b from-[#454545] to-[#2e2e2e] text-2xl font-medium leading-none shadow disabled:cursor-not-allowed disabled:opacity-50"
+  "h-10 w-10 rounded-md border border-black/40 bg-gradient-to-b from-[#322e2e] to-[#1c1919] text-xl font-medium leading-none shadow disabled:cursor-not-allowed disabled:opacity-50"
 
 const BET_STEP = 5 // - and + move in $5 steps; the amount box takes any whole amount
 
@@ -97,7 +97,7 @@ export default function ActionBar({ legalActions, busy, onAction }: ActionBarPro
           >
             −
           </button>
-          <label className="flex h-12 items-center rounded-md border border-panel-edge bg-panel-sunken pl-2 text-lg text-ink focus-within:outline-1 focus-within:outline-[#3fd94f] has-[:disabled]:opacity-50">
+          <label className="flex h-10 items-center rounded-md border border-panel-edge bg-panel-sunken pl-2 text-base text-ink focus-within:outline-1 focus-within:outline-[#3fd94f] has-[:disabled]:opacity-50">
             <span aria-hidden className="text-ink-muted">$</span>
             <input
               type="number"
