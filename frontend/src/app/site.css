@@ -718,6 +718,14 @@ input[type="checkbox"]:checked::after {
 }
 .ad-banner span { color: #8d6d6d; font-size: 7px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .ad-banner strong { font-size: 10px; font-weight: 600; letter-spacing: .15em; }
+.banner-row { display: flex; width: calc(min(100%, 1280px) - 2 * var(--gutter)); margin: 14px auto 0; gap: 12px; }
+.banner-row .ad-banner { width: auto; flex: 1 1 0; margin: 0; padding: 0 12px; }
+.promo-banner {
+  border-color: rgba(0, 0, 0, .35);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.02) 0 6px, transparent 6px 12px),
+    linear-gradient(180deg, rgba(78, 48, 22, .94), rgba(40, 24, 10, .97));
+}
 .game-room-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 .profile-menu { position: absolute; z-index: 70; top: calc(100% + 12px); right: 0; width: 210px; overflow: hidden; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; background: #1e1a1a; padding: 6px; box-shadow: 0 20px 50px rgba(24,0,5,.4); }
 .profile-menu strong, .profile-menu small { display: block; }

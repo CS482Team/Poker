@@ -3,6 +3,7 @@ import cors from "cors"
 
 import { adRouter } from "./route/AdRouter"
 import { adminRouter } from "./route/AdminRouter"
+import { eventRouter } from "./route/EventRouter"
 import { gameRouter } from "./route/GameRouter"
 import { shopRouter } from "./route/ShopRouter"
 import { tableRouter } from "./route/TableRouter"
@@ -15,6 +16,7 @@ app.use(express.json({ limit: "5mb" }))
 app.get("/health", (_, res) => res.json({ ok: true }))
 app.use("/admin", adminRouter)
 app.use("/ads", adRouter)
+app.use("/events", eventRouter)
 app.use("/shop", shopRouter)
 app.use("/tables", tableRouter)
 app.use(gameRouter)

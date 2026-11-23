@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import type { NewTable, Table, TableSettings } from "../../../shared/Table"
 import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
+import { getActiveEvent } from "../dao/EventDAO"
 import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
 import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
@@ -81,7 +82,8 @@ export async function joinTable(req: Request<{ id: string }, {}, { userId: strin
     res.status(409).json({ error: "Insufficient balance" })
     return
   }
-  await addPlayer(table.id, userId, seatNumber, table.buyIn)
+  const event = await getActiveEvent()
+  await addPlayer(table.id, userId, seatNumber, Math.round(table.buyIn * (event?.multiplier ?? 1)))
   await changeBalance(userId, -table.buyIn, "buy_in")
   await announce(table.id, userId, "joined the table")
   await broadcastChange(table.id)
