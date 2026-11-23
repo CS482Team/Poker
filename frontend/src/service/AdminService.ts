@@ -58,3 +58,12 @@ export async function fetchPlayerHands(id: string): Promise<HandRecord[]> {
   if (!res.ok) throw new Error(`Failed to load history (${res.status})`);
   return res.json();
 }
+
+export async function modifyChips(id: string, balance: number): Promise<void> {
+  const res = await fetch(`${API_URL}/admin/players/${id}/balance`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+    body: JSON.stringify({ balance }),
+  });
+  if (!res.ok) throw new Error(`Failed to modify chips (${res.status})`);
+}

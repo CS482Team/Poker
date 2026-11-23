@@ -1,5 +1,6 @@
 "use client"
 
+import ModifyChipsModal from "@/component/ModifyChipsModal"
 import { fetchPlayerHands, fetchPlayers } from "@/service/AdminService"
 import type { HandRecord, PlayerSummary } from "@shared/PlayerHistory"
 import { useEffect, useState } from "react"
@@ -10,6 +11,7 @@ export default function PlayerHistory() {
   const [hands, setHands] = useState<HandRecord[] | null>(null)
   const [search, setSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [editingChips, setEditingChips] = useState(false)
 
   useEffect(() => {
     fetchPlayers()
@@ -29,12 +31,18 @@ export default function PlayerHistory() {
     setSelectedId(id)
   }
 
+  function saveChips(balance: number) {
+    setPlayers(players.map((p) => (p.id === selectedId ? { ...p, balance } : p)))
+    setEditingChips(false)
+  }
+
   const selected = players.find((p) => p.id === selectedId)
   const shown = players.filter((p) => p.username.toLowerCase().includes(search.trim().toLowerCase()))
   const net = hands?.reduce((sum, hand) => sum + hand.netResult, 0) ?? 0
 
   return (
     <section className="panel overflow-hidden">
+      {editingChips && selected && <ModifyChipsModal player={selected} onCancel={() => setEditingChips(false)} onSaved={saveChips} />}
       <div className="panel-head flush">
         <h2>Players</h2>
       </div>
@@ -72,10 +80,14 @@ export default function PlayerHistory() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="avatar-initial size-11! text-lg">{selected.username[0]}</span>
-                <h3 className="truncate text-xl font-bold">{selected.username}</h3>
-              </div>
+                <h3 className="truncate text-xl font-bold">{selected.username}</h3>              </div>
               <div className="flex divide-x divide-white/10">
-                <Stat label="Balance" value={`$${selected.balance.toLocaleString()}`} />
+                <button type="button" aria-label="Modify chips" onClick={() => setEditingChips(true)} className="rounded-md py-1 pl-2 pr-4 text-right transition-colors hover:bg-white/[.06]">
+                  <small>Balance</small>
+                  <p className="flex items-center gap-2 text-lg font-bold tabular-nums">
+                    <span className="chip" aria-hidden />${selected.balance.toLocaleString()}
+                  </p>
+                </button>
                 <Stat label="Hands Played" value={selected.handsPlayed.toLocaleString()} />
                 <Stat label="Net Result" value={money(net)} color={resultColor(net)} />
               </div>
