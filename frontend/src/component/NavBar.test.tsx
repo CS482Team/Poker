@@ -4,6 +4,10 @@ import { usePathname } from "next/navigation"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import { watchTable } from "@/service/SocketService"
 
+jest.mock("@/app/supabaseClient", () => ({
+  supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
+}))
+
 jest.mock("@/component/ProfileMenu", () => () => null)
 jest.mock("@/service/CurrentTableService", () => ({ getCurrentTableId: jest.fn() }))
 jest.mock("@/service/SocketService", () => ({ watchTable: jest.fn(() => jest.fn()) }))
@@ -13,6 +17,18 @@ jest.mock("next/navigation", () => ({
 
 describe("Nav", () => {
   beforeEach(() => jest.mocked(getCurrentTableId).mockReturnValue(null))
+
+  it("has the sound settings button", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    render(<Nav />)
+    expect(screen.getByRole("button", { name: /^Sound settings/ })).toBeInTheDocument()
+  })
+
+  it("links to the shop", () => {
+    jest.mocked(usePathname).mockReturnValue("/dashboard")
+    render(<Nav />)
+    expect(screen.getByRole("link", { name: "Shop" })).toHaveAttribute("href", "/shop")
+  })
 
   it("hides the table tab when not at a table", () => {
     jest.mocked(usePathname).mockReturnValue("/dashboard")
@@ -50,7 +66,7 @@ describe("Nav", () => {
     jest.mocked(usePathname).mockReturnValue("/dashboard")
     jest.mocked(getCurrentTableId).mockReturnValue("abc")
     render(<Nav />)
-    act(() => jest.mocked(watchTable).mock.lastCall![3]({ toActSeat: 1, you: { seat: 1 } } as never))
+    act(() => jest.mocked(watchTable).mock.lastCall![2]({ toActSeat: 1, you: { seat: 1 } } as never))
     expect(screen.getByRole("img", { name: "Your turn" })).toBeInTheDocument()
   })
 })

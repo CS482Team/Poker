@@ -1,4 +1,4 @@
-import { createReport, getReport, getReports } from "./ReportDAO"
+import { createReport, getReport, getReports, hasOpenReset, resolveReport } from "./ReportDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -12,7 +12,7 @@ describe("ReportDAO", () => {
   it("saves a report", async () => {
     await createReport("u1", "Table froze", { id: "t1", name: "Ruby" })
     expect(calls).toContainEqual(["from", ["support_ticket"]])
-    expect(calls).toContainEqual(["insert", [{ user_id: "u1", body: "Table froze", table_id: "t1", table_name: "Ruby" }]])
+    expect(calls).toContainEqual(["insert", [{ user_id: "u1", body: "Table froze", table_id: "t1", table_name: "Ruby", kind: "report" }]])
   })
 
   it("lists reports newest first with the sender's name", async () => {
@@ -26,6 +26,16 @@ describe("ReportDAO", () => {
     expect(await getReport(2)).toEqual(report)
     mockState.result = { data: null }
     expect(await getReport(3)).toBeNull()
+  })
+
+  it("finds an open reset request", async () => {
+    mockState.result = { count: 1 }
+    expect(await hasOpenReset("u1")).toBe(true)
+  })
+
+  it("marks a report resolved", async () => {
+    await resolveReport(2)
+    expect(calls).toContainEqual(["update", [{ status: "resolved" }]])
   })
 
   it("throws when the database fails", async () => {

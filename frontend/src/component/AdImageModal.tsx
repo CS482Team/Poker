@@ -38,10 +38,7 @@ export default function AdImageModal({ ad, onCancel, onSaved }: { ad: Ad; onCanc
                 Remove
               </button>
             )}
-            <button type="button" onClick={onCancel} className="secondary-action small ml-auto">
-              Cancel
-            </button>
-            <button type="button" onClick={save} className="primary-action small">
+            <button type="button" onClick={save} className="primary-action small ml-auto">
               Save
             </button>
           </div>

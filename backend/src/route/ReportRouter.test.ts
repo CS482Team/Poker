@@ -2,11 +2,13 @@ import request from "supertest"
 import { app } from "../app"
 import { messagesBefore } from "../dao/ChatDAO"
 import { getTableHands } from "../dao/MatchDAO"
-import { createReport, getReport, getReports } from "../dao/ReportDAO"
+import { createReport, getReport, getReports, hasOpenReset, resolveReport } from "../dao/ReportDAO"
+import { findUserIdByEmail, getEmail, setPassword } from "../dao/AuthDAO"
 import { getTable } from "../dao/TableDAO"
 import { getRole, getUserIdFromToken } from "../dao/UserDAO"
 
-jest.mock("../dao/ReportDAO", () => ({ createReport: jest.fn(), getReport: jest.fn(), getReports: jest.fn() }))
+jest.mock("../dao/ReportDAO", () => ({ createReport: jest.fn(), getReport: jest.fn(), getReports: jest.fn(), hasOpenReset: jest.fn(), resolveReport: jest.fn() }))
+jest.mock("../dao/AuthDAO", () => ({ findUserIdByEmail: jest.fn(), getEmail: jest.fn(), setPassword: jest.fn() }))
 jest.mock("../dao/MatchDAO", () => ({ getTableHands: jest.fn() }))
 jest.mock("../dao/ChatDAO", () => ({ messagesBefore: jest.fn() }))
 jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
@@ -63,5 +65,29 @@ describe("ReportRouter", () => {
   it("404s a missing report", async () => {
     jest.mocked(getReport).mockResolvedValue(null)
     expect((await asUser(request(app).get("/admin/reports/9"))).status).toBe(404)
+  })
+
+  it("files a reset request for a known email", async () => {
+    jest.mocked(findUserIdByEmail).mockResolvedValue("u1")
+    jest.mocked(hasOpenReset).mockResolvedValue(false)
+    const res = await request(app).post("/reports/password-reset").send({ email: "maya@test.local" })
+    expect(res.status).toBe(202)
+    expect(createReport).toHaveBeenCalledWith("u1", "Asked for a password reset", null, "password_reset")
+  })
+
+  it("answers the same for an unknown email", async () => {
+    jest.mocked(findUserIdByEmail).mockResolvedValue(null)
+    const res = await request(app).post("/reports/password-reset").send({ email: "nobody@test.local" })
+    expect(res.status).toBe(202)
+    expect(createReport).not.toHaveBeenCalled()
+  })
+
+  it("lets an admin set the new password", async () => {
+    jest.mocked(getReport).mockResolvedValue({ ...report, kind: "password_reset", status: "open", userId: "u9" } as never)
+    jest.mocked(getEmail).mockResolvedValue("maya@test.local")
+    const res = await asUser(request(app).post("/admin/reports/2/password")).send({ password: "secret12" })
+    expect(res.body).toEqual({ email: "maya@test.local" })
+    expect(setPassword).toHaveBeenCalledWith("u9", "secret12")
+    expect(resolveReport).toHaveBeenCalledWith(2)
   })
 })

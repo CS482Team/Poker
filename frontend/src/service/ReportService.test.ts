@@ -1,10 +1,18 @@
-import { sendReport } from "@/service/ReportService"
+import { requestPasswordReset, sendReport } from "@/service/ReportService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
 }))
 
 describe("ReportService", () => {
+  it("asks for a password reset", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true })
+    await requestPasswordReset("maya@test.local")
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toContain("/reports/password-reset")
+    expect(options?.body).toBe(JSON.stringify({ email: "maya@test.local" }))
+  })
+
   it("posts the message", async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true })
     await sendReport("Table froze", "t1")

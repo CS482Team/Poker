@@ -1,7 +1,6 @@
 import type { Card } from "./Card"
 import type { ChatMessage } from "./Chat"
 
-
 export interface Report {
   id: number
   username: string | null

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-08-panda"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-08-panda)">
+    <rect width="128" height="128" fill="#8fbf6a"/>
+    <circle cx="32" cy="34" r="15" fill="#1b1b1b"/>
+    <circle cx="96" cy="34" r="15" fill="#1b1b1b"/>
+    <path d="M14 128 C14 104 36 96 64 96 C92 96 114 104 114 128Z" fill="#1b1b1b"/>
+    <ellipse cx="64" cy="66" rx="42" ry="38" fill="#fafafa"/>
+    <ellipse cx="46" cy="64" rx="11" ry="14" transform="rotate(30 46 64)" fill="#1b1b1b"/>
+    <ellipse cx="82" cy="64" rx="11" ry="14" transform="rotate(-30 82 64)" fill="#1b1b1b"/>
+    <circle cx="48" cy="62" r="4.5" fill="#fff"/>
+    <circle cx="80" cy="62" r="4.5" fill="#fff"/>
+    <circle cx="49" cy="62" r="2.5" fill="#1b1b1b"/>
+    <circle cx="79" cy="62" r="2.5" fill="#1b1b1b"/>
+    <ellipse cx="64" cy="80" rx="7" ry="5" fill="#1b1b1b"/>
+    <path d="M64 85 L64 89 M56 89 Q60 93 64 89 Q68 93 72 89" stroke="#1b1b1b" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <circle cx="38" cy="82" r="5" fill="#f5a3a3" opacity="0.6"/>
+    <circle cx="90" cy="82" r="5" fill="#f5a3a3" opacity="0.6"/>
+
+  </g>
+</svg>

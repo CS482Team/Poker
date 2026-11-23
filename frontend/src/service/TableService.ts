@@ -1,3 +1,4 @@
+import { authHeaders } from "@/service/AuthService";
 import type { NewTable, Table, TableSettings } from "@shared/Table";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -24,7 +25,7 @@ export async function fetchTable(id: string): Promise<Table> {
 export async function createTable(table: NewTable): Promise<string> {
   const res = await fetch(`${API_URL}/tables`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(),
     body: JSON.stringify(table),
   });
   if (!res.ok) throw await requestError(res, "Failed to create table");
@@ -32,25 +33,21 @@ export async function createTable(table: NewTable): Promise<string> {
   return id;
 }
 
-export async function joinTable(id: string, userId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/tables/${id}/players`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId }),
-  });
+export async function joinTable(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/tables/${id}/players`, { method: "POST", headers: await authHeaders() });
   if (!res.ok) throw await requestError(res, "Failed to join table");
 }
 
-export async function leaveTable(id: string, userId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/tables/${id}/players/${userId}`, { method: "DELETE" });
+export async function leaveTable(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/tables/${id}/players/me`, { method: "DELETE", headers: await authHeaders() });
   if (!res.ok) throw await requestError(res, "Failed to leave table");
 }
 
-export async function updateTableSettings(id: string, userId: string, settings: TableSettings): Promise<void> {
+export async function updateTableSettings(id: string, settings: TableSettings): Promise<void> {
   const res = await fetch(`${API_URL}/tables/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, ...settings }),
+    headers: await authHeaders(),
+    body: JSON.stringify(settings),
   });
   if (!res.ok) throw await requestError(res, "Failed to save settings");
 }

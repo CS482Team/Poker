@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { getHand, getPlayerHands } from "../dao/MatchDAO"
-import { getAllPlayers } from "../dao/UserDAO"
+import { getAllPlayers, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
 import { getEmail, setPassword } from "../dao/AuthDAO"
 import { getReport, resolveReport } from "../dao/ReportDAO"
 
@@ -36,4 +36,24 @@ export async function resetPassword(req: Request<{ id: string }, {}, { password:
   await setPassword(report.userId, password)
   await resolveReport(id)
   res.json({ email: await getEmail(report.userId) })
+}
+
+export async function removePlayer(req: Request<{ id: string }>, res: Response) {
+  await removeUser(req.params.id)
+  res.status(204).end()
+}
+
+export async function unbanPlayer(req: Request<{ id: string }>, res: Response) {
+  await unbanUser(req.params.id)
+  res.status(204).end()
+}
+
+export async function modifyChips(req: Request<{ id: string }, {}, { balance: number }>, res: Response) {
+  const balance = req.body.balance
+  if (!Number.isInteger(balance) || balance < 0) {
+    res.status(400).json({ error: "Invalid balance" })
+    return
+  }
+  await setBalance(req.params.id, balance)
+  res.status(204).end()
 }

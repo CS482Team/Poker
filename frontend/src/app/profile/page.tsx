@@ -8,8 +8,10 @@ export default function Profile() {
   return (
     <>
       <AdBanner />
-      <ProfileCard />
-      <MyHistory />
+      <div className="page-shell">
+        <ProfileCard />
+        <MyHistory />
+      </div>
     </>
   );
 }

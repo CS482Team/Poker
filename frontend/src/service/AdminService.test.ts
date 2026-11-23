@@ -1,4 +1,4 @@
-import { createAd, deleteAd, editAd, fetchAds, fetchPlayerHands, fetchHand, fetchPlayers, fetchReport, fetchReports, isAdmin, setAdActive } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, fetchHand, fetchPlayerHands, fetchPlayers, fetchReport, fetchReports, isAdmin, modifyChips, removePlayer, resetPassword, setAdActive, unbanPlayer } from "@/service/AdminService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
@@ -40,6 +40,34 @@ describe("adminService", () => {
     expect(jest.mocked(global.fetch).mock.calls[2]![0]).toContain("/admin/hands/m1")
   })
 
+  it("sets a new password for a reset request", async () => {
+    respond(true, { email: "maya@test.local" })
+    expect(await resetPassword(4, "secret12")).toBe("maya@test.local")
+    expect(jest.mocked(global.fetch).mock.calls[0]![0]).toContain("/admin/reports/4/password")
+  })
+
+  it("removes a player", async () => {
+    respond(true)
+    await removePlayer("u1")
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toContain("/admin/players/u1")
+    expect(options?.method).toBe("DELETE")
+  })
+
+  it("unbans a player", async () => {
+    respond(true)
+    await unbanPlayer("u1")
+    expect(jest.mocked(global.fetch).mock.calls[0]![0]).toContain("/admin/players/u1/unban")
+  })
+
+  it("modifies a player's chips", async () => {
+    respond(true)
+    await modifyChips("u1", 900)
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toContain("/admin/players/u1/balance")
+    expect(options?.body).toBe(JSON.stringify({ balance: 900 }))
+  })
+
   it("creates, updates and deletes ads", async () => {
     respond(true)
     await createAd(ad)
@@ -60,5 +88,8 @@ describe("adminService", () => {
     await expect(fetchPlayers()).rejects.toThrow("500")
     await expect(fetchPlayerHands("u1")).rejects.toThrow("500")
     await expect(fetchReports()).rejects.toThrow("500")
+    await expect(removePlayer("u1")).rejects.toThrow("500")
+    await expect(unbanPlayer("u1")).rejects.toThrow("500")
+    await expect(modifyChips("u1", 900)).rejects.toThrow("500")
   })
 })

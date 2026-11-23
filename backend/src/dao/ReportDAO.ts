@@ -47,8 +47,8 @@ function toReport(row: any): Report {
     createdAt: row.created_at,
     tableId: row.table_id,
     tableName: row.table_name,
-    userId: row.user_id, 
-    kind: row.kind, 
+    userId: row.user_id,
+    kind: row.kind,
     status: row.status,
   }
 }

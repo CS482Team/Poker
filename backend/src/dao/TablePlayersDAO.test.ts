@@ -12,8 +12,8 @@ describe("TablePlayersDAO", () => {
   })
 
   it("deletes the seat and returns the stack of a removed player", async () => {
-    mockState.result = { data: { stack: 100 } }
-    expect(await removePlayer("t1", "u1")).toBe(100)
+    mockState.result = { data: { stack: 100, bonus: 20 } }
+    expect(await removePlayer("t1", "u1")).toEqual({ stack: 100, bonus: 20 })
     expect(calls).toContainEqual(["delete", []])
     expect(calls).toContainEqual(["eq", ["table_id", "t1"]])
     expect(calls).toContainEqual(["eq", ["user_id", "u1"]])
@@ -27,7 +27,7 @@ describe("TablePlayersDAO", () => {
 
   it("seats a player", async () => {
     await addPlayer("t1", "u1", 2, 100)
-    expect(calls).toContainEqual(["insert", [{ table_id: "t1", user_id: "u1", seat_number: 2, stack: 100 }]])
+    expect(calls).toContainEqual(["insert", [{ table_id: "t1", user_id: "u1", seat_number: 2, stack: 100, bonus: 0 }]])
   })
 
   it("saves a player's stack", async () => {
@@ -43,7 +43,7 @@ describe("TablePlayersDAO", () => {
   })
 
   it("throws when the delete fails after the lookup", async () => {
-    mockState.result = { data: { stack: 100 } }
+    mockState.result = { data: { stack: 100, bonus: 20 } }
     mockState.awaited = failure
     await expect(removePlayer("t1", "u1")).rejects.toThrow("db down")
   })

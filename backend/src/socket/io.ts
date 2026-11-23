@@ -1,9 +1,13 @@
 import type { Server as HttpServer } from "http"
 import { Server } from "socket.io"
 import type { ChatMessage } from "../../../shared/Chat"
+import type { EmotePlayed } from "../../../shared/Cosmetics"
 import { getAllTables, getTable } from "../dao/TableDAO"
+import { getUserIdFromToken } from "../dao/UserDAO"
 import { getTableView } from "../services/GameService"
 import { chatRoom, registerChat } from "./chat"
+import { emoteRoom, registerEmotes } from "./emote"
+import { withCosmetics } from "../services/ShopService"
 
 const LOBBY = "lobby"
 let io: Server | undefined
@@ -12,16 +16,20 @@ let io: Server | undefined
 export function initSocket(server: HttpServer) {
   io = new Server(server, { cors: { origin: process.env.FRONTEND_URL } })
 
+  io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token
+    socket.data.userId = typeof token === "string" ? await getUserIdFromToken(token) : null
+    next()
+  })
+
   io.on("connection", (socket) => {
     socket.on("watch", async (tableId: string, ack?: () => void) => {
       await socket.join(tableId)
       ack?.()
     })
-    // TODO use the logged in user once auth exists
-    socket.on("watchHand", async (info: { tableId: string; userId: string }, ack?: () => void) => {
-      socket.data.userId = info.userId
-      await socket.join(handRoom(info.tableId))
-      const view = getTableView(info.tableId, info.userId)
+    socket.on("watchHand", async (tableId: string, ack?: () => void) => {
+      await socket.join(handRoom(tableId))
+      const view = getTableView(tableId, socket.data.userId)
       if (view) socket.emit("view", view)
       ack?.()
     })
@@ -30,6 +38,7 @@ export function initSocket(server: HttpServer) {
       ack?.()
     })
     registerChat(socket, broadcastChat) // passed in so chat.ts doesn't import io.ts (avoids a circular import)
+    registerEmotes(socket, broadcastEmote) // same reason
   })
 }
 
@@ -39,7 +48,7 @@ export function initSocket(server: HttpServer) {
 export async function broadcastChange(tableId: string) {
   if (!io) return
   const table = await getTable(tableId)
-  if (table) io.to(tableId).emit("table", table)
+  if (table) io.to(tableId).emit("table", await withCosmetics(table))
   io.to(LOBBY).emit("tables", await getAllTables())
 }
 
@@ -55,6 +64,11 @@ export async function sendViews(tableId: string) {
 /* sends a new chat message to everyone in that table's chat */
 export function broadcastChat(message: ChatMessage) {
   io?.to(chatRoom(message.tableId)).emit("chat:message", message)
+}
+
+/* sends a played emote to everyone watching that table */
+export function broadcastEmote(played: EmotePlayed) {
+  io?.to(emoteRoom(played.tableId)).emit("emote:played", played)
 }
 
 /* HELPERS */

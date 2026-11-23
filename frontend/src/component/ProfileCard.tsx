@@ -1,53 +1,59 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { fetchMyProfile } from "@/service/UserService"
+import Avatar from "@/component/cosmetic/Avatar"
+import Icon, { PENCIL } from "@/component/Icon"
+import ProfileForm from "@/component/ProfileForm"
+import { fetchMyProfile } from "@/service/ProfileService"
 import type { MyProfile } from "@shared/User"
-import { changeUsername } from "@/service/UserService"
-import ProfileForm from "./ProfileForm"
+import { useEffect, useState } from "react"
 
 export default function ProfileCard() {
-  const [formOpen, setFormOpen] = useState<boolean>(false)
   const [profile, setProfile] = useState<MyProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
-  
-  useEffect(
-    () => { 
-      fetchMyProfile().then(setProfile) 
-    }, [])
+  const [editing, setEditing] = useState(false)
 
-  // async function saveUsername(username: string) {
-  //   try {
-  //     await changeUsername(username)
-  //     setProfile({ ...profile!, username: username.trim() })
-  //     setEditing(null)
-  //   } catch (err) {
-  //     setError((err as Error).message)
-  //   }
-  // }
+  useEffect(() => {
+    fetchMyProfile()
+      .then(setProfile)
+      .catch((e: Error) => setError(e.message))
+  }, [])
 
-  function onCancel() {
-
+  if (error) {
+    return (
+      <p role="alert" className="mb-6 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        {error}
+      </p>
+    )
   }
+
+  if (!profile) return <p className="mb-6 text-[#9e9393]">Loading your profile…</p>
 
   return (
     <>
-    <div className="page-shell">
-      <div className="page-header">
-        <h1 className="page-title">Profile</h1>
-      </div>
-      <section className="panel p-5">
-        <p>{profile?.email}</p>
-        <p>{profile?.username}</p>
-        <img src={profile?.avatarUrl}></img>
-
-        <button type="button" onClick={() => setFormOpen(true)}>
-          Edit Profile
-        </button>
+      <section aria-label="Your profile" className="mb-6 flex items-center gap-4">
+        <div className="cosmetic-portrait">
+          <Avatar username={profile.username} url={profile.avatarUrl} />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="page-title truncate">{profile.username}</h1>
+            <button type="button" aria-label="Edit profile" title="Edit profile" onClick={() => setEditing(true)} className="grid size-9 shrink-0 place-items-center rounded-md text-[#b5a9a9] transition-colors hover:bg-white/10 hover:text-white">
+              <Icon d={PENCIL} size={18} />
+            </button>
+          </div>
+          <p className="text-[#b8aeae]">{profile.isGuest ? "Guest account" : profile.email}</p>
+        </div>
       </section>
-    </div>
-
-    {formOpen && <ProfileForm profile={profile} onCancel={() => setFormOpen(false)}/>}
+      {editing && (
+        <ProfileForm
+          profile={profile}
+          onCancel={() => setEditing(false)}
+          onSaved={(saved) => {
+            setProfile(saved)
+            setEditing(false)
+          }}
+        />
+      )}
     </>
   )
 }

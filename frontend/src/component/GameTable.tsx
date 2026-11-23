@@ -2,22 +2,33 @@
 
 import ActionBar from "@/component/ActionBar"
 import CardFan from "@/component/CardFan"
+import Avatar from "@/component/cosmetic/Avatar"
+import { NameTagTitle } from "@/component/cosmetic/NameTag"
 import ChatPanel from "@/component/ChatPanel"
 import Dots from "@/component/Dots"
+import EmoteWheel from "@/component/EmoteWheel"
 import EmptySeat from "@/component/EmptySeat"
 import Icon, { LEAVE } from "@/component/Icon"
 import RoomSettings from "@/component/RoomSettings"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act, draw } from "@/service/GameService"
+import { watchEmotes, type EmoteConnection } from "@/service/EmoteService"
+import { playEffect } from "@/service/SoundService"
 import { watchTable } from "@/service/SocketService"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
+import { soundsForViewChange } from "@/util/Sound"
 import PlayerHand from "@/component/PlayerHand"
+import { useMyLoadout } from "@/hook/useMyLoadout"
+import type { EmotePlayed, ShopItem } from "@shared/Cosmetics"
 import type { ActionType } from "@shared/Actions"
 import type { PlayerView, PublicPlayer } from "@shared/PlayerView"
-import type { Table } from "@shared/Table"
+import type { Seat, Table } from "@shared/Table"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+
+// how long an emote stays up over a player's seat
+const EMOTE_SHOW_MS = 3000
 
 /* [left %, top %] of each seat around the table, for a table of 1 to 6 seats */
 const SEAT_SPOTS = [
@@ -52,8 +63,14 @@ export default function GameTable({ id }: { id: string }) {
   const botSeats = (view?.players ?? [])
   .filter(p => !tableSeats.some(s => s.userId === p.id))
   .map((p, i) => ({ userId: p.id, username: p.name, seatNumber: openSeats[i]!, stack: p.stack }))
-  const seats = [...tableSeats, ...botSeats]
-
+  // typed as Seat so bots (which have no cosmetics) and players share one shape
+  const seats: Seat[] = [...tableSeats, ...botSeats]
+  const myLoadout = useMyLoadout()
+  const wheel = [myLoadout.emote_1, myLoadout.emote_2, myLoadout.emote_3, myLoadout.emote_4]
+  const seated = tableSeats.some((s) => s.userId === getCurrentUserId())
+  const [bubbles, setBubbles] = useState<Record<string, { emote: ShopItem; key: number }>>({})
+  const emotes = useRef<EmoteConnection | null>(null)
+  const lastView = useRef<PlayerView | null>(null)
 
   useEffect(() => {
     fetchTable(id)
@@ -65,8 +82,35 @@ export default function GameTable({ id }: { id: string }) {
         clearCurrentTableId()
         setError(err.message)
       })
-    return watchTable(id, getCurrentUserId(), setTable, setView)
+    return watchTable(id, setTable, setView)
   }, [id])
+
+  function showEmote({ userId, emote }: EmotePlayed) {
+    playEffect("emote")
+    const key = Date.now() + Math.random()
+    setBubbles((current) => ({ ...current, [userId]: { emote, key } }))
+    // remove it later, unless a newer emote from the same player has replaced it by then
+    setTimeout(() => {
+      setBubbles((current) => {
+        if (current[userId]?.key !== key) return current
+        const rest = { ...current }
+        delete rest[userId]
+        return rest
+      })
+    }, EMOTE_SHOW_MS)
+  }
+
+  useEffect(() => {
+    const connection = watchEmotes(id, showEmote)
+    emotes.current = connection
+    return () => connection.stop()
+  }, [id])
+
+  // the sounds for whatever just changed: a deal, someone's action, your turn, a win
+  useEffect(() => {
+    soundsForViewChange(lastView.current, view).forEach((sound) => playEffect(sound))
+    lastView.current = view
+  }, [view])
 
   useEffect(() => {
     if (!canDraw) setSelected([])
@@ -74,7 +118,7 @@ export default function GameTable({ id }: { id: string }) {
 
   async function leave() {
     try {
-      await leaveTable(id, getCurrentUserId())
+      await leaveTable(id)
       clearCurrentTableId()
       router.push("/dashboard")
     } catch (err) {
@@ -87,7 +131,7 @@ export default function GameTable({ id }: { id: string }) {
     setBusy(true)
     setActionError(null)
     try {
-      await act(view.gameId, getCurrentUserId(), type, amount)
+      await act(view.gameId, type, amount)
     } catch (err) {
       setActionError((err as Error).message)
     } finally {
@@ -105,7 +149,7 @@ export default function GameTable({ id }: { id: string }) {
     setBusy(true)
     setActionError(null)
     try {
-      await draw(view.gameId, getCurrentUserId(), selected)
+      await draw(view.gameId, selected)
       setSelected([])
     } catch (err) {
       setActionError((err as Error).message)
@@ -119,23 +163,25 @@ export default function GameTable({ id }: { id: string }) {
 
   return (
     <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-8 sm:px-6 md:grid-cols-[260px_minmax(0,1fr)] md:gap-x-12 md:gap-y-12 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-x-14">
-      <div className="flex items-center gap-3">
-        <button type="button" onClick={leave} className="secondary-action small gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 md:col-span-2">
+      <div className="flex min-w-0 items-center gap-3">
+        <button type="button" onClick={leave} className="secondary-action small shrink-0 gap-1.5">
           <Icon d={LEAVE} size={14} />
           Leave
         </button>
-        <h1 className="min-w-0 break-words text-3xl font-bold">{table.name}</h1>
+        <h1 className="min-w-0 truncate text-3xl font-bold">{table.name}</h1>
         {table.hostId === getCurrentUserId() && (
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Table settings" className="text-3xl leading-none text-white/70 hover:text-white">
             ⋮
           </button>
         )}
       </div>
-      <div className="mx-auto flex w-full max-w-[780px] flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf] md:justify-end">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">
         <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
         <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
         <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
         <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+      </div>
       </div>
       <div className="order-last h-[28rem] md:order-none md:h-[520px]">
         {table.chatEnabled ? (
@@ -150,7 +196,6 @@ export default function GameTable({ id }: { id: string }) {
       </div>
       <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
-          <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
           {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
               the words stay for screen readers */}
           {view && Object.keys(view.winnings ?? {}).length > 0 ? (
@@ -210,7 +255,14 @@ export default function GameTable({ id }: { id: string }) {
             const watching = view !== null && !live
             const toAct = live !== undefined && live.seat === view?.toActSeat
             const dealer = live !== undefined && live.seat === view?.dealerSeat
-            const fanned = live && !mine && !folded && live.cardCount > 0 // your own hand is shown below the table
+            const fanned = live && !folded && live.cardCount > 0
+            // winning (gold) and bot (blue) rings beat a border's colour; the turn ring is drawn
+            // separately ("on-turn") so a glowing border never looks like a turn indicator
+            const border = bot ? undefined : seat.cosmetics?.avatar_border
+            const portraitStyle = (
+              bot && !won ? { borderColor: "#72bbea" } : border && !won ? { borderColor: border.style.color, "--ring": border.style.color } : undefined
+            ) as React.CSSProperties | undefined
+            const ringAnimation = border?.style.animation ? `animate-${border.style.animation}` : ""
             return (
               <div
                 key={seat.userId}
@@ -223,10 +275,15 @@ export default function GameTable({ id }: { id: string }) {
                   {fanned && (
                     <div
                       role="img"
-                      aria-label={`${name} has ${live.cardCount} cards`}
+                      aria-label={mine ? `You have ${live.cardCount} cards` : `${name} has ${live.cardCount} cards`}
                       className="absolute bottom-[calc(100%-18px)] left-1/2 -translate-x-1/2"
                     >
-                      <CardFan count={live.cardCount} />
+                      <CardFan count={live.cardCount} back={seat.cosmetics?.card_back} />
+                    </div>
+                  )}
+                  {bubbles[seat.userId] && (
+                    <div key={bubbles[seat.userId]!.key} role="img" aria-label={`${name} played ${bubbles[seat.userId]!.emote.name}`} className="emote-bubble">
+                      {bubbles[seat.userId]!.emote.style.text}
                     </div>
                   )}
                   {won && (
@@ -235,10 +292,10 @@ export default function GameTable({ id }: { id: string }) {
                     </svg>
                   )}
                   <div
-                    className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "animate-turn-glow" : ""} ${bot ? "bot" : ""}`}
-                    style={bot && !won ? { borderColor: "#72bbea" } : undefined}
+                    className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "on-turn" : ""} ${bot ? "bot" : ""} ${ringAnimation}`}
+                    style={portraitStyle}
                   >
-                    {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : name[0]}
+                    {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : <Avatar username={name} url={seat.cosmetics?.avatar?.assetUrl ?? seat.avatarUrl} />}
                     {dealer && (
                       <span className="dealer-chip" aria-label="Dealer">
                         D
@@ -250,20 +307,28 @@ export default function GameTable({ id }: { id: string }) {
                   <span>{name}</span>
                   <small>${(live?.stack ?? seat.stack).toLocaleString()}</small>
                 </div>
+                {!bot && seat.cosmetics?.name_tag && <NameTagTitle tag={seat.cosmetics.name_tag} className="seat-tag" />}
                 {watching && <small>Spectating</small>}
                 {live && actionText(live) && <small>{actionText(live)}</small>}
               </div>
             )
           })}
         </div>
-        {view && !spectating && (
-          <div className="relative z-10 -mt-12">
-            <PlayerHand
-              cards={view.you.hand}
-              selected={selected}
-              canSelect={canDraw && !busy}
-              onToggle={toggleCard}
-            />
+        {(seated || (view && !spectating)) && (
+          <div className="relative z-10 -mt-12 min-h-14">
+            {view && !spectating && (
+              <PlayerHand
+                cards={view.you.hand}
+                selected={selected}
+                canSelect={canDraw && !busy}
+                onToggle={toggleCard}
+              />
+            )}
+            {seated && (
+              <div className="absolute bottom-2 right-0 z-20">
+                <EmoteWheel wheel={wheel} onSend={(slot) => emotes.current?.send(slot) ?? Promise.resolve({ ok: false, error: "Not connected yet" })} />
+              </div>
+            )}
           </div>
         )}
         {canDraw && view && (
@@ -276,7 +341,7 @@ export default function GameTable({ id }: { id: string }) {
             </button>
           </div>
         )}
-        {view && !canDraw && !spectating && (
+        {view && !canDraw && !spectating && view.toActSeat === view.you.seat && (
           <div className="mt-6">
             <ActionBar
               key={`${view.toActSeat}-${view.round?.currentBet}`}

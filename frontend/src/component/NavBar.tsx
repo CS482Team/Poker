@@ -3,11 +3,12 @@
 import ProfileMenu from "@/component/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import { watchTable } from "@/service/SocketService"
-import { getCurrentUserId } from "@/service/UserService"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import BalanceDisplay from "@/component/BalanceDisplay"
+import Icon, { SHOP } from "@/component/Icon"
+import VolumeControl from "@/component/VolumeControl"
 
 export default function Nav() {
   const pathname = usePathname()
@@ -20,7 +21,7 @@ export default function Nav() {
   useEffect(() => {
     setMyTurn(false)
     if (!tableId) return
-    return watchTable(tableId, getCurrentUserId(), () => {}, (view) => setMyTurn(!!view && view.you.seat >= 0 && view.toActSeat === view.you.seat))
+    return watchTable(tableId, () => {}, (view) => setMyTurn(!!view && view.you.seat >= 0 && view.toActSeat === view.you.seat))
   }, [tableId])
 
   // The sign-in and sign-up pages have their own full-screen layout
@@ -50,6 +51,10 @@ export default function Nav() {
           )}
         </div>
         <div className="flex items-center justify-end gap-3">
+          <VolumeControl />
+          <Link href="/shop" aria-label="Shop" title="Shop" className={pathname === "/shop" ? "shop-nav-button active" : "shop-nav-button"}>
+            <Icon d={SHOP} size={20} />
+          </Link>
           <BalanceDisplay />
           <ProfileMenu />
         </div>

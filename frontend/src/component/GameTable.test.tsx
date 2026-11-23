@@ -1,8 +1,12 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import GameTable from "@/component/GameTable"
+import { makeItem } from "@/component/cosmetic/makeItem"
 import { clearCurrentTableId } from "@/service/CurrentTableService"
 import { act as playAction, draw } from "@/service/GameService"
 import { watchTable } from "@/service/SocketService"
+import { watchEmotes } from "@/service/EmoteService"
+import { playEffect } from "@/service/SoundService"
+import { useMyLoadout } from "@/hook/useMyLoadout"
 import { fetchTable, leaveTable } from "@/service/TableService"
 import { getCurrentUserId } from "@/service/UserService"
 
@@ -16,6 +20,8 @@ jest.mock("@/service/ChatService", () => ({
   watchChat: () => ({ send: jest.fn(), stop: jest.fn() }),
 }))
 
+jest.mock("@/service/ReportService", () => ({ sendReport: jest.fn() }))
+
 jest.mock("@/service/TableService", () => ({
   fetchTable: jest.fn(),
   leaveTable: jest.fn(),
@@ -26,6 +32,9 @@ jest.mock("@/service/SocketService", () => ({
 }))
 
 jest.mock("@/service/GameService", () => ({ act: jest.fn(), draw: jest.fn() }))
+jest.mock("@/service/EmoteService", () => ({ watchEmotes: jest.fn() }))
+jest.mock("@/service/SoundService", () => ({ playEffect: jest.fn() }))
+jest.mock("@/hook/useMyLoadout", () => ({ useMyLoadout: jest.fn(() => ({})) }))
 
 jest.mock("@/service/CurrentTableService", () => ({
   clearCurrentTableId: jest.fn(),
@@ -72,12 +81,16 @@ function seatOf(name: string) {
 async function showView(shown: object = view) {
   render(<GameTable id="t1" />)
   await screen.findByText("Maya")
-  act(() => jest.mocked(watchTable).mock.calls[0][3](shown as never))
+  act(() => jest.mocked(watchTable).mock.calls[0][2](shown as never))
 }
+
+const sendEmote = jest.fn()
 
 beforeEach(() => {
   jest.clearAllMocks()
   jest.mocked(fetchTable).mockResolvedValue(table)
+  jest.mocked(watchEmotes).mockReturnValue({ send: sendEmote, stop: jest.fn() })
+  jest.mocked(useMyLoadout).mockReturnValue({})
 })
 
 describe("GameTable", () => {
@@ -90,7 +103,7 @@ describe("GameTable", () => {
   it("shows a player who joins over the socket", async () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
-    const push = jest.mocked(watchTable).mock.calls[0][2]
+    const push = jest.mocked(watchTable).mock.calls[0][1]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 2, stack: 100 }] }))
     expect(screen.getByText("Sam")).toBeInTheDocument()
   })
@@ -106,14 +119,14 @@ describe("GameTable", () => {
     render(<GameTable id="t1" />)
     fireEvent.click(await screen.findByRole("button", { name: "Leave" }))
     await screen.findByText("Maya")
-    expect(leaveTable).toHaveBeenCalledWith("t1", getCurrentUserId())
+    expect(leaveTable).toHaveBeenCalledWith("t1")
     expect(mockPush).toHaveBeenCalledWith("/dashboard")
   })
 
   it("sends an action from the action bar", async () => {
     await showView()
     fireEvent.click(screen.getByRole("button", { name: "Check" }))
-    expect(playAction).toHaveBeenCalledWith("g1", getCurrentUserId(), "check", undefined)
+    expect(playAction).toHaveBeenCalledWith("g1", "check", undefined)
   })
 
   it("shows a refused action", async () => {
@@ -185,7 +198,7 @@ describe("GameTable", () => {
     render(<GameTable id="t1" />)
     await screen.findByText("Maya")
     const before = seatOf("Maya").style.left
-    const push = jest.mocked(watchTable).mock.calls[0][2]
+    const push = jest.mocked(watchTable).mock.calls[0][1]
     act(() => push({ ...table, seats: [...table.seats, { userId: "u3", username: "Sam", seatNumber: 4, stack: 100 }] }))
     expect(seatOf("Maya").style.left).toBe(before)
     expect(screen.getAllByRole("img", { name: "Open seat" })).toHaveLength(3)
@@ -196,9 +209,41 @@ describe("GameTable", () => {
     expect(screen.getByRole("img", { name: "Maya has 5 cards" })).toBeInTheDocument()
   })
 
-  it("doesn't fan out your own cards, since your hand is shown below", async () => {
+  it("fans your own cards face down at your seat too, so you can see your card back", async () => {
     await showView({ ...view, players: [alex, maya] })
-    expect(screen.queryByRole("img", { name: /^Me has/ })).not.toBeInTheDocument()
+    expect(screen.getByRole("img", { name: "You have 5 cards" })).toBeInTheDocument()
+  })
+
+  it("draws each player's fan in their own equipped card back", async () => {
+    const rays = makeItem({ id: "c1", name: "Diamond Flare", type: "card_back", style: { pattern: "rays" } })
+    jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, cosmetics: { card_back: rays } }] })
+    await showView({ ...view, players: [alex, maya] })
+    const mayaFan = screen.getByRole("img", { name: "Maya has 5 cards" })
+    expect(mayaFan.querySelector("[data-pattern='rays']")).not.toBeNull()
+    // you have no card back equipped, so you get the house deck
+    expect(screen.getByRole("img", { name: "You have 5 cards" }).querySelector("[data-pattern]")).toBeNull()
+  })
+
+  it("shows a player's name tag title under their name", async () => {
+    const spender = makeItem({ id: "t1", name: "Big Spender", type: "name_tag", rarity: "legendary", style: { text: "Big Spender", animation: "shimmer" } })
+    jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, cosmetics: { name_tag: spender } }] })
+    render(<GameTable id="t1" />)
+    await screen.findByText("Maya")
+    const title = within(seatOf("Maya")).getByText("Big Spender")
+    expect(title).toHaveClass("name-tag-title", "rarity-legendary", "animate-shimmer")
+    // players without a tag just show their name
+    expect(seatOf("Me").querySelector(".name-tag-title")).toBeNull()
+  })
+
+  it("shows a player's equipped avatar and border on their seat", async () => {
+    const fox = makeItem({ id: "a1", name: "Sly Fox", type: "avatar", assetUrl: "/cosmetic/avatar/sly-fox.svg" })
+    const ruby = makeItem({ id: "b1", name: "Ruby Glow", type: "avatar_border", style: { color: "#e0115f" } })
+    jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, cosmetics: { avatar: fox, avatar_border: ruby } }] })
+    render(<GameTable id="t1" />)
+    await screen.findByText("Maya")
+    const portrait = seatOf("Maya").querySelector(".seat-portrait") as HTMLElement
+    expect(portrait.querySelector("img")).toHaveAttribute("src", "/cosmetic/avatar/sly-fox.svg")
+    expect(portrait).toHaveStyle({ borderColor: "#e0115f" })
   })
 
   it("fades a folded player and hides their cards", async () => {
@@ -209,10 +254,19 @@ describe("GameTable", () => {
     expect(seatOf("Maya")).toHaveClass("opacity-50")
   })
 
-  it("makes the player whose turn it is glow", async () => {
+  it("rings the player whose turn it is", async () => {
     await showView({ ...view, toActSeat: 1, players: [alex, maya] })
-    expect(seatOf("Maya").querySelector(".seat-portrait")).toHaveClass("animate-turn-glow")
-    expect(seatOf("Me").querySelector(".seat-portrait")).not.toHaveClass("animate-turn-glow")
+    expect(seatOf("Maya").querySelector(".seat-portrait")).toHaveClass("on-turn")
+    expect(seatOf("Me").querySelector(".seat-portrait")).not.toHaveClass("on-turn")
+  })
+
+  it("keeps a glowing border's own animation on their turn, so the turn ring stays distinct from it", async () => {
+    const ruby = makeItem({ id: "b1", name: "Ruby Glow", type: "avatar_border", style: { color: "#e0115f", animation: "glow" } })
+    jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, cosmetics: { avatar_border: ruby } }] })
+    await showView({ ...view, toActSeat: 1, players: [alex, maya] })
+    const portrait = seatOf("Maya").querySelector(".seat-portrait")
+    expect(portrait).toHaveClass("on-turn")
+    expect(portrait).toHaveClass("animate-glow")
   })
 
   it("marks the dealer", async () => {
@@ -236,7 +290,7 @@ describe("GameTable", () => {
     await showView({ ...view, phase: "draw", you: { seat: 0, hand, legalActions: [] } })
     fireEvent.click(screen.getAllByRole("button", { pressed: false })[1]!)
     fireEvent.click(screen.getByRole("button", { name: "Draw" }))
-    expect(draw).toHaveBeenCalledWith("g1", getCurrentUserId(), [1])
+    expect(draw).toHaveBeenCalledWith("g1", [1])
   })
 
   it("seats bots in the open seats with a blue ring", async () => {
@@ -250,5 +304,60 @@ describe("GameTable", () => {
     expect(within(seatOf("Me")).getByText("Spectating")).toBeInTheDocument()
     expect(seatOf("Me")).toHaveClass("opacity-50")
     expect(screen.queryByRole("button", { name: "Fold" })).not.toBeInTheDocument()
+  })
+
+  describe("emotes", () => {
+    const laugh = makeItem({ id: "e1", name: "Big Laugh", type: "emote", style: { text: "😂" } })
+
+    afterEach(() => jest.useRealTimers())
+
+    it("pops a played emote up over that player's seat, then lets it go", async () => {
+      render(<GameTable id="t1" />)
+      await screen.findByText("Maya")
+      jest.useFakeTimers()
+      const onPlayed = jest.mocked(watchEmotes).mock.calls[0]![1]
+      act(() => onPlayed({ tableId: "t1", userId: "u2", emote: laugh }))
+      expect(within(seatOf("Maya")).getByRole("img", { name: "Maya played Big Laugh" })).toHaveTextContent("😂")
+
+      act(() => jest.advanceTimersByTime(3000))
+      expect(screen.queryByRole("img", { name: "Maya played Big Laugh" })).not.toBeInTheDocument()
+    })
+
+    it("gives seated players their emote wheel, which sends through the table's emote connection", async () => {
+      jest.mocked(useMyLoadout).mockReturnValue({ emote_2: laugh })
+      sendEmote.mockResolvedValue({ ok: true })
+      render(<GameTable id="t1" />)
+      await screen.findByText("Maya")
+      fireEvent.click(screen.getByRole("button", { name: "Emotes" }))
+      await act(async () => fireEvent.click(screen.getByRole("button", { name: "Send Big Laugh" })))
+      expect(sendEmote).toHaveBeenCalledWith("emote_2")
+      expect(watchEmotes).toHaveBeenCalledWith("t1", expect.any(Function))
+    })
+
+    it("hides the wheel from spectators", async () => {
+      jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[1]!] })
+      render(<GameTable id="t1" />)
+      await screen.findByText("Maya")
+      expect(screen.queryByRole("button", { name: "Emotes" })).not.toBeInTheDocument()
+    })
+  })
+
+  describe("sounds", () => {
+    it("stays quiet on the first view, then plays the sounds for what changed", async () => {
+      await showView({ ...view, handNumber: 1, players: [alex, maya] })
+      expect(playEffect).not.toHaveBeenCalled()
+
+      const push = jest.mocked(watchTable).mock.calls[0]![2]
+      act(() => push({ ...view, handNumber: 2, players: [alex, maya] } as never))
+      expect(playEffect).toHaveBeenCalledWith("deal")
+    })
+
+    it("pops when someone plays an emote", async () => {
+      render(<GameTable id="t1" />)
+      await screen.findByText("Maya")
+      const onPlayed = jest.mocked(watchEmotes).mock.calls[0]![1]
+      act(() => onPlayed({ tableId: "t1", userId: "u2", emote: makeItem({ name: "Big Laugh", type: "emote", style: { text: "😂" } }) }))
+      expect(playEffect).toHaveBeenCalledWith("emote")
+    })
   })
 })

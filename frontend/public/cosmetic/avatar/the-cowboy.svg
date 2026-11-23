@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-03-the-cowboy"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-03-the-cowboy)">
+    <rect width="128" height="128" fill="#c0632b"/>
+    <path d="M10 128 C10 100 34 90 64 90 C94 90 118 100 118 128Z" fill="#2c6e8f"/>
+    <rect x="54" y="76" width="20" height="18" rx="4" fill="#d9a865"/>
+    <circle cx="40" cy="62" r="6" fill="#d9a865"/>
+    <circle cx="88" cy="62" r="6" fill="#d9a865"/>
+    <ellipse cx="64" cy="58" rx="24" ry="27" fill="#f1c27d"/>
+    <path d="M52 90 L64 104 L76 90" fill="#e8d4a8"/>
+    <circle cx="55" cy="58" r="2.8" fill="#2b1b10"/>
+    <circle cx="73" cy="58" r="2.8" fill="#2b1b10"/>
+    <path d="M50 52 L59 52" stroke="#5a3a1a" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M69 52 L78 52" stroke="#5a3a1a" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M50 70 Q57 64 64 68 Q71 64 78 70 Q72 72 64 70 Q56 72 50 70Z" fill="#5a3a1a"/>
+    <path d="M59 76 Q64 78 69 76" stroke="#8a5a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M42 42 Q40 12 64 16 Q88 12 86 42Z" fill="#7a4a24"/>
+    <path d="M42 38 Q64 32 86 38 L86 43 Q64 37 42 43Z" fill="#3b2314"/>
+    <path d="M18 44 Q22 36 40 40 Q64 46 88 40 Q106 36 110 44 Q100 50 64 50 Q28 50 18 44Z" fill="#8b5a2b"/>
+
+  </g>
+</svg>

@@ -45,8 +45,8 @@ export default function NewTableForm({ onCancel }: { onCancel: () => void }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      const id = await createTable({ hostId: getCurrentUserId(), name, maxPlayers, buyIn, minimumBet, ante, botCount })
-      await joinTable(id, getCurrentUserId())
+      const id = await createTable({ name, maxPlayers, buyIn, minimumBet, ante, botCount })
+      await joinTable(id)
       setCurrentTableId(id)
       onCancel()
       router.push(`/table/${id}`)
