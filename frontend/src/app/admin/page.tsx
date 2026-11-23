@@ -1,4 +1,4 @@
-import AdminPanel from "@/component/AdminPanel";
+import AdminPanel from "@/component/admin/AdminPanel";
 
 export const metadata = { title: "Admin" };
 

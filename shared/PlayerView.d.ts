@@ -11,6 +11,8 @@ export interface PublicPlayer {
   betThisRound: number
   lastAction: ActionType | null
   cardCount: number
+  cards?: Card[] | null
+  handName?: string | null
 }
 
 export interface PlayerView {
@@ -26,4 +28,6 @@ export interface PlayerView {
   players: PublicPlayer[]
   winners: PlayerId[]
   winnings: Record<PlayerId, number> // chips each winner took from the pot; empty until the hand ends
+  playAgain?: { votes: number; needed: number; voted: boolean; readyAt: number } | null
+  turnEndsAt?: number | null
 }

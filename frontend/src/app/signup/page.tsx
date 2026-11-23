@@ -50,7 +50,7 @@ export default function SignupPage() {
                     &larr; Back to sign in
                 </button>
             </div>
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            {error && <p className="mb-2 text-sm text-red-300">{error}</p>}
             {message && <p className="text-green-600 text-sm mb-2">{message}</p>}
             <form
                 onSubmit={(e) => {

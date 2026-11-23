@@ -110,3 +110,21 @@ describe("bots", () => {
     expect(drawCards(gameId, "a", []).ok).toBe(true)
   })
 })
+
+describe("table game edge cases", () => {
+  it("only starts one game when two joins land at once", async () => {
+    jest.mocked(getTable).mockResolvedValue(table([seat("a", 0), seat("b", 1)]) as never)
+    const results = await Promise.all([startIfReady("t1"), startIfReady("t1")])
+    expect(results.filter(r => r !== null)).toHaveLength(1)
+    endGame("t1")
+  })
+
+  it("does not save a stack for a player who left during the hand", async () => {
+    jest.mocked(getTable).mockResolvedValue(table([seat("a", 0), seat("b", 1)]) as never)
+    await startIfReady("t1")
+    leaveGame("t1", "b")
+    await nextHand("t1")
+    expect(updateStack).not.toHaveBeenCalledWith("t1", "b", expect.anything())
+    endGame("t1")
+  })
+})

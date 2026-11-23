@@ -15,4 +15,4 @@ export function cardImage(card: Card): string {
   return `/card/${rank}${card.suit[0].toUpperCase()}.svg`
 }
 
-export const CARD_BACK_IMAGE = "/card/back.png"
+export const CARD_BACK_IMAGE = "/card/back.svg"
