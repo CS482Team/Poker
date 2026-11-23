@@ -7,3 +7,5 @@ export const CHAT_HISTORY_SIZE = 50
 export const QUICK_CHATS = ["Nice hand", "Good luck"] as const // add more here; the panel shows them all
 
 export const MAX_REPORT_LENGTH = 500
+export const SHOP_PURCHASE_REASON = "shop_purchase" // balance_log.reason for cosmetic purchases
+export const EMOTE_COOLDOWN_SECONDS = 3

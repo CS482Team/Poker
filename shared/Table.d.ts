@@ -1,3 +1,5 @@
+import type { PublicCosmetics } from "./Cosmetics"
+
 export interface Table {
   id: string
   name: string
@@ -29,6 +31,8 @@ export interface Seat {
   username: string
   seatNumber: number
   stack: number
+  // added by ShopService.withCosmetics when a table is sent to the browser
+  cosmetics?: PublicCosmetics
 }
 
 /* what the host can change after a table is made */

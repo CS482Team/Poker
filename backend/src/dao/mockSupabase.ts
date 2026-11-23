@@ -10,7 +10,7 @@ const mockQuery: Record<string, unknown> = {
   maybeSingle: () => Promise.resolve(mockState.result),
   then: (resolve: (value: object) => void) => resolve(mockState.awaited ?? mockState.result),
 }
-for (const name of ["select", "insert", "update", "delete", "eq", "lte", "order", "limit"]) {
+for (const name of ["select", "insert", "update", "delete", "eq", "in", "lte", "order", "limit", "gt"]) {
   mockQuery[name] = (...args: unknown[]) => {
     calls.push([name, args])
     return mockQuery
@@ -19,10 +19,23 @@ for (const name of ["select", "insert", "update", "delete", "eq", "lte", "order"
 
 export const supabaseMock = {
   createClient: () => ({
-    auth: { getUser: () => Promise.resolve(mockState.result) },
+    auth: {
+      getUser: () => Promise.resolve(mockState.result),
+      admin: {
+        updateUserById: (...args: unknown[]) => {
+          calls.push(["updateUserById", args])
+          return Promise.resolve(mockState.result)
+        },
+      },
+    },
     from: (table: string) => {
       calls.push(["from", [table]])
       return mockQuery
+    },
+    // database functions, e.g. rpc("purchase_item", { p_user, p_item })
+    rpc: (fn: string, args: object) => {
+      calls.push(["rpc", [fn, args]])
+      return Promise.resolve(mockState.result)
     },
   }),
 }
