@@ -1,10 +1,10 @@
 import request from "supertest"
 import { app } from "../app"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getAllPlayers, getRole, getUserIdFromToken } from "../dao/UserDAO"
+import { getAllPlayers, getRole, getUserIdFromToken, setBalance } from "../dao/UserDAO"
 
 jest.mock("../dao/MatchDAO", () => ({ getPlayerHands: jest.fn() }))
-jest.mock("../dao/UserDAO", () => ({ getAllPlayers: jest.fn(), getRole: jest.fn(), getUserIdFromToken: jest.fn() }))
+jest.mock("../dao/UserDAO", () => ({ getAllPlayers: jest.fn(), getRole: jest.fn(), getUserIdFromToken: jest.fn(), setBalance: jest.fn() }))
 
 const player = { id: "u1", username: "Maya", balance: 500, handsPlayed: 3 }
 const hand = { matchId: "m1", tableName: "Ruby", handNumber: 2, pot: 80, winner: "Maya", netResult: 40, endedAt: "2026-11-08" }
@@ -27,6 +27,18 @@ describe("AdminRouter", () => {
     const res = await request(app).get("/admin/players/u1/hands").set("Authorization", "Bearer token")
     expect(res.body).toEqual([hand])
     expect(getPlayerHands).toHaveBeenCalledWith("u1")
+  })
+
+  it("modifies a player's chips", async () => {
+    const res = await request(app).patch("/admin/players/u1/balance").set("Authorization", "Bearer token").send({ balance: 900 })
+    expect(res.status).toBe(204)
+    expect(setBalance).toHaveBeenCalledWith("u1", 900)
+  })
+
+  it("rejects a bad balance", async () => {
+    const res = await request(app).patch("/admin/players/u1/balance").set("Authorization", "Bearer token").send({ balance: -5 })
+    expect(res.status).toBe(400)
+    expect(setBalance).not.toHaveBeenCalled()
   })
 
   it("keeps non admins out", async () => {

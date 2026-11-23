@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import PlayerHistory from "@/component/PlayerHistory"
-import { fetchPlayerHands, fetchPlayers } from "@/service/AdminService"
+import { fetchPlayerHands, fetchPlayers, modifyChips } from "@/service/AdminService"
 
-jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn() }))
+jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), modifyChips: jest.fn() }))
 
 const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3 }
 const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0 }
@@ -37,6 +37,16 @@ describe("PlayerHistory", () => {
     fireEvent.click(screen.getByRole("button", { name: /Theo/ }))
     expect(await screen.findByText("No hands yet.")).toBeInTheDocument()
     expect(fetchPlayerHands).toHaveBeenCalledWith("u2")
+  })
+
+  it("modifies a player's chips", async () => {
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Modify chips" }))
+    fireEvent.click(screen.getByRole("button", { name: "More balance for maya" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save" }))
+    expect(await screen.findByText("$1,850", { selector: "p" })).toBeInTheDocument()
+    expect(modifyChips).toHaveBeenCalledWith("u1", 1850)
   })
 
   it("shows errors", async () => {
