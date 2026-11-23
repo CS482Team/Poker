@@ -1,6 +1,6 @@
-import MusicPlayer from "@/component/MusicPlayer";
-import Nav from "@/component/NavBar";
-import ThemeApplier from "@/component/ThemeApplier";
+import MusicPlayer from "@/component/layout/MusicPlayer";
+import Nav from "@/component/layout/NavBar";
+import ThemeApplier from "@/component/layout/ThemeApplier";
 import { Suspense } from "react";
 import "./globals.css";
 import "./site.css";

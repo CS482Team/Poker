@@ -9,7 +9,7 @@ import { getBalance, getProfile, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
-import { playBotLater, sendGame } from "./GameController"
+import { playBotLater, recountVote, sendGame } from "./GameController"
 import { withCosmetics } from "../services/ShopService"
 
 /* handles GET /tables */
@@ -59,6 +59,7 @@ export async function leaveTable(req: Request<{ id: string }>, res: Response) {
   }
   await broadcastChange(id)
   if (game) sendGame(game)
+  await recountVote(id)
   res.status(204).end()
 }
 
@@ -110,6 +111,7 @@ export async function updateSettings(req: Request<{ id: string }, {}, TableSetti
   const { name, botCount, chatEnabled, turnTimerEnabled } = req.body
   await updateTableSettings(table.id, { name: name.trim(), botCount, chatEnabled, turnTimerEnabled })
   await broadcastChange(table.id)
+  await dealIfReady(table.id)
   res.status(204).end()
 }
 

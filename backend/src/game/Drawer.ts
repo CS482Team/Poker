@@ -12,7 +12,7 @@ export function applyDraw(state: GameState, playerId: PlayerId, discard: number[
   const players = state.players.map(p => ({ ...p }))
   const me = players.find(p => p.id === playerId)!
 
-  me.hand = me.hand.map((card, i) => (discard.includes(i) ? deck.pop()! : card))
+  me.hand = me.hand.map((card, i) => (discard.includes(i) ? (deck.pop() ?? card) : card))
   me.hasActed = true
   //Reset bot discard
   if(me.botToDiscard && me.botToDiscard.length > 0) {

@@ -1,4 +1,4 @@
-import { configForTable, getTableView, leaveGame, startGame, takeAction } from "../services/GameService"
+import { closeVote, configForTable, getTableView, humanTurn, leaveGame, openVote, startGame, takeAction, timeOut, voteToPlayAgain, voteWon } from "../services/GameService"
 import { gameDAO } from "../dao/GameDAO"
 import { insertMatch, insertMatchAction, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import type { SeatInput } from "../../../shared/GameState"
@@ -67,8 +67,18 @@ describe("getTableView", () => {
     expect(bob.you.hand).toEqual(game.players[1]!.hand)
     expect(bob.you.legalActions.map(a => a.type)).toEqual(["fold", "check", "bet"])
     expect(getTableView("t1", "c")!.you.legalActions).toEqual([])
-    expect(JSON.stringify(bob.players)).not.toContain("hand")
+    expect(bob.players.every(p => p.cards === null && p.handName === null)).toBe(true)
     expect(bob).not.toHaveProperty("deck")
+  })
+
+  it("shows everyone's cards once the hand is over", async () => {
+    const game = await started()
+    expect(getTableView("t1", "b")!.players[0]!.cards).toBeNull()
+    gameDAO.save({ ...game, phase: "hand-complete", players: game.players.map((p, i) => (i === 2 ? { ...p, status: "folded" } : p)) })
+    const view = getTableView("t1", "b")!
+    expect(view.players[0]!.cards).toEqual(game.players[0]!.hand)
+    expect(view.players[2]!.cards).toEqual(game.players[2]!.hand)
+    expect(view.players[0]!.handName).toMatch(/High Card|Pair|Two Pair|Three of a Kind|Straight|Flush|Full House|Four of a Kind|Royal Flush/)
   })
 
   it("shows someone not in the hand the table without any cards", async () => {
@@ -139,5 +149,28 @@ describe("winnings", () => {
     takeAction(game.id, "b", { type: "fold" })
     takeAction(game.id, "c", { type: "fold" })
     expect(getTableView("t1", "b")!.winnings).toEqual({ a: 3 })
+  })
+})
+
+describe("play again vote", () => {
+  it("waits for the delay and enough votes", async () => {
+    const game = await started()
+    openVote("t1", 2, 1000)
+    voteToPlayAgain(game.id, "a")
+    expect(voteWon("t1", 2000)).toBe(false)
+    voteToPlayAgain(game.id, "b")
+    expect(voteWon("t1", 500)).toBe(false)
+    expect(voteWon("t1", 2000)).toBe(true)
+    closeVote("t1")
+  })
+})
+
+describe("turn timeout", () => {
+  it("checks or folds for a player who runs out of time", async () => {
+    await started()
+    const turn = humanTurn("t1")!
+    expect(timeOut("t1", "old turn")).toBeNull()
+    expect(timeOut("t1", turn)).not.toBeNull()
+    expect(humanTurn("t1")).not.toBe(turn)
   })
 })

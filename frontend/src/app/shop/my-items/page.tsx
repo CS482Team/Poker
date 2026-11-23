@@ -1,5 +1,5 @@
-import AdBanner from "@/component/AdBanner"
-import MyItemsPage from "@/component/MyItemsPage"
+import AdBanner from "@/component/ads/AdBanner"
+import MyItemsPage from "@/component/shop/MyItemsPage"
 
 export const metadata = { title: "My Items" }
 

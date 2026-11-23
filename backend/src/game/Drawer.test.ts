@@ -46,3 +46,25 @@ describe("applyDraw", () => {
     expect(applyDraw({ ...atDraw(), phase: "showdown" }, "b", [])).toEqual({ ok: false, error: "wrong-phase" })
   })
 })
+
+describe("applyDraw with an empty deck", () => {
+  it("keeps the old card when the deck runs out", () => {
+    const state = { ...atDraw(), deck: [] }
+    const result = applyDraw(state, "b", [0])
+    if (!result.ok) throw new Error(result.error)
+    expect(result.value.players.find(p => p.id === "b")!.hand[0]).toEqual(state.players[1]!.hand[0])
+  })
+})
+
+describe("startHand", () => {
+  it("does not stall when the antes put everyone all in", () => {
+    const created = createGame("t1", [
+      { id: "a", name: "Alice", stack: 1 },
+      { id: "b", name: "Bob", stack: 1 },
+    ], { ante: 1, minBet: 2 })
+    if (!created.ok) throw new Error(created.error)
+    const started = startHand(created.value, () => 0.5)
+    if (!started.ok) throw new Error(started.error)
+    expect(started.value.phase).not.toBe("predraw-betting")
+  })
+})

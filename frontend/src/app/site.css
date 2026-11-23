@@ -1442,19 +1442,19 @@ input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="e
 .seat-portrait.on-turn::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 0;
   border-radius: 50%;
   pointer-events: none;
   animation: turn-glow 2s ease-in-out infinite;
 }
 .seat-portrait.on-turn.bot::before { animation-name: bot-turn-glow; }
 @keyframes turn-glow {
-  0%, 100% { box-shadow: 0 0 4px 1px rgb(255 255 255 / 0.2); }
-  50%      { box-shadow: 0 0 12px 4px rgb(255 255 255 / 0.7); }
+  0%, 100% { box-shadow: 0 0 6px 4px rgb(255 255 255 / 0.3); }
+  50%      { box-shadow: 0 0 14px 7px rgb(255 255 255 / 0.7); }
 }
 @keyframes bot-turn-glow {
-  0%, 100% { box-shadow: 0 0 4px 1px rgb(114 187 234 / 0.2); }
-  50%      { box-shadow: 0 0 12px 4px rgb(114 187 234 / 0.7); }
+  0%, 100% { box-shadow: 0 0 6px 4px rgb(114 187 234 / 0.3); }
+  50%      { box-shadow: 0 0 14px 7px rgb(114 187 234 / 0.7); }
 }
 .animate-deal-in { animation: deal-in 300ms ease-out both; }
 
@@ -1769,7 +1769,7 @@ div.card-back-preview::after {
   position: absolute;
   z-index: 70;
   top: calc(100% + 12px);
-  right: 0;
+  left: 0;
   width: 240px;
   border: 1px solid rgba(255, 255, 255, .1);
   border-radius: 10px;

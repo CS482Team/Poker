@@ -1,5 +1,5 @@
-import AdBanner from "@/component/AdBanner"
-import GameTable from "@/component/GameTable"
+import AdBanner from "@/component/ads/AdBanner"
+import GameTable from "@/component/table/GameTable"
 import { Suspense } from "react"
 
 export const metadata = { title: "Game" }

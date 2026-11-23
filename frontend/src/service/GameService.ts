@@ -13,6 +13,11 @@ export async function act(gameId: string, type: ActionType, amount?: number): Pr
   if (!res.ok) throw new Error(`Failed to act (${res.status})`)
 }
 
+export async function playAgain(gameId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/game/${gameId}/again`, { method: "POST", headers: await authHeaders() })
+  if (!res.ok) throw new Error(`Failed to vote (${res.status})`)
+}
+
 export async function draw(gameId: string, discard: number[]): Promise<void> {
   const res = await fetch(`${API_URL}/game/${gameId}/draw`, {
     method: "POST",
