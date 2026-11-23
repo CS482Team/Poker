@@ -28,6 +28,7 @@ export interface NewTable {
 export interface Seat {
   userId: string
   username: string
+  avatarUrl?: string | null
   seatNumber: number
   stack: number
   // added by ShopService.withCosmetics when a table is sent to the browser

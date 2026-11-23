@@ -2,7 +2,7 @@ import ContactAdminModal from "@/component/ContactAdminModal"
 import Icon, { FLAG, SEND } from "@/component/Icon"
 import { type ChatConnection, watchChat } from "@/service/ChatService"
 import type { ChatMessage } from "@shared/Chat"
-import { MAX_CHAT_LENGTH, QUICK_CHATS } from "@shared/Rules"
+import { MAX_CHAT_LENGTH } from "@shared/Rules"
 import { type FormEvent, useEffect, useRef, useState } from "react"
 
 interface Props {
@@ -21,6 +21,12 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
   const [contacting, setContacting] = useState(false)
   const chat = useRef<ChatConnection | null>(null)
   const bottom = useRef<HTMLLIElement>(null)
+
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(null), 3000)
+    return () => clearTimeout(timer)
+  }, [error])
 
   useEffect(() => {
     const connection = watchChat(tableId, setMessages, (message) =>
@@ -79,27 +85,24 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
               <li key={m.id} className="flex items-center gap-2 py-1 text-sm text-ink-muted">
                 <span className="h-px flex-1 bg-panel-edge" />
                 <span>{m.body}</span>
-                <span className="text-[10px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
+                <span className="text-[12px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
                 <span className="h-px flex-1 bg-panel-edge" />
               </li>
             )
           }
-          // your own messages sit on the right in red, everyone else's on the left
           const mine = m.userId === userId
           const followUp = messages[i - 1]?.userId === m.userId
           return (
-            <li key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""} ${followUp ? "-mt-2" : ""}`}>
+            <li key={m.id} className={`flex gap-2.5 ${followUp ? "-mt-2" : ""}`}>
               {followUp ? <span className="w-7 shrink-0" /> : <Avatar name={m.name} url={m.avatarUrl} />}
-              <div className={`flex min-w-0 max-w-[75%] flex-col ${mine ? "items-end" : "items-start"}`}>
+              <div className="min-w-0 flex-1">
                 {!followUp && (
-                  <p className="text-sm text-ink-muted">
-                    <span className="font-semibold text-ink">{mine ? "Me" : m.name}</span>
-                    <span className="ml-2 text-[10px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
+                  <p className="flex items-baseline gap-2 text-sm">
+                    <span className={`font-semibold ${mine ? "text-[#e8a3a5]" : "text-ink"}`}>{mine ? "Me" : m.name}</span>
+                    <span className="text-[12px] text-ink-muted/60">{timeOf(m.createdAt)}</span>
                   </p>
                 )}
-                <p className={`mt-0.5 break-words rounded-lg px-2.5 py-1.5 text-sm leading-snug ${mine ? "rounded-tr-sm bg-panel-mine" : "rounded-tl-sm bg-panel-raised"}`}>
-                  {m.body}
-                </p>
+                <p className="break-words text-sm leading-snug text-[#e5dcdc]">{m.body}</p>
               </div>
             </li>
           )
@@ -108,23 +111,8 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
       </ul>
 
       <div className="space-y-2 border-t border-panel-edge p-3">
-        {seated && (
-          <div className="flex flex-wrap gap-1.5">
-            {QUICK_CHATS.map((text) => (
-              <button
-                key={text}
-                type="button"
-                onClick={() => setDraft(text)}
-                className={`rounded-full border border-panel-edge px-2.5 py-0.5 text-xs text-ink-muted transition-colors hover:text-ink ${FOCUS}`}
-              >
-                {text}
-              </button>
-            ))}
-          </div>
-        )}
-
         {error && (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" className="text-xs text-red-300">
             {error}
           </p>
         )}

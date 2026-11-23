@@ -35,7 +35,7 @@ export default function ReportModal({ report, onClose }: { report: Report; onClo
         </div>
 
         <div className="px-5 pt-4">
-          <p className="whitespace-pre-wrap break-words rounded-md bg-white/[.04] px-4 py-3 text-[15px] leading-relaxed">{report.body}</p>
+          <p className="whitespace-pre-wrap break-words rounded-md bg-white/[.04] px-4 py-3 text-[17px] leading-relaxed">{report.body}</p>
           <div role="tablist" className="mt-4 flex gap-5 border-b border-white/10 text-sm">
             <TabButton active={tab === "hands"} onClick={() => setTab("hands")} label={`Hands${detail ? ` (${detail.hands.length})` : ""}`} />
             <TabButton active={tab === "chat"} onClick={() => setTab("chat")} label={`Chat${detail ? ` (${detail.chat.length})` : ""}`} />

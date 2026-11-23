@@ -39,7 +39,7 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
 
       {groups.map(({ type, owned }) => (
         <section key={type} aria-labelledby={`my-${type}`}>
-          <h2 id={`my-${type}`} className="mb-4 text-[28px] font-bold">
+          <h2 id={`my-${type}`} className="mb-4 text-[34px] font-bold">
             {COSMETIC_LABELS[type]}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,7 +113,7 @@ function ItemTile({ item, username, loadout, onEquip, onUnequip }: Omit<Props, "
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-5">
         <RarityBadge rarity={item.rarity} />
-        <h3 className="text-[22px] font-semibold leading-tight">{item.name}</h3>
+        <h3 className="text-[26px] font-semibold leading-tight">{item.name}</h3>
         <div className={`mt-auto pt-4 ${item.type === "emote" ? "" : "flex justify-end"}`}>
           {/* for non-emotes, the slot has the same name as the type, e.g. "card_back" */}
           {item.type === "emote" ? <EmoteSlotPicker item={item} loadout={loadout} onEquip={onEquip} onUnequip={onUnequip} /> : <EquipButton item={item} slot={item.type} loadout={loadout} onEquip={onEquip} onUnequip={onUnequip} />}

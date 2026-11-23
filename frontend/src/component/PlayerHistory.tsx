@@ -117,11 +117,11 @@ export default function PlayerHistory() {
                 <span className="avatar-initial size-11! text-lg">{selected.username[0]}</span>
                 <h3 className="truncate text-xl font-bold">{selected.username}</h3>
                 {selected.banned ? (
-                  <button type="button" aria-label="Unban player" onClick={() => unban(selected.id)} className={`${ICON} hover:text-[#6fd099]`}>
+                  <button type="button" aria-label="Unban player" onClick={() => unban(selected.id)} className={`${ICON} -ml-2 hover:text-[#6fd099]`}>
                     <Icon d={RESTORE} />
                   </button>
                 ) : (
-                  <button type="button" aria-label="Ban player" onClick={() => setRemoving(true)} className={`${ICON} hover:text-red-300`}>
+                  <button type="button" aria-label="Ban player" onClick={() => setRemoving(true)} className={`${ICON} -ml-2 hover:text-red-300`}>
                     <Icon d="" solid={GAVEL} />
                   </button>
                 )}

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 
 const ROW = "grid grid-cols-[48px_minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[64px_minmax(0,1fr)_120px_140px_96px] sm:gap-4"
 const ICON = "grid size-8 place-items-center rounded-md text-[#9e9393] transition-colors hover:bg-white/10 hover:text-white"
-const INPUT = "w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[15px] text-[#f5f2ef] outline-none focus:border-white/40 [color-scheme:dark]"
+const INPUT = "w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[17px] text-[#f5f2ef] outline-none focus:border-white/40 [color-scheme:dark]"
 
 export default function AdManager() {
   const [ads, setAds] = useState<Ad[] | null>(null)
@@ -81,7 +81,7 @@ export default function AdManager() {
           <p className="py-10 text-center text-sm text-[#9e9393]">No ads yet.</p>
         ) : (
           <>
-            <div className={`${ROW} border-b border-white/10 pb-2 text-[13px] text-[#9e9393]`}>
+            <div className={`${ROW} border-b border-white/10 pb-2 text-[15px] text-[#9e9393]`}>
               <span />
               <span>Title</span>
               <span>Reward</span>
@@ -101,7 +101,7 @@ export default function AdManager() {
                   {editing ? (
                     <input aria-label="Title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => onKey(e, ad)} className={INPUT} />
                   ) : (
-                    <span className="truncate text-[15px] font-medium">{ad.title}</span>
+                    <span className="truncate text-[17px] font-medium">{ad.title}</span>
                   )}
 
                   {editing ? (

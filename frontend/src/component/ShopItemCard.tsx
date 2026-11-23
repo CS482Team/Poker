@@ -49,8 +49,7 @@ export default function ShopItemCard({ item, username, balance, signedIn, onBuy 
 
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-5">
         <RarityBadge rarity={item.rarity} />
-        <h3 className="text-[22px] font-semibold leading-tight">{item.name}</h3>
-        <p className="text-base text-[#b8aeae]">{item.description}</p>
+        <h3 className="text-[26px] font-semibold leading-tight">{item.name}</h3>
 
         <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-4">
           <p className="shop-price">

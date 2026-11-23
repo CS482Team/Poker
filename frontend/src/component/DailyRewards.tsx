@@ -36,7 +36,7 @@ export default function DailyRewards() {
     <div className="flex items-center gap-4">
       {error && <p className="text-sm text-red-300">{error}</p>}
       <div className="grid gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#d8cfcf]">Daily Rewards</p>
+        <p className="text-[13px] font-bold uppercase tracking-[.14em] text-[#d8cfcf]">Daily Rewards</p>
         <ol aria-label="Daily rewards" className="daily-chips">
           {DAILY_REWARDS.map((chips, i) => {
             const day = i + 1

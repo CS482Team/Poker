@@ -1,6 +1,7 @@
 "use client"
 
 /* body of /shop/my-items: loads your items and saves each equip */
+import Icon, { SHOP } from "@/component/Icon"
 import MyItems from "@/component/MyItems"
 import { announceLoadout, equipItem, fetchInventory, fetchLoadout, unequipSlot } from "@/service/ShopService"
 import { fetchUsername, getCurrentUserId } from "@/service/UserService"
@@ -58,7 +59,8 @@ export default function MyItemsPage() {
     <div className="page-shell">
       <div className="page-header">
         <h1 className="page-title">My Items</h1>
-        <Link href="/shop" className="secondary-action">
+        <Link href="/shop" className="secondary-action gap-2">
+          <Icon d={SHOP} size={18} />
           Shop
         </Link>
       </div>

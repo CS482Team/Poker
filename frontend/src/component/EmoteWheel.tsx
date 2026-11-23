@@ -4,7 +4,7 @@
 import type { EmoteReply, EmoteSlot, ShopItem } from "@shared/Cosmetics"
 import { EMOTE_COOLDOWN_SECONDS } from "@shared/Rules"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface Props {
   /** emote_1 to emote_4 in order; undefined for an empty slot */
@@ -18,6 +18,16 @@ export default function EmoteWheel({ wheel, onSend }: Props) {
   const [open, setOpen] = useState(false)
   const [coolingDown, setCoolingDown] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const wrapper = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function closeOutside(e: MouseEvent) {
+      if (!wrapper.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", closeOutside)
+    return () => document.removeEventListener("mousedown", closeOutside)
+  }, [open])
 
   useEffect(() => {
     if (!coolingDown) return
@@ -39,7 +49,7 @@ export default function EmoteWheel({ wheel, onSend }: Props) {
   const empty = wheel.every((emote) => !emote)
 
   return (
-    <div className="relative">
+    <div ref={wrapper} className="relative">
       <button type="button" aria-label="Emotes" aria-expanded={open} className="emote-button" disabled={coolingDown} onClick={() => setOpen(!open)}>
         <span aria-hidden>😄</span>
       </button>

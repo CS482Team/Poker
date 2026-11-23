@@ -7,6 +7,7 @@ import NewTableForm from "@/component/NewTableForm"
 import { getCurrentTableId, setCurrentTableId } from "@/service/CurrentTableService"
 import { watchTables } from "@/service/SocketService"
 import { fetchTables, joinTable } from "@/service/TableService"
+import { isGuest } from "@/service/UserService"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -28,9 +29,12 @@ export default function TableList() {
   const router = useRouter()
   const [tables, setTables] = useState<Table[]>([])
   const [loading, setLoading] = useState(true)
+  const [guest, setGuest] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [currentId, setCurrentId] = useState<string | null>(null)
+
+  useEffect(() => setGuest(isGuest()), [])
 
   useEffect(() => {
     setCurrentId(getCurrentTableId())
@@ -60,9 +64,11 @@ export default function TableList() {
     <div className="page-shell">
       <div className="page-header tables-header">
         <div className="flex items-center gap-3">
-          <button type="button" aria-label="New Table" title="New Table" onClick={() => setCreating(true)} className="primary-action icon-action">
-            <Icon d={PLUS} size={20} weight={2.5} />
-          </button>
+          {!guest && (
+            <button type="button" aria-label="New Table" title="New Table" onClick={() => setCreating(true)} className="primary-action icon-action">
+              <Icon d={PLUS} size={20} weight={2.5} />
+            </button>
+          )}
           <h1 className="page-title">
             Tables <small>{tables.length} tables</small>
           </h1>

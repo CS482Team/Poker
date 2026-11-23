@@ -163,23 +163,25 @@ export default function GameTable({ id }: { id: string }) {
 
   return (
     <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-4 py-8 sm:px-6 md:grid-cols-[260px_minmax(0,1fr)] md:gap-x-12 md:gap-y-12 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-x-14">
-      <div className="flex items-center gap-3">
-        <button type="button" onClick={leave} className="secondary-action small gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 md:col-span-2">
+      <div className="flex min-w-0 items-center gap-3">
+        <button type="button" onClick={leave} className="secondary-action small shrink-0 gap-1.5">
           <Icon d={LEAVE} size={14} />
           Leave
         </button>
-        <h1 className="min-w-0 break-words text-3xl font-bold">{table.name}</h1>
+        <h1 className="min-w-0 truncate text-3xl font-bold">{table.name}</h1>
         {table.hostId === getCurrentUserId() && (
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Table settings" className="text-3xl leading-none text-white/70 hover:text-white">
             ⋮
           </button>
         )}
       </div>
-      <div className="mx-auto flex w-full max-w-[780px] flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf] md:justify-end">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-[#d8cfcf]">
         <span>Min Bet <b className="ml-1 text-base text-white">${table.minimumBet}</b></span>
         <span>Ante <b className="ml-1 text-base text-white">${table.ante}</b></span>
         <span>Buy-in <b className="ml-1 text-base text-white">${table.buyIn}</b></span>
         <span>Max Players <b className="ml-1 text-base text-white">{table.maxPlayers}</b></span>
+      </div>
       </div>
       <div className="order-last h-[28rem] md:order-none md:h-[520px]">
         {table.chatEnabled ? (
@@ -231,11 +233,6 @@ export default function GameTable({ id }: { id: string }) {
               <span>{actionError ?? statusText(view)}</span>
               {!actionError && view.toActSeat !== view.you.seat && <Dots />}
             </p>
-          )}
-          {seated && (
-            <div className="absolute bottom-[10%] right-[4%] z-20">
-              <EmoteWheel wheel={wheel} onSend={(slot) => emotes.current?.send(slot) ?? Promise.resolve({ ok: false, error: "Not connected yet" })} />
-            </div>
           )}
           {/* every seat has a fixed spot by seat number, so players don't move as others join or leave */}
           {Array.from({ length: table.maxPlayers }, (_, seatNumber) => {
@@ -298,7 +295,7 @@ export default function GameTable({ id }: { id: string }) {
                     className={`seat-portrait ${won ? "winner" : ""} ${toAct ? "on-turn" : ""} ${bot ? "bot" : ""} ${ringAnimation}`}
                     style={portraitStyle}
                   >
-                    {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : <Avatar username={name} url={seat.cosmetics?.avatar?.assetUrl} />}
+                    {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : <Avatar username={name} url={seat.cosmetics?.avatar?.assetUrl ?? seat.avatarUrl} />}
                     {dealer && (
                       <span className="dealer-chip" aria-label="Dealer">
                         D
@@ -317,14 +314,21 @@ export default function GameTable({ id }: { id: string }) {
             )
           })}
         </div>
-        {view && !spectating && (
-          <div className="relative z-10 -mt-12">
-            <PlayerHand
-              cards={view.you.hand}
-              selected={selected}
-              canSelect={canDraw && !busy}
-              onToggle={toggleCard}
-            />
+        {(seated || (view && !spectating)) && (
+          <div className="relative z-10 -mt-12 min-h-14">
+            {view && !spectating && (
+              <PlayerHand
+                cards={view.you.hand}
+                selected={selected}
+                canSelect={canDraw && !busy}
+                onToggle={toggleCard}
+              />
+            )}
+            {seated && (
+              <div className="absolute bottom-2 right-0 z-20">
+                <EmoteWheel wheel={wheel} onSend={(slot) => emotes.current?.send(slot) ?? Promise.resolve({ ok: false, error: "Not connected yet" })} />
+              </div>
+            )}
           </div>
         )}
         {canDraw && view && (
@@ -337,7 +341,7 @@ export default function GameTable({ id }: { id: string }) {
             </button>
           </div>
         )}
-        {view && !canDraw && !spectating && (
+        {view && !canDraw && !spectating && view.toActSeat === view.you.seat && (
           <div className="mt-6">
             <ActionBar
               key={`${view.toActSeat}-${view.round?.currentBet}`}

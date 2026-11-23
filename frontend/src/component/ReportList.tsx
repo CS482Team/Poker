@@ -46,7 +46,7 @@ export default function ReportList() {
                     </span>
                     <small className="whitespace-nowrap">{formatTime(report.createdAt)}</small>
                   </span>
-                  <span className="mt-1 line-clamp-2 break-words text-[15px] leading-relaxed text-[#d8cfcf]">{report.body}</span>
+                  <span className="mt-1 line-clamp-2 break-words text-[17px] leading-relaxed text-[#d8cfcf]">{report.body}</span>
                 </span>
               </button>
             </li>

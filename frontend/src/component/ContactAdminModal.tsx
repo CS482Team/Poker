@@ -62,7 +62,7 @@ export default function ContactAdminModal({ tableId, onClose }: { tableId: strin
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Describe the problem…"
-                className="block w-full resize-none rounded-lg border border-white/10 bg-black/40 px-3 py-2 pb-6 text-[15px] text-[#f5f2ef] outline-none placeholder:text-[#7d7373] focus:border-white/30"
+                className="block w-full resize-none rounded-lg border border-white/10 bg-black/40 px-3 py-2 pb-6 text-[17px] text-[#f5f2ef] outline-none placeholder:text-[#7d7373] focus:border-white/30"
               />
               <span className="absolute bottom-2 right-3 text-xs text-[#7d7373]">
                 {message.length}/{MAX_REPORT_LENGTH}

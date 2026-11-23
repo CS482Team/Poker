@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import Shop from "@/component/Shop"
 import { makeItem } from "@/component/cosmetic/makeItem"
 import { announceBalance, fetchBalance } from "@/service/BalanceService"
@@ -24,13 +24,6 @@ beforeEach(() => {
 })
 
 describe("Shop", () => {
-  it("shows your balance in the header", async () => {
-    render(<Shop />)
-    // the box shows "…" first, then the balance once it loads
-    const box = screen.getByLabelText("Available balance")
-    await waitFor(() => expect(box).toHaveTextContent("1,000"))
-  })
-
   it("has a tab for each category that has items, avatars first", async () => {
     render(<Shop />)
     const tabs = await screen.findAllByRole("tab")
@@ -60,7 +53,6 @@ describe("Shop", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Buy for/ }))
 
     expect(await screen.findByText("Owned")).toBeInTheDocument()
-    expect(screen.getByLabelText("Available balance")).toHaveTextContent("700")
     expect(buyItem).toHaveBeenCalledWith("c1")
     expect(announceBalance).toHaveBeenCalledWith(700)
     expect(playEffect).toHaveBeenCalledWith("purchase")

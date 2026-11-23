@@ -5,7 +5,7 @@ import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { getActiveEvent } from "../dao/EventDAO"
 import { createTable, deleteTable, getAllTables, getTable, updateTableSettings } from "../dao/TableDAO"
 import { addPlayer, countPlayers, removePlayer } from "../dao/TablePlayersDAO"
-import { getBalance, getUsername, setBalance } from "../dao/UserDAO"
+import { getBalance, getProfile, getUsername, setBalance } from "../dao/UserDAO"
 import { sendSystemMessage } from "../services/ChatService"
 import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
@@ -30,6 +30,10 @@ export async function getTableById(req: Request<{ id: string }>, res: Response) 
 
 /* handles POST /tables and tells the lobby */
 export async function addTable(req: Request<{}, {}, NewTable>, res: Response) {
+  if ((await getProfile(res.locals.userId)).isGuest) {
+    res.status(403).json({ error: "Guests can't create tables" })
+    return
+  }
   if (!isValidNewTable(req.body)) {
     res.status(400).json({ error: "Invalid table" })
     return

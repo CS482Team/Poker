@@ -12,6 +12,17 @@ function signedInUserId(): string | null {
   }
 }
 
+export function isGuest(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return false;
+  const key = `sb-${new URL(url).hostname.split(".")[0]}-auth-token`;
+  try {
+    return JSON.parse(localStorage.getItem(key) ?? "null")?.user?.is_anonymous === true;
+  } catch {
+    return false;
+  }
+}
+
 export function getCurrentUserId(): string {
   return signedInUserId() ?? "";
 }
