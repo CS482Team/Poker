@@ -1,8 +1,12 @@
 "use client"
 
-import { fetchPlayerHands, fetchPlayers } from "@/service/AdminService"
+import BanModal from "@/component/BanModal"
+import Icon, { GAVEL, RESTORE } from "@/component/Icon"
+import { fetchPlayerHands, fetchPlayers, removePlayer, unbanPlayer } from "@/service/AdminService"
 import type { HandRecord, PlayerSummary } from "@shared/PlayerHistory"
 import { useEffect, useState } from "react"
+
+const ICON = "grid size-8 place-items-center rounded-md text-[#9e9393] transition-colors hover:bg-white/10 hover:text-white"
 
 export default function PlayerHistory() {
   const [players, setPlayers] = useState<PlayerSummary[]>([])
@@ -10,6 +14,7 @@ export default function PlayerHistory() {
   const [hands, setHands] = useState<HandRecord[] | null>(null)
   const [search, setSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [removing, setRemoving] = useState(false)
 
   useEffect(() => {
     fetchPlayers()
@@ -26,15 +31,55 @@ export default function PlayerHistory() {
 
   function select(id: string) {
     setHands(null)
+    setRemoving(false)
     setSelectedId(id)
+  }
+
+  async function remove(id: string) {
+    try {
+      await removePlayer(id)
+      setPlayers(players.map((p) => (p.id === id ? { ...p, banned: true } : p)))
+    } catch (err) {
+      setError((err as Error).message)
+    }
+    setRemoving(false)
+  }
+
+  async function unban(id: string) {
+    try {
+      await unbanPlayer(id)
+      setPlayers(players.map((p) => (p.id === id ? { ...p, banned: false } : p)))
+    } catch (err) {
+      setError((err as Error).message)
+    }
   }
 
   const selected = players.find((p) => p.id === selectedId)
   const shown = players.filter((p) => p.username.toLowerCase().includes(search.trim().toLowerCase()))
   const net = hands?.reduce((sum, hand) => sum + hand.netResult, 0) ?? 0
 
+  function row(p: PlayerSummary) {
+    return (
+      <li key={p.id}>
+        <button
+          type="button"
+          onClick={() => select(p.id)}
+          className={`flex h-16 w-full items-center gap-3 rounded-md px-3 text-left transition-colors ${p.id === selectedId ? "bg-white/[.08]" : "hover:bg-white/[.04]"}`}
+        >
+          <span className="avatar-initial">{p.username[0]}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-medium">{p.username}</span>
+            <small>{handCount(p.handsPlayed)}</small>
+          </span>
+          <span className="text-sm tabular-nums text-[#d8cfcf]">${p.balance.toLocaleString()}</span>
+        </button>
+      </li>
+    )
+  }
+
   return (
     <section className="panel overflow-hidden">
+      {removing && selected && <BanModal player={selected} onCancel={() => setRemoving(false)} onBan={() => remove(selected.id)} />}
       <div className="panel-head flush">
         <h2>Players</h2>
       </div>
@@ -47,22 +92,9 @@ export default function PlayerHistory() {
             <input aria-label="Search players" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} className="simple-input" />
           </div>
           <ul className="max-h-[400px] flex-1 overflow-y-auto p-2 md:max-h-none">
-            {shown.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => select(p.id)}
-                  className={`flex h-16 w-full items-center gap-3 rounded-md px-3 text-left transition-colors ${p.id === selectedId ? "bg-white/[.08]" : "hover:bg-white/[.04]"}`}
-                >
-                  <span className="avatar-initial">{p.username[0]}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{p.username}</span>
-                    <small>{handCount(p.handsPlayed)}</small>
-                  </span>
-                  <span className="text-sm tabular-nums text-[#d8cfcf]">${p.balance.toLocaleString()}</span>
-                </button>
-              </li>
-            ))}
+            {shown.filter((p) => !p.banned).map(row)}
+            {shown.some((p) => p.banned) && <li className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-[#9e9393]">Banned</li>}
+            {shown.filter((p) => p.banned).map(row)}
             {shown.length === 0 && <li className="py-6 text-center text-sm text-[#9e9393]">No players found.</li>}
           </ul>
         </div>
@@ -73,6 +105,15 @@ export default function PlayerHistory() {
               <div className="flex min-w-0 items-center gap-3">
                 <span className="avatar-initial size-11! text-lg">{selected.username[0]}</span>
                 <h3 className="truncate text-xl font-bold">{selected.username}</h3>
+                {selected.banned ? (
+                  <button type="button" aria-label="Unban player" onClick={() => unban(selected.id)} className={`${ICON} hover:text-[#6fd099]`}>
+                    <Icon d={RESTORE} />
+                  </button>
+                ) : (
+                  <button type="button" aria-label="Ban player" onClick={() => setRemoving(true)} className={`${ICON} hover:text-red-300`}>
+                    <Icon d="" solid={GAVEL} />
+                  </button>
+                )}
               </div>
               <div className="flex divide-x divide-white/10">
                 <Stat label="Balance" value={`$${selected.balance.toLocaleString()}`} />
