@@ -93,8 +93,7 @@ cleanup() {
 trap cleanup EXIT
 
 say "Starting the backend and frontend (logs in .demo/)..."
-# The backend runs without "watch" so a saved file can't restart it and wipe the hand in progress
-(cd "$BACKEND" && exec ./node_modules/.bin/tsx src/index.ts) >"$LOGS/backend.log" 2>&1 &
+(cd "$BACKEND" && exec ./node_modules/.bin/tsx watch src/index.ts) >"$LOGS/backend.log" 2>&1 &
 start_frontend() {
   (cd "$FRONTEND" && exec ./node_modules/.bin/next dev -p "$WEB_PORT") >>"$LOGS/frontend.log" 2>&1 &
   FRONTEND_PID=$!
@@ -117,8 +116,10 @@ wait_for "$WEB/" "The frontend" frontend.log
 
 # 4. An empty demo table. Players join it from the lobby; the hand deals once two are seated.
 say "Creating the demo table..."
-TABLE_ID=$(curl -sf -X POST "$API/tables" -H "Content-Type: application/json" \
-  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1,\"hostId\":\"$ALICE_ID\"}" |
+ALICE_TOKEN=$(curl -s -X POST "$API_URL/auth/v1/token?grant_type=password" -H "apikey: $ANON_KEY" -H "Content-Type: application/json" \
+  -d "{\"email\":\"alice@demo.local\",\"password\":\"$DEMO_PASSWORD\"}" | sed -nE 's/.*"access_token":"([^"]+)".*/\1/p')
+TABLE_ID=$(curl -sf -X POST "$API/tables" -H "Content-Type: application/json" -H "Authorization: Bearer $ALICE_TOKEN" \
+  -d "{\"name\":\"Class Demo\",\"maxPlayers\":2,\"buyIn\":100,\"minimumBet\":2,\"ante\":1}" |
   sed -E 's/.*"id":"([^"]+)".*/\1/') || fail "Couldn't create the demo table. See .demo/backend.log"
 # Compile the pages now so they open fast during the demo
 for page in / /dashboard "/table/$TABLE_ID"; do curl -s -o /dev/null --max-time 60 "$WEB$page"; done

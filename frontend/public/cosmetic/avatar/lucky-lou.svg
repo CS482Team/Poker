@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-05-lucky-lou"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-05-lucky-lou)">
+    <rect width="128" height="128" fill="#16a085"/>
+    <path d="M10 128 C10 100 34 90 64 90 C94 90 118 100 118 128Z" fill="#e74c3c"/>
+    <rect x="54" y="76" width="20" height="18" rx="4" fill="#eec295"/>
+    <circle cx="40" cy="62" r="6" fill="#eec295"/>
+    <circle cx="88" cy="62" r="6" fill="#eec295"/>
+    <ellipse cx="64" cy="58" rx="24" ry="27" fill="#ffdbac"/>
+    <path d="M44 92 Q64 104 84 92" stroke="#c0392b" stroke-width="4" fill="none"/>
+    <path d="M58 100 L58 116 M70 100 L70 116" stroke="#f4f4f4" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="44" cy="42" r="9" fill="#e67e22"/>
+    <circle cx="54" cy="34" r="9" fill="#e67e22"/>
+    <circle cx="66" cy="31" r="9" fill="#e67e22"/>
+    <circle cx="78" cy="35" r="9" fill="#e67e22"/>
+    <circle cx="86" cy="44" r="9" fill="#e67e22"/>
+    <circle cx="40" cy="52" r="9" fill="#e67e22"/>
+    <circle cx="88" cy="53" r="9" fill="#e67e22"/>
+    <circle cx="60" cy="40" r="9" fill="#e67e22"/>
+    <circle cx="72" cy="41" r="9" fill="#e67e22"/>
+    <circle cx="55" cy="58" r="2.8" fill="#2b1b10"/>
+    <circle cx="73" cy="58" r="2.8" fill="#2b1b10"/>
+    <circle cx="51" cy="68" r="4" fill="#f5a3a3" opacity="0.6"/>
+    <circle cx="77" cy="68" r="4" fill="#f5a3a3" opacity="0.6"/>
+    <path d="M54 68 Q64 82 74 68Z" fill="#7a1f1f"/>
+    <path d="M56 69 L72 69 L71 72 L57 72Z" fill="#fff"/>
+    <path d="M36 58 Q36 22 64 22 Q92 22 92 58" stroke="#222" stroke-width="5" fill="none"/>
+    <rect x="30" y="52" width="12" height="20" rx="5" fill="#222"/>
+    <rect x="86" y="52" width="12" height="20" rx="5" fill="#222"/>
+    <rect x="32" y="56" width="4" height="12" rx="2" fill="#16a085"/>
+    <rect x="92" y="56" width="4" height="12" rx="2" fill="#16a085"/>
+
+  </g>
+</svg>

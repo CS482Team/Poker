@@ -12,7 +12,7 @@ jest.mock("../services/ChatService", () => ({
 }))
 
 const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
-const hi = { tableId: "t1", userId: "u1", body: "hi" }
+const hi = { tableId: "t1", body: "hi" }
 
 let http: HttpServer
 let io: Server
@@ -21,6 +21,10 @@ let client: Socket
 beforeAll(async () => {
   http = createServer()
   io = new Server(http)
+  io.use((socket, next) => {
+    socket.data.userId = socket.handshake.auth.token ?? null
+    next()
+  })
   io.on("connection", (socket) => {
     registerChat(socket, (m) => io.to(chatRoom(m.tableId)).emit("chat:message", m))
   })
@@ -29,8 +33,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   jest.resetAllMocks()
-  client = connect(`http://localhost:${(http.address() as AddressInfo).port}`)
-  await new Promise<void>((resolve) => client.once("connect", () => resolve()))
+  client = await join("u1")
 })
 
 afterEach(() => {
@@ -41,7 +44,12 @@ afterAll(() => {
   io.close()
 })
 
-/* emits an event and waits for the server's reply */
+async function join(token?: string) {
+  const socket = connect(`http://localhost:${(http.address() as AddressInfo).port}`, { auth: token ? { token } : {} })
+  await new Promise<void>((resolve) => socket.once("connect", () => resolve()))
+  return socket
+}
+
 function ask(event: string, ...args: unknown[]) {
   return new Promise((resolve) => client.emit(event, ...args, resolve))
 }
@@ -49,6 +57,13 @@ function ask(event: string, ...args: unknown[]) {
 describe("chat socket", () => {
   it("names a table's chat room", () => {
     expect(chatRoom("t1")).toBe("chat:t1")
+  })
+
+  it("refuses a signed out player", async () => {
+    client.disconnect()
+    client = await join()
+    expect(await ask("chat:send", hi)).toEqual({ ok: false, error: "Sign in to chat" })
+    expect(sendMessage).not.toHaveBeenCalled()
   })
 
   it("joins a table's chat and gets its history", async () => {

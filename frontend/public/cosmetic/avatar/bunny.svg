@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-19-bunny"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-19-bunny)">
+    <rect width="128" height="128" fill="#55efc4"/>
+    <ellipse cx="48" cy="30" rx="10" ry="28" transform="rotate(-10 48 30)" fill="#fafafa"/>
+    <ellipse cx="80" cy="30" rx="10" ry="28" transform="rotate(10 80 30)" fill="#fafafa"/>
+    <ellipse cx="48" cy="32" rx="5" ry="20" transform="rotate(-10 48 32)" fill="#f8a5c2"/>
+    <ellipse cx="80" cy="32" rx="5" ry="20" transform="rotate(10 80 32)" fill="#f8a5c2"/>
+    <ellipse cx="64" cy="78" rx="36" ry="32" fill="#fafafa"/>
+    <circle cx="51" cy="72" r="4" fill="#1b1b1b"/>
+    <circle cx="77" cy="72" r="4" fill="#1b1b1b"/>
+    <path d="M60 82 L68 82 L64 87Z" fill="#f78fb3"/>
+    <path d="M64 87 Q60 92 56 90 M64 87 Q68 92 72 90" stroke="#1b1b1b" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <rect x="60" y="91" width="8" height="7" rx="1.5" fill="#fff" stroke="#ccc" stroke-width="1"/>
+    <path d="M64 91 V98" stroke="#ccc" stroke-width="1"/>
+    <circle cx="42" cy="84" r="5" fill="#f8a5c2" opacity="0.6"/>
+    <circle cx="86" cy="84" r="5" fill="#f8a5c2" opacity="0.6"/>
+
+  </g>
+</svg>

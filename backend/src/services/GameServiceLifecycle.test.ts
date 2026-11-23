@@ -1,7 +1,7 @@
 import { drawCards, endGame, getTableView, isBotTurn, leaveGame, nextHand, playBot, startIfReady, takeAction } from "../services/GameService"
 import { gameDAO } from "../dao/GameDAO"
 import { getTable } from "../dao/TableDAO"
-import { finishMatch, insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { finishMatch, insertMatch, insertMatchAction, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { updateStack } from "../dao/TablePlayersDAO"
 
 jest.mock("../dao/MatchDAO")
@@ -16,6 +16,7 @@ beforeEach(() => {
   jest.mocked(nextMatchNumber).mockResolvedValue(1)
   jest.mocked(insertMatch).mockResolvedValue("m1")
   jest.mocked(insertMatchPlayers).mockResolvedValue(undefined)
+  jest.mocked(insertMatchAction).mockResolvedValue(undefined)
 })
 
 describe("table games", () => {
@@ -41,7 +42,7 @@ describe("table games", () => {
     gameDAO.findByTable("t1")!.phase = "hand-complete"
     expect(await nextHand("t1")).toEqual(["a", "b"])
     expect(updateStack).toHaveBeenCalledTimes(2)
-    expect(finishMatch).toHaveBeenCalledWith("m1", null, 2, [{ seatNumber: 0, netResult: -1 }, { seatNumber: 1, netResult: -1 }])
+    expect(finishMatch).toHaveBeenCalledWith("m1", null, 2, [expect.objectContaining({ seatNumber: 0, netResult: -1 }), expect.objectContaining({ seatNumber: 1, netResult: -1 })])
     const game = gameDAO.findByTable("t1")!
     expect(game.players[game.dealerIndex]!.id).toBe("b")
     endGame("t1")
@@ -107,5 +108,23 @@ describe("bots", () => {
     takeAction(gameId, "a", { type: "check" })
     playBot("t1")
     expect(drawCards(gameId, "a", []).ok).toBe(true)
+  })
+})
+
+describe("table game edge cases", () => {
+  it("only starts one game when two joins land at once", async () => {
+    jest.mocked(getTable).mockResolvedValue(table([seat("a", 0), seat("b", 1)]) as never)
+    const results = await Promise.all([startIfReady("t1"), startIfReady("t1")])
+    expect(results.filter(r => r !== null)).toHaveLength(1)
+    endGame("t1")
+  })
+
+  it("does not save a stack for a player who left during the hand", async () => {
+    jest.mocked(getTable).mockResolvedValue(table([seat("a", 0), seat("b", 1)]) as never)
+    await startIfReady("t1")
+    leaveGame("t1", "b")
+    await nextHand("t1")
+    expect(updateStack).not.toHaveBeenCalledWith("t1", "b", expect.anything())
+    endGame("t1")
   })
 })

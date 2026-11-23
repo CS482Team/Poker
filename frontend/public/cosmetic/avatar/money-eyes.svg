@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-10-money-eyes"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-10-money-eyes)">
+    <rect width="128" height="128" fill="#2980b9"/>
+    <radialGradient id="g-money" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ffe66d"/><stop offset="1" stop-color="#f5b700"/>
+    </radialGradient>
+    <circle cx="64" cy="64" r="46" fill="url(#g-money)"/>
+    <g transform="translate(48 54)">
+      <path d="M7 -8 Q0 -13 -6 -9 Q-11 -3 0 1 Q11 5 6 11 Q0 15 -7 9" stroke="#1e8449" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M0 -15 V16" stroke="#1e8449" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(80 54)">
+      <path d="M7 -8 Q0 -13 -6 -9 Q-11 -3 0 1 Q11 5 6 11 Q0 15 -7 9" stroke="#1e8449" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M0 -15 V16" stroke="#1e8449" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <path d="M40 74 Q64 74 88 74 Q86 98 64 98 Q42 98 40 74Z" fill="#7a1f1f"/>
+    <path d="M42 75 L86 75 L84 82 L44 82Z" fill="#fff"/>
+    <path d="M52 92 Q64 86 76 92 Q70 98 64 98 Q58 98 52 92Z" fill="#e74c3c"/>
+
+  </g>
+</svg>

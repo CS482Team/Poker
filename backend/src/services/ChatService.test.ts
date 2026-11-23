@@ -1,20 +1,28 @@
 import { MAX_CHAT_LENGTH } from "../../../shared/Rules"
 import { insertMessage, recentMessages } from "../dao/ChatDAO"
+import { getTable } from "../dao/TableDAO"
 import { isSeated } from "../dao/TablePlayersDAO"
 import { ChatError, getHistory, sendMessage, sendSystemMessage } from "./ChatService"
 
 jest.mock("../dao/ChatDAO", () => ({ insertMessage: jest.fn(), recentMessages: jest.fn() }))
 jest.mock("../dao/TablePlayersDAO", () => ({ isSeated: jest.fn() }))
+jest.mock("../dao/TableDAO", () => ({ getTable: jest.fn() }))
 
 const message = { id: 1, tableId: "t1", userId: "u1", name: "Maya", avatarUrl: null, body: "hi", createdAt: "" }
 
 beforeEach(() => {
   jest.resetAllMocks()
   jest.mocked(isSeated).mockResolvedValue(true)
+  jest.mocked(getTable).mockResolvedValue({ chatEnabled: true } as never)
   jest.mocked(insertMessage).mockResolvedValue(message)
 })
 
 describe("ChatService", () => {
+  it("refuses messages when chat is turned off", async () => {
+    jest.mocked(getTable).mockResolvedValue({ chatEnabled: false } as never)
+    await expect(sendMessage("t1", "u1", "hi")).rejects.toThrow("Chat is turned off at this table")
+  })
+
   it("saves a trimmed message from a seated player", async () => {
     expect(await sendMessage("t1", "u1", "  hi  ")).toEqual(message)
     expect(insertMessage).toHaveBeenCalledWith("t1", "u1", "hi")

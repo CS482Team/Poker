@@ -2,7 +2,10 @@
 
 import type { Table } from "@shared/Table";
 import { fetchTables } from "@/service/TableService";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+
+const HAND = ["TH", "JD", "QH", "KD", "AH"];
 
 export default function AuthBrand() {
     const [tables, setTables] = useState<Table[]>([]);
@@ -16,6 +19,9 @@ export default function AuthBrand() {
     return (
         <aside className="auth-brand">
             <div className="auth-suits" aria-hidden="true">
+                {HAND.map((card, i) => (
+                    <Image key={card} src={`/card/${card}.svg`} alt="" width={72} height={103} unoptimized style={{ left: i * 26, rotate: `${(i - 2) * 8}deg` }} />
+                ))}
             </div>
             <h1 className="font-display auth-title whitespace-nowrap">
                 Hearts &amp;
@@ -25,11 +31,9 @@ export default function AuthBrand() {
             <p className="auth-lede whitespace-nowrap">
                 Sit at your first table to claim your $2,500 welcome stack.
             </p>
-            <ul className="auth-facts">
-                <li><b>{tables.length}</b> tables open</li>
-                <li><b>{players}</b> players seated</li>
-                <li className="ml-auto text-right"><b>$2,500</b> welcome stack</li>
-            </ul>
+            <p className="auth-facts">
+                <b>{players}</b> players at <b>{tables.length}</b> tables
+            </p>
         </aside>
     );
 }

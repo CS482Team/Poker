@@ -1,13 +1,7 @@
-import AdBanner from "@/component/AdBanner";
-import AdminPanel from "@/component/AdminPanel";
+import AdminPanel from "@/component/admin/AdminPanel";
 
 export const metadata = { title: "Admin" };
 
 export default function Admin() {
-  return (
-    <>
-      <AdBanner />
-      <AdminPanel />
-    </>
-  );
+  return <AdminPanel />;
 }

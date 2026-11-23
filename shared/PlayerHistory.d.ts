@@ -3,6 +3,7 @@ export interface PlayerSummary {
   username: string
   balance: number
   handsPlayed: number
+  banned: boolean
 }
 
 export interface HandRecord {

@@ -2,7 +2,7 @@ import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { io as connect, Socket } from "socket.io-client"
 import { getAllTables, getTable } from "../dao/TableDAO"
-import { broadcastChange, broadcastChat, initSocket, sendViews } from "../socket/io"
+import { broadcastChange, broadcastChat, broadcastEmote, initSocket, sendViews } from "../socket/io"
 import { getTableView } from "../services/GameService"
 
 jest.mock("../dao/TableDAO", () => ({
@@ -11,6 +11,9 @@ jest.mock("../dao/TableDAO", () => ({
 }))
 
 jest.mock("../services/GameService", () => ({ getTableView: jest.fn() }))
+jest.mock("../dao/UserDAO", () => ({ getUserIdFromToken: async (token: string) => token }))
+// cosmetics are tested in ShopService.test.ts; here the table passes straight through
+jest.mock("../services/ShopService", () => ({ withCosmetics: async (table: unknown) => table }))
 jest.mock("../services/ChatService", () => ({ getHistory: jest.fn().mockResolvedValue([]) }))
 
 const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 100, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [] }
@@ -43,6 +46,12 @@ afterAll(() => {
   server.closeAllConnections()
   server.close()
 })
+
+async function signIn(token: string) {
+  client.disconnect()
+  client = connect(`http://localhost:${(server.address() as AddressInfo).port}`, { auth: { token } })
+  await next("connect")
+}
 
 function join(event: string, ...args: unknown[]) {
   return new Promise<void>((resolve) => client.emit(event, ...args, resolve))
@@ -77,14 +86,17 @@ describe("socket", () => {
 
   it("sends a player their view when they watch it", async () => {
     jest.mocked(getTableView).mockReturnValue({ id: "g1" } as never)
+    await signIn("a")
     const received = next("view")
-    await join("watchHand", { tableId: "t1", userId: "a" })
+    await join("watchHand", "t1")
     expect(await received).toEqual({ id: "g1" })
+    expect(getTableView).toHaveBeenLastCalledWith("t1", "a")
   })
 
   it("pushes views to everyone watching a table", async () => {
     jest.mocked(getTableView).mockReturnValue({ id: "g1" } as never)
-    await join("watchHand", { tableId: "t1", userId: "a" })
+    await signIn("a")
+    await join("watchHand", "t1")
     const received = next("view")
     sendViews("t1")
     expect(await received).toEqual({ id: "g1" })
@@ -96,5 +108,12 @@ describe("socket", () => {
     const received = next("chat:message")
     broadcastChat(message)
     expect(await received).toEqual(message)
+  })
+  it("sends played emotes to that table's emote room", async () => {
+    const played = { tableId: "t1", userId: "u1", emote: { id: "e1", name: "Big Laugh", description: "", type: "emote" as const, rarity: "rare" as const, cost: 500, assetUrl: null, style: { text: "😂" } } }
+    await join("emote:join", "t1")
+    const received = next("emote:played")
+    broadcastEmote(played)
+    expect(await received).toEqual(played)
   })
 })

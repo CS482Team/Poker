@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/supabaseClient";
 import AuthBrand from "@/app/components/AuthBrand";
-
+import ResetRequestModal from "@/component/auth/ResetRequestModal";
 
 export default function HomePage() {
   const router = useRouter();
@@ -41,11 +41,9 @@ export default function HomePage() {
     await supabase.auth.signOut();
     setUser(null);
   };
-  const handleForgotPassword = async () => {
-    // TODO: forgot password function
-    // Check supabase docs for this
-    router.push("signup") // just so it works
-  };
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const handleForgotPassword = () => setResetOpen(true);
 
   return (
     <main className="auth-page">
@@ -92,7 +90,7 @@ export default function HomePage() {
                 >
                   Forgot password
                 </button>
-                <button type="submit" className="primary-action w-full">
+                <button type="submit" className="primary-action auth-submit w-full">
                   Log in
                 </button>
               </form>
@@ -106,14 +104,8 @@ export default function HomePage() {
               >
                 Sign Up
               </button>
-              <div className="auth-divider">
-                <span>Not ready for an account?</span>
-              </div>
-              <button 
-                type="button" 
-                onClick={handlePlayAsGuest}
-                className="secondary-action w-full">
-                  Play as Guest
+              <button type="button" onClick={handlePlayAsGuest} className="auth-link mt-5 block w-full text-center">
+                Play as Guest
               </button>
             </>
           ) : (
@@ -126,6 +118,10 @@ export default function HomePage() {
                 Logout
               </button>
             </div>
+          )}
+          {resetOpen && (
+            <ResetRequestModal email={email}
+            onClose={() => setResetOpen(false)} />
           )}
         </div>
       </div>

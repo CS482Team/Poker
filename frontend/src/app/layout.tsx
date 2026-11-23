@@ -1,4 +1,6 @@
-import Nav from "@/component/NavBar";
+import MusicPlayer from "@/component/layout/MusicPlayer";
+import Nav from "@/component/layout/NavBar";
+import ThemeApplier from "@/component/layout/ThemeApplier";
 import { Suspense } from "react";
 import "./globals.css";
 import "./site.css";
@@ -11,6 +13,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="app-shell min-h-screen text-[#f5f2ef]">
         <Suspense>
           <Nav />
+          <ThemeApplier />
+          <MusicPlayer />
         </Suspense>
         {children}
       </body>

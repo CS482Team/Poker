@@ -1,6 +1,7 @@
 import type { ChatMessage } from "../../../shared/Chat"
 import { CHAT_HISTORY_SIZE, MAX_CHAT_LENGTH } from "../../../shared/Rules"
 import { insertMessage, recentMessages } from "../dao/ChatDAO"
+import { getTable } from "../dao/TableDAO"
 import { isSeated } from "../dao/TablePlayersDAO"
 
 /* a reason a message was refused, safe to show the player */
@@ -12,6 +13,7 @@ export async function sendMessage(tableId: string, userId: string, body: string)
   if (text.length === 0 || text.length > MAX_CHAT_LENGTH) {
     throw new ChatError(`Messages must be 1 to ${MAX_CHAT_LENGTH} characters`)
   }
+  if ((await getTable(tableId))?.chatEnabled === false) throw new ChatError("Chat is turned off at this table")
   if (!(await isSeated(tableId, userId))) throw new ChatError("Only seated players can chat")
   return insertMessage(tableId, userId, text)
 }

@@ -3,6 +3,8 @@ import Home from "@/app/page"
 
 const mockPush = jest.fn()
 
+jest.mock("@/service/ReportService", () => ({ requestPasswordReset: jest.fn() }))
+
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }))
@@ -27,5 +29,11 @@ describe("Home", () => {
     fireEvent.click(screen.getByRole("button", { name: "Log in" }))
     expect(await screen.findByText("Logged in as a@b.com")).toBeInTheDocument()
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/dashboard"))
+  })
+
+  it("opens the password reset form from Forgot password", () => {
+    render(<Home />)
+    fireEvent.click(screen.getByText("Forgot password"))
+    expect(screen.getByRole("dialog", { name: "Reset your password" })).toBeInTheDocument()
   })
 })

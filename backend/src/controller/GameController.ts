@@ -1,22 +1,80 @@
 import type { Request, Response } from "express"
 import type { ActionType, PlayerAction } from "../../../shared/Actions"
 import type { GameState } from "../../../shared/GameState"
-import { drawCards, isBotTurn, nextHand, playBot, takeAction } from "../services/GameService"
+import { closeVote, drawCards, hasVote, humanTurn, isBotTurn, nextHand, openVote, playBot, setTurnDeadline, setVoteNeeded, takeAction, timeOut, voteToPlayAgain, voteWon } from "../services/GameService"
+import { getTable } from "../dao/TableDAO"
 import type { ActError, DrawCardsError } from "../services/GameService"
 import { sendViews } from "../socket/io"
 
-const NEXT_HAND_DELAY = 5000
+const NEXT_HAND_DELAY = 10000
+const TURN_TIME = 30000
 const BOT_MIN_DELAY = 1000
 const BOT_MAX_DELAY = 10000
 const waitingBots = new Set<string>()
+const turnTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 export function sendGame(game: GameState) {
   sendViews(game.tableId)
   if (game.phase === "hand-complete") {
-    setTimeout(() => dealNextHand(game.tableId).catch(console.error), NEXT_HAND_DELAY)
+    stopTurnTimer(game.tableId)
+    startVote(game.tableId).catch(console.error)
   } else {
     playBotLater(game.tableId)
+    startTurnTimer(game.tableId).catch(console.error)
   }
+}
+
+async function startVote(tableId: string) {
+  if (hasVote(tableId)) return
+  const table = await getTable(tableId)
+  if (!table) return
+  openVote(tableId, Math.ceil(table.seats.length / 2), Date.now() + NEXT_HAND_DELAY)
+  sendViews(tableId)
+  setTimeout(() => dealIfVoted(tableId).catch(console.error), NEXT_HAND_DELAY)
+}
+
+export async function recountVote(tableId: string) {
+  const table = await getTable(tableId)
+  if (!table) return
+  setVoteNeeded(tableId, Math.ceil(table.seats.length / 2))
+  await dealIfVoted(tableId)
+}
+
+async function dealIfVoted(tableId: string) {
+  if (!voteWon(tableId)) return
+  closeVote(tableId)
+  await dealNextHand(tableId)
+}
+
+function stopTurnTimer(tableId: string) {
+  clearTimeout(turnTimers.get(tableId))
+  turnTimers.delete(tableId)
+  setTurnDeadline(tableId, null)
+}
+
+async function startTurnTimer(tableId: string) {
+  stopTurnTimer(tableId)
+  const turn = humanTurn(tableId)
+  if (!turn || !(await getTable(tableId))?.turnTimerEnabled) return
+  if (humanTurn(tableId) !== turn) return
+  stopTurnTimer(tableId)
+  setTurnDeadline(tableId, Date.now() + TURN_TIME)
+  sendViews(tableId)
+  turnTimers.set(tableId, setTimeout(() => {
+    const game = timeOut(tableId, turn)
+    if (game) sendGame(game)
+  }, TURN_TIME))
+}
+
+export function againController(req: Request, res: Response): void {
+  const tableId = voteToPlayAgain(String(req.params.gameId), res.locals.userId)
+  if (!tableId) {
+    res.status(409).json({ error: "No vote to join" })
+    return
+  }
+  sendViews(tableId)
+  dealIfVoted(tableId).catch(console.error)
+  res.status(204).end()
 }
 
 export function playBotLater(tableId: string) {
@@ -33,6 +91,7 @@ async function dealNextHand(tableId: string) {
   await nextHand(tableId)
   sendViews(tableId)
   playBotLater(tableId)
+  await startTurnTimer(tableId)
 }
 
 const ACTION_TYPES: ActionType[] = ["fold", "check", "call", "bet", "raise"]
@@ -45,13 +104,12 @@ const ACT_ERROR_STATUS: Record<ActError, number> = {
   "illegal-action": 400,
 }
 
-// TODO take playerId from the auth token once auth exists
 export function actionController(req: Request, res: Response): void {
-  const playerId: unknown = req.body?.playerId
+  const playerId: string = res.locals.userId
   const type: unknown = req.body?.action?.type
   const amount: unknown = req.body?.action?.amount
   const validAmount = amount === undefined || typeof amount === "number"
-  if (typeof playerId !== "string" || !ACTION_TYPES.includes(type as ActionType) || !validAmount) {
+  if (!ACTION_TYPES.includes(type as ActionType) || !validAmount) {
     res.status(400).json({ error: "invalid-action" })
     return
   }
@@ -78,11 +136,10 @@ function isDiscardList(discard: unknown): discard is number[] {
     && new Set(discard).size === discard.length
 }
 
-// TODO take playerId from the auth token once auth exists
 export function drawController(req: Request, res: Response): void {
-  const playerId: unknown = req.body?.playerId
+  const playerId: string = res.locals.userId
   const discard: unknown = req.body?.discard
-  if (typeof playerId !== "string" || !isDiscardList(discard)) {
+  if (!isDiscardList(discard)) {
     res.status(400).json({ error: "invalid-draw" })
     return
   }

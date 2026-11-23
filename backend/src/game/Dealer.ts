@@ -3,6 +3,7 @@ import type { GameState, PlayerState, Result, SeatInput, StartError, TableConfig
 import { createDeck, shuffle } from "./Deck"
 import type { Rng } from "../../../shared/Card"
 import { nextSeat } from "./Turn"
+import { startBettingRound } from "./Betting"
 import { MAX_PLAYERS, MIN_PLAYERS } from "../../../shared/Rules"
 
 const HAND_SIZE = 5
@@ -98,21 +99,6 @@ export function startHand(state: GameState, rng: Rng = Math.random): Result<Game
     }
   }
 
-  // 6. Start the pre-draw betting round (S2 will replace this with startBettingRound)
-  return {
-    ok: true,
-    value: {
-      ...state,
-      players,
-      dealerIndex,
-      toActIndex: nextSeat(players, dealerIndex, p => p.status === "active"),
-      phase: "predraw-betting",
-      deck,
-      pot,
-      round: { street: "predraw", currentBet: 0, minRaise: state.config.minBet },
-      handNumber: state.handNumber + 1,
-      winners: [],
-      winnings: {},
-    },
-  }
+  const dealt = { ...state, players, dealerIndex, deck, pot, handNumber: state.handNumber + 1, winners: [], winnings: {} }
+  return { ok: true, value: startBettingRound(dealt, "predraw") }
 }

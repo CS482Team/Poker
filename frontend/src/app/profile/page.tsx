@@ -1,5 +1,6 @@
-import AdBanner from "@/component/AdBanner";
-import MyHistory from "@/component/MyHistory";
+import AdBanner from "@/component/ads/AdBanner";
+import MyHistory from "@/component/profile/MyHistory";
+import ProfileCard from "@/component/profile/ProfileCard";
 
 export const metadata = { title: "Profile" };
 
@@ -7,7 +8,10 @@ export default function Profile() {
   return (
     <>
       <AdBanner />
-      <MyHistory />
+      <div className="page-shell">
+        <ProfileCard />
+        <MyHistory />
+      </div>
     </>
   );
 }
