@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import ProfileMenu from "@/component/layout/ProfileMenu"
 import { getCurrentTableId } from "@/service/CurrentTableService"
 import { watchTable } from "@/service/SocketService"
@@ -36,8 +37,9 @@ export default function Nav() {
           <Link
             href="/dashboard"
             aria-label="Hearts & Diamonds, back to the lobby"
-            className="nav-mark rounded-md text-3xl leading-none focus-visible:outline-2 focus-visible:outline-white/40"
+            className="nav-mark flex items-center gap-1.5 rounded-md text-3xl leading-none focus-visible:outline-2 focus-visible:outline-white/40"
           >
+            <Image src="/logo.svg" alt="" width={26} height={26} unoptimized />
             H&amp;D
           </Link>
           <VolumeControl />
