@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import PlayerHistory from "@/component/PlayerHistory"
-import { fetchPlayerHands, fetchPlayers, removePlayer, unbanPlayer } from "@/service/AdminService"
+import { fetchPlayerHands, fetchPlayers, modifyChips, removePlayer, unbanPlayer } from "@/service/AdminService"
 
-jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), removePlayer: jest.fn(), unbanPlayer: jest.fn() }))
+jest.mock("@/service/AdminService", () => ({ fetchPlayers: jest.fn(), fetchPlayerHands: jest.fn(), modifyChips: jest.fn(), removePlayer: jest.fn(), unbanPlayer: jest.fn() }))
 
 const maya = { id: "u1", username: "Maya", balance: 1840, handsPlayed: 3, banned: false }
 const theo = { id: "u2", username: "Theo", balance: 2120, handsPlayed: 0, banned: false }
@@ -57,6 +57,16 @@ describe("PlayerHistory", () => {
     fireEvent.click(screen.getByRole("button", { name: "Unban player" }))
     expect(await screen.findByRole("button", { name: "Ban player" })).toBeInTheDocument()
     expect(unbanPlayer).toHaveBeenCalledWith("u1")
+  })
+
+  it("modifies a player's chips", async () => {
+    render(<PlayerHistory />)
+    fireEvent.click(await screen.findByRole("button", { name: /Maya/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Modify chips" }))
+    fireEvent.click(screen.getByRole("button", { name: "More balance for maya" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save" }))
+    expect(await screen.findByText("$1,850", { selector: "p" })).toBeInTheDocument()
+    expect(modifyChips).toHaveBeenCalledWith("u1", 1850)
   })
 
   it("shows errors", async () => {

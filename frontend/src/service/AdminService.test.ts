@@ -1,4 +1,4 @@
-import { createAd, deleteAd, editAd, fetchAds, fetchPlayerHands, fetchPlayers, isAdmin, removePlayer, setAdActive, unbanPlayer } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, fetchPlayerHands, fetchPlayers, isAdmin, modifyChips, removePlayer, setAdActive, unbanPlayer } from "@/service/AdminService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
@@ -44,6 +44,14 @@ describe("adminService", () => {
     expect(jest.mocked(global.fetch).mock.calls[0]![0]).toContain("/admin/players/u1/unban")
   })
 
+  it("modifies a player's chips", async () => {
+    respond(true)
+    await modifyChips("u1", 900)
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toContain("/admin/players/u1/balance")
+    expect(options?.body).toBe(JSON.stringify({ balance: 900 }))
+  })
+
   it("creates, updates and deletes ads", async () => {
     respond(true)
     await createAd(ad)
@@ -65,5 +73,6 @@ describe("adminService", () => {
     await expect(fetchPlayerHands("u1")).rejects.toThrow("500")
     await expect(removePlayer("u1")).rejects.toThrow("500")
     await expect(unbanPlayer("u1")).rejects.toThrow("500")
+    await expect(modifyChips("u1", 900)).rejects.toThrow("500")
   })
 })

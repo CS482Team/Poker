@@ -1,12 +1,15 @@
 "use client"
 
+import Avatar from "@/component/cosmetic/Avatar"
+import { useMyLoadout } from "@/hook/useMyLoadout"
 import { isAdmin } from "@/service/AdminService"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type CSSProperties } from "react"
 
 export default function ProfileMenu() {
   const [admin, setAdmin] = useState(false)
   const [open, setOpen] = useState(false)
+  const loadout = useMyLoadout()
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -24,18 +27,30 @@ export default function ProfileMenu() {
     return () => document.removeEventListener("mousedown", closeOutside)
   }, [open])
 
+  const avatarUrl = loadout.avatar?.assetUrl
+  const border = loadout.avatar_border
+  const ring = border ? ({ borderColor: border.style.color, "--ring": border.style.color } as CSSProperties) : undefined
+  const ringAnimation = border?.style.animation ? `animate-${border.style.animation}` : ""
+
   return (
     <div ref={menuRef} className="relative">
-      <button type="button" aria-label="Profile menu" onClick={() => setOpen(!open)} className="avatar-initial size-11!">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
-        </svg>
+      <button type="button" aria-label="Profile menu" onClick={() => setOpen(!open)} className={`avatar-initial relative size-11! ${ringAnimation}`} style={ring}>
+        {avatarUrl ? (
+          <Avatar username="" url={avatarUrl} />
+        ) : (
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
+          </svg>
+        )}
       </button>
       {open && (
         <div className="profile-menu">
           <Link href="/profile" onClick={() => setOpen(false)}>
             Profile
+          </Link>
+          <Link href="/shop/my-items" onClick={() => setOpen(false)}>
+            My items
           </Link>
           {admin && (
             <Link href="/admin" onClick={() => setOpen(false)}>

@@ -68,3 +68,12 @@ export async function unbanPlayer(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/admin/players/${id}/unban`, { method: "POST", headers: await authHeaders() });
   if (!res.ok) throw new Error(`Failed to unban player (${res.status})`);
 }
+
+export async function modifyChips(id: string, balance: number): Promise<void> {
+  const res = await fetch(`${API_URL}/admin/players/${id}/balance`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+    body: JSON.stringify({ balance }),
+  });
+  if (!res.ok) throw new Error(`Failed to modify chips (${res.status})`);
+}

@@ -90,3 +90,6 @@ values
 
 insert into public.advert (title, reward_amount, active, created_by)
 values ('THIS IS AN EXTERNAL AD', 500, true, '00000000-0000-0000-0000-000000000006');
+
+insert into public.event (name, multiplier, expires_at, created_by)
+values ('Double Chips Weekend', 2, now() + interval '7 days', '00000000-0000-0000-0000-000000000006');
