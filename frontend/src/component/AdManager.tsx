@@ -7,7 +7,7 @@ import NewAdForm from "@/component/NewAdForm"
 import { deleteAd, editAd, fetchAds, setAdActive } from "@/service/AdminService"
 import { useEffect, useState } from "react"
 
-const ROW = "grid grid-cols-[48px_minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[64px_minmax(0,1fr)_120px_140px_96px] sm:gap-4"
+const ROW = "grid grid-cols-[60px_minmax(0,1fr)_72px_auto_76px] items-center gap-3 px-1 sm:grid-cols-[92px_minmax(0,1fr)_120px_140px_96px] sm:gap-4"
 const ICON = "grid size-8 place-items-center rounded-md text-[#9e9393] transition-colors hover:bg-white/10 hover:text-white"
 const INPUT = "w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[17px] text-[#f5f2ef] outline-none focus:border-white/40 [color-scheme:dark]"
 
@@ -162,7 +162,7 @@ export default function AdManager() {
 function Thumbnail({ imageUrl }: { imageUrl?: string | null }) {
   return (
     <span style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined} className={`grid aspect-video w-full place-items-center rounded-md border border-white/10 bg-black bg-cover bg-center text-[#6f6565] transition-colors hover:border-white/50 hover:text-white`}>
-      {!imageUrl && <Icon d={IMAGE} size={14} />}
+      {!imageUrl && <Icon d={IMAGE} size={18} />}
     </span>
   )
 }

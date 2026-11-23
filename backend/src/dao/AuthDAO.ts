@@ -35,3 +35,9 @@ export async function setPassword(userId: string, password: string): Promise<voi
 
   if (error) throw error
 }
+
+export async function findUserIdByEmail(email: string): Promise<string | null> {
+  const { data, error } = await getSupabase().rpc("user_id_for_email", { lookup: email })
+  if (error) throw error
+  return data
+}

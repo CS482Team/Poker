@@ -5,7 +5,7 @@ import { fetchReports } from "@/service/AdminService"
 jest.mock("@/service/AdminService", () => ({ fetchReports: jest.fn() }))
 jest.mock("@/component/ReportModal", () => () => <p>Report details</p>)
 
-const report = { id: 1, username: "Maya", body: "Table froze", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby" }
+const report = { id: 1, username: "Maya", body: "Table froze", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "u1", kind: "report" as const, status: "open" as const }
 
 beforeEach(() => jest.resetAllMocks())
 
@@ -27,5 +27,11 @@ describe("ReportList", () => {
     jest.mocked(fetchReports).mockRejectedValue(new Error("Failed to load reports (500)"))
     render(<ReportList />)
     expect(await screen.findByText("Failed to load reports (500)")).toBeInTheDocument()
+  })
+
+  it("tags password reset requests", async () => {
+    jest.mocked(fetchReports).mockResolvedValue([{ ...report, id: 2, kind: "password_reset" as const, body: "Asked for a password reset" }])
+    render(<ReportList />)
+    expect(await screen.findByText("Password reset")).toBeInTheDocument()
   })
 })

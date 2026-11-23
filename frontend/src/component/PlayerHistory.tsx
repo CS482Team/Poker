@@ -2,7 +2,8 @@
 
 import BanModal from "@/component/BanModal"
 import HandModal from "@/component/HandModal"
-import Icon, { GAVEL, RESTORE } from "@/component/Icon"
+import Icon, { GAVEL, KEY, RESTORE } from "@/component/Icon"
+import ResetPasswordModal from "@/component/ResetPasswordModal"
 import ModifyChipsModal from "@/component/ModifyChipsModal"
 import { fetchPlayerHands, fetchPlayers, removePlayer, unbanPlayer } from "@/service/AdminService"
 import type { HandRecord, PlayerSummary } from "@shared/PlayerHistory"
@@ -18,6 +19,7 @@ export default function PlayerHistory() {
   const [error, setError] = useState<string | null>(null)
   const [openHand, setOpenHand] = useState<HandRecord | null>(null)
   const [removing, setRemoving] = useState(false)
+  const [resetting, setResetting] = useState(false)
   const [editingChips, setEditingChips] = useState(false)
 
   useEffect(() => {
@@ -89,6 +91,7 @@ export default function PlayerHistory() {
   return (
     <section className="panel overflow-hidden">
       {openHand && <HandModal matchId={openHand.matchId} tableName={openHand.tableName} onClose={() => setOpenHand(null)} />}
+      {resetting && selected && <ResetPasswordModal player={selected} onClose={() => setResetting(false)} />}
       {removing && selected && <BanModal player={selected} onCancel={() => setRemoving(false)} onBan={() => remove(selected.id)} />}
       {editingChips && selected && <ModifyChipsModal player={selected} onCancel={() => setEditingChips(false)} onSaved={saveChips} />}
       <div className="panel-head flush">
@@ -116,15 +119,20 @@ export default function PlayerHistory() {
               <div className="flex min-w-0 items-center gap-3">
                 <span className="avatar-initial size-11! text-lg">{selected.username[0]}</span>
                 <h3 className="truncate text-xl font-bold">{selected.username}</h3>
-                {selected.banned ? (
-                  <button type="button" aria-label="Unban player" onClick={() => unban(selected.id)} className={`${ICON} -ml-2 hover:text-[#6fd099]`}>
-                    <Icon d={RESTORE} />
+                <div className="flex items-center">
+                  {selected.banned ? (
+                    <button type="button" aria-label="Unban player" title="Unban player" onClick={() => unban(selected.id)} className={`${ICON} hover:text-[#6fd099]`}>
+                      <Icon d={RESTORE} size={18} />
+                    </button>
+                  ) : (
+                    <button type="button" aria-label="Ban player" title="Ban player" onClick={() => setRemoving(true)} className={`${ICON} hover:text-red-300`}>
+                      <Icon d="" solid={GAVEL} size={18} />
+                    </button>
+                  )}
+                  <button type="button" aria-label="Reset password" title="Reset password" onClick={() => setResetting(true)} className={ICON}>
+                    <Icon d={KEY} size={18} />
                   </button>
-                ) : (
-                  <button type="button" aria-label="Ban player" onClick={() => setRemoving(true)} className={`${ICON} -ml-2 hover:text-red-300`}>
-                    <Icon d="" solid={GAVEL} />
-                  </button>
-                )}
+                </div>
               </div>
               <div className="flex divide-x divide-white/10">
                 <button type="button" aria-label="Modify chips" onClick={() => setEditingChips(true)} className="rounded-md py-1 pl-2 pr-4 text-right transition-colors hover:bg-white/[.06]">

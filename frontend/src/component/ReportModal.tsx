@@ -10,11 +10,16 @@ export default function ReportModal({ report, onClose }: { report: Report; onClo
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<"hands" | "chat">("hands")
 
+  const isReset = report.kind === "password_reset"
+
   useEffect(() => {
+    // reset requests aren't about a table, so there are no hands or chat to load
+    if (isReset) return
+
     fetchReport(report.id)
       .then(setDetail)
       .catch((err: Error) => setError(err.message))
-  }, [report.id])
+  }, [report.id, isReset])
 
   return (
     <div onClick={(e) => e.target === e.currentTarget && onClose()} className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
@@ -35,22 +40,28 @@ export default function ReportModal({ report, onClose }: { report: Report; onClo
         </div>
 
         <div className="px-5 pt-4">
-          <p className="whitespace-pre-wrap break-words rounded-md bg-white/[.04] px-4 py-3 text-[17px] leading-relaxed">{report.body}</p>
-          <div role="tablist" className="mt-4 flex gap-5 border-b border-white/10 text-sm">
+          <p className="whitespace-pre-wrap break-words rounded-md bg-white/[.04] px-4 py-3 text-[15px] leading-relaxed">{report.body}</p>
+          {isReset && <ResetPanel />}
+          {!isReset && <div role="tablist" className="mt-4 flex gap-5 border-b border-white/10 text-sm">
             <TabButton active={tab === "hands"} onClick={() => setTab("hands")} label={`Hands${detail ? ` (${detail.hands.length})` : ""}`} />
             <TabButton active={tab === "chat"} onClick={() => setTab("chat")} label={`Chat${detail ? ` (${detail.chat.length})` : ""}`} />
-          </div>
+          </div>}
         </div>
 
-        <div className="min-h-[200px] flex-1 overflow-y-auto px-5 py-4">
+        {!isReset && <div className="min-h-[200px] flex-1 overflow-y-auto px-5 py-4">
           {error && <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
           {!detail && !error && <p className="py-10 text-center text-sm text-[#9e9393]">Loading…</p>}
           {detail && tab === "hands" && <Hands hands={detail.hands} />}
           {detail && tab === "chat" && <Chat detail={detail} />}
-        </div>
+        </div>}
       </div>
     </div>
   )
+}
+
+/* for a password reset request: the admin types a new password for the account and passes it on */
+function ResetPanel() {
+  return <p className="mt-4 text-sm text-[#9e9393]">Reset this player&apos;s password from Players.</p>
 }
 
 function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {

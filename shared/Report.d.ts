@@ -8,6 +8,9 @@ export interface Report {
   createdAt: string
   tableId: string | null
   tableName: string | null
+  userId: string | null
+  kind: "report" | "password_reset"
+  status: "open" | "resolved"
 }
 
 export interface HandPlayer {

@@ -2,9 +2,13 @@ import request from "supertest"
 import { app } from "../app"
 import { getHand, getPlayerHands } from "../dao/MatchDAO"
 import { getAllPlayers, getRole, getUserIdFromToken, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
+import { getEmail, setPassword } from "../dao/AuthDAO"
+import { getReport, resolveReport, resolveResets } from "../dao/ReportDAO"
 
 jest.mock("../dao/MatchDAO", () => ({ getHand: jest.fn(), getPlayerHands: jest.fn() }))
 jest.mock("../dao/UserDAO", () => ({ getAllPlayers: jest.fn(), getRole: jest.fn(), getUserIdFromToken: jest.fn(), removeUser: jest.fn(), setBalance: jest.fn(), unbanUser: jest.fn() }))
+jest.mock("../dao/AuthDAO", () => ({ getEmail: jest.fn(), setPassword: jest.fn() }))
+jest.mock("../dao/ReportDAO", () => ({ getReport: jest.fn(), resolveReport: jest.fn(), resolveResets: jest.fn(), getReports: jest.fn() }))
 
 const player = { id: "u1", username: "Maya", balance: 500, handsPlayed: 3, banned: false }
 const hand = { matchId: "m1", tableName: "Ruby", handNumber: 2, pot: 80, winner: "Maya", netResult: 40, endedAt: "2026-11-08" }
@@ -65,5 +69,22 @@ describe("AdminRouter", () => {
     jest.mocked(getRole).mockResolvedValue(0)
     const res = await request(app).get("/admin/players").set("Authorization", "Bearer token")
     expect(res.status).toBe(403)
+  })
+})
+
+describe("POST /admin/players/:id/password", () => {
+  it("sets the new password and returns the email to pass it on to", async () => {
+    jest.mocked(getEmail).mockResolvedValue("maya@test.local")
+    const res = await request(app).post("/admin/players/u1/password").set("Authorization", "Bearer token").send({ password: "newpass1" })
+    expect(res.body).toEqual({ email: "maya@test.local" })
+    expect(setPassword).toHaveBeenCalledWith("u1", "newpass1")
+    expect(resolveResets).toHaveBeenCalledWith("u1")
+  })
+
+  it("rejects a short password or a guest", async () => {
+    expect((await request(app).post("/admin/players/u1/password").set("Authorization", "Bearer token").send({ password: "123" })).status).toBe(400)
+    jest.mocked(getEmail).mockResolvedValue(null)
+    expect((await request(app).post("/admin/players/u1/password").set("Authorization", "Bearer token").send({ password: "newpass1" })).status).toBe(400)
+    expect(setPassword).not.toHaveBeenCalled()
   })
 })

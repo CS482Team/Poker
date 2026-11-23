@@ -1,4 +1,4 @@
-import { getAllPlayers, getBalance, getDailyReward, getProfile, getRole, getUserIdFromToken, getUsername, recordDailyClaim, removeUser, setAvatarUrl, setBalance, setUsername, unbanUser } from "../dao/UserDAO"
+import { getAllPlayers, getBalance, getDailyReward, getRole, getUserIdFromToken, getUsername, recordDailyClaim, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -54,12 +54,6 @@ describe("UserDAO", () => {
     expect(await getUserIdFromToken("token")).toBeNull()
   })
 
-  it("saves a new username", async () => {
-    mockState.awaited = { error: null }
-    expect(await setUsername("u1", "test")).toBe(true)
-    expect(calls).toContainEqual(["update", [{ username: "test" }]])
-  })
-
   it("removes a user", async () => {
     await removeUser("u1")
     expect(calls).toContainEqual(["updateUserById", ["u1", { ban_duration: "876000h" }]])
@@ -75,24 +69,6 @@ describe("UserDAO", () => {
   it("returns null for a bad token", async () => {
     mockState.result = { data: { user: null } }
     expect(await getUserIdFromToken("bad")).toBeNull()
-  })
-
-  it("false when username is taken", async () => {
-    mockState.awaited = { error: { code: "23505" } }
-    expect(await setUsername("u1", "test")).toBe(false)
-  })
-
-  it("reads a profile", async () => {
-    mockState.result = { data: { username: "Maya", avatar_url: null, is_guest: false } }
-    expect(await getProfile("u1")).toEqual({ id: "u1", username: "Maya", avatarUrl: null, email: "", isGuest: false })
-  })
-
-  it("saves or clears an avatar", async () => {
-    mockState.awaited = { error: null }
-    await setAvatarUrl("u1", "https://example.com/me.png")
-    expect(calls).toContainEqual(["update", [{ avatar_url: "https://example.com/me.png" }]])
-    await setAvatarUrl("u1", null)
-    expect(calls).toContainEqual(["update", [{ avatar_url: null }]])
   })
 
   it("reads the daily reward streak", async () => {
@@ -116,8 +92,5 @@ describe("UserDAO", () => {
     await expect(getAllPlayers()).rejects.toThrow("db down")
     await expect(getUsername("u1")).rejects.toThrow("db down")
     await expect(removeUser("u1")).rejects.toThrow("db down")
-    await expect(setUsername("u1", "test")).rejects.toThrow("db down")
-    await expect(getProfile("u1")).rejects.toThrow("db down")
-    await expect(setAvatarUrl("u1", null)).rejects.toThrow("db down")
   })
 })

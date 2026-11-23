@@ -96,3 +96,13 @@ export async function modifyChips(id: string, balance: number): Promise<void> {
   });
   if (!res.ok) throw new Error(`Failed to modify chips (${res.status})`);
 }
+
+export async function resetPassword(playerId: string, password: string): Promise<{ email: string | null }> {
+  const res = await fetch(`${API_URL}/admin/players/${playerId}/password`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `Failed to reset password (${res.status})`);
+  return res.json();
+}

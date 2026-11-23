@@ -2,8 +2,13 @@ import { Request, Response } from "express"
 import { MAX_REPORT_LENGTH } from "../../../shared/Rules"
 import { messagesBefore } from "../dao/ChatDAO"
 import { getTableHands } from "../dao/MatchDAO"
-import { createReport, getReport, getReports } from "../dao/ReportDAO"
+import { createReport, getReport, getReports, hasOpenReset } from "../dao/ReportDAO"
 import { getTable } from "../dao/TableDAO"
+import { findUserIdByEmail } from "../dao/AuthDAO"
+import { RateLimiter } from "../socket/RateLimiter"
+
+// reset requests are open to signed-out players, so limit them per address (requirement 6)
+export const resetRequests = new RateLimiter(3, 15 * 60_000)
 
 export async function addReport(req: Request<{}, {}, { message: string; tableId?: string }>, res: Response) {
   const message = typeof req.body.message === "string" ? req.body.message.trim() : ""
@@ -33,4 +38,21 @@ export async function showReport(req: Request<{ id: string }>, res: Response) {
   }
   const [hands, chat] = await Promise.all([getTableHands(report.tableId, report.createdAt), messagesBefore(report.tableId, report.createdAt, 100)])
   res.json({ hands, chat })
+}
+
+export async function requestPasswordReset(req: Request<{}, {}, { email: string }>, res: Response) {
+  if (!resetRequests.allow(req.ip ?? "unknown")) {
+    res.status(429).json({ error: "Too many requests. Try again in a few minutes" })
+    return
+  }
+  const email = typeof req.body.email === "string" ? req.body.email.trim() : ""
+  if (!email.includes("@")) {
+    res.status(400).json({ error: "Enter the email you sign in with" })
+    return
+  }
+  const userId = await findUserIdByEmail(email)
+  if (userId && !(await hasOpenReset(userId))) {
+    await createReport(userId, "Asked for a password reset", null, "password_reset")
+  }
+  res.status(202).end()
 }

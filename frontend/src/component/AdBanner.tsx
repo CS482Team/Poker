@@ -43,7 +43,7 @@ export default function AdBanner() {
         <button key={i} type="button" onClick={() => setWatching(ad)} className={`ad-banner ad-rail ${i === 0 ? "left" : "right"} cursor-pointer transition`}>
           <p className="text-[12px] font-bold uppercase tracking-[.18em] text-white/60">Advertisement</p>
           {ad.imageUrl && <img src={ad.imageUrl} alt="" className="w-full rounded-md" />}
-          <b className="text-base font-semibold leading-snug tracking-[.12em] text-white">{ad.title}</b>
+          <p className="max-w-[9em] text-center text-base font-semibold leading-relaxed tracking-[.12em] text-balance text-[#e2dada]">{ad.title}</p>
           <p className="flex w-full items-center justify-center gap-2 rounded-md border border-white/10 bg-white/[.08] py-2 text-[13px] font-semibold uppercase tracking-[.14em] text-[#cfcccc]">
             <Icon d={WATCH} size={16} />+{ad.rewardAmount} chips
           </p>

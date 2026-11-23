@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/supabaseClient";
 import AuthBrand from "@/app/components/AuthBrand";
-
+import ResetRequestModal from "@/component/ResetRequestModal";
 
 export default function HomePage() {
   const router = useRouter();
@@ -41,11 +41,9 @@ export default function HomePage() {
     await supabase.auth.signOut();
     setUser(null);
   };
-  const handleForgotPassword = async () => {
-    // TODO: forgot password function
-    // Check supabase docs for this
-    router.push("signup") // just so it works
-  };
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const handleForgotPassword = () => setResetOpen(true);
 
   return (
     <main className="auth-page">
@@ -120,6 +118,10 @@ export default function HomePage() {
                 Logout
               </button>
             </div>
+          )}
+          {resetOpen && (
+            <ResetRequestModal email={email}
+            onClose={() => setResetOpen(false)} />
           )}
         </div>
       </div>
