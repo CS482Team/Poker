@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-11-the-professor"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-11-the-professor)">
+    <rect width="128" height="128" fill="#5d6d7e"/>
+    <path d="M10 128 C10 100 34 90 64 90 C94 90 118 100 118 128Z" fill="#34495e"/>
+    <rect x="54" y="76" width="20" height="18" rx="4" fill="#ddaa86"/>
+    <circle cx="40" cy="62" r="6" fill="#ddaa86"/>
+    <circle cx="88" cy="62" r="6" fill="#ddaa86"/>
+    <ellipse cx="64" cy="58" rx="24" ry="27" fill="#f1c6a6"/>
+    <path d="M52 90 L64 104 L76 90Z" fill="#f4f4f4"/>
+    <path d="M56 94 L64 98 L56 102Z M72 94 L64 98 L72 102Z" fill="#c0392b"/>
+    <circle cx="64" cy="98" r="2.5" fill="#a93226"/>
+    <path d="M38 64 Q34 36 52 33 Q44 44 45 62Z" fill="#bdc3c7"/>
+    <path d="M90 64 Q94 36 76 33 Q84 44 83 62Z" fill="#bdc3c7"/>
+    <circle cx="55" cy="58" r="2.8" fill="#2b1b10"/>
+    <circle cx="73" cy="58" r="2.8" fill="#2b1b10"/>
+    <circle cx="55" cy="58" r="7.5" stroke="#333" stroke-width="2.5" fill="none"/>
+    <circle cx="73" cy="58" r="7.5" stroke="#333" stroke-width="2.5" fill="none"/>
+    <path d="M62.5 58 L65.5 58" stroke="#333" stroke-width="2.5"/>
+    <path d="M56 71 Q64 67 72 71 Q64 73 56 71Z" fill="#bdc3c7" stroke="#bdc3c7" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M58 77 Q64 80 70 77" stroke="#8a5a3a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  </g>
+</svg>

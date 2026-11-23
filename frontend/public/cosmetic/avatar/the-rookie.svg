@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs><clipPath id="clip-12-the-rookie"><circle cx="64" cy="64" r="64"/></clipPath></defs>
+  <g clip-path="url(#clip-12-the-rookie)">
+    <rect width="128" height="128" fill="#f39c12"/>
+    <path d="M10 128 C10 100 34 90 64 90 C94 90 118 100 118 128Z" fill="#27ae60"/>
+    <rect x="54" y="76" width="20" height="18" rx="4" fill="#a96e34"/>
+    <circle cx="40" cy="62" r="6" fill="#a96e34"/>
+    <circle cx="88" cy="62" r="6" fill="#a96e34"/>
+    <ellipse cx="64" cy="58" rx="24" ry="27" fill="#c68642"/>
+    <path d="M50 91 Q64 100 78 91" stroke="#1e8449" stroke-width="4" fill="none"/>
+    <circle cx="55" cy="58" r="2.8" fill="#1e120a"/>
+    <circle cx="73" cy="58" r="2.8" fill="#1e120a"/>
+    <path d="M50 51 Q55 49 59 51" stroke="#1e120a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M69 51 Q73 49 78 51" stroke="#1e120a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M55 69 Q64 80 73 69Z" fill="#fff" stroke="#5a2a1a" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M40 50 Q40 26 64 26 Q88 26 88 50Z" fill="#2980b9"/>
+    <circle cx="64" cy="27" r="3" fill="#1f618d"/>
+    <path d="M64 28 L64 48" stroke="#1f618d" stroke-width="1.5"/>
+    <path d="M38 48 Q64 42 90 48 Q100 52 96 56 Q64 48 42 54 Q34 54 38 48Z" fill="#1f618d"/>
+
+  </g>
+</svg>

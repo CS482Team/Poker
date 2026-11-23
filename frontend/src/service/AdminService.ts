@@ -60,20 +60,21 @@ export async function fetchPlayerHands(id: string): Promise<HandRecord[]> {
   return res.json();
 }
 
-export async function fetchReports(): Promise<Report[]> {
-  const res = await fetch(`${API_URL}/admin/reports`, { headers: await authHeaders() });
-  if (!res.ok) throw new Error(`Failed to load reports (${res.status})`);
-  return res.json();
+export async function removePlayer(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/admin/players/${id}`, { method: "DELETE", headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to remove player (${res.status})`);
 }
 
-export async function fetchReport(id: number): Promise<ReportDetail> {
-  const res = await fetch(`${API_URL}/admin/reports/${id}`, { headers: await authHeaders() });
-  if (!res.ok) throw new Error(`Failed to load report (${res.status})`);
-  return res.json();
+export async function unbanPlayer(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/admin/players/${id}/unban`, { method: "POST", headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to unban player (${res.status})`);
 }
 
-export async function fetchHand(id: string): Promise<ReportHand> {
-  const res = await fetch(`${API_URL}/admin/hands/${id}`, { headers: await authHeaders() });
-  if (!res.ok) throw new Error(`Failed to load hand (${res.status})`);
-  return res.json();
+export async function modifyChips(id: string, balance: number): Promise<void> {
+  const res = await fetch(`${API_URL}/admin/players/${id}/balance`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+    body: JSON.stringify({ balance }),
+  });
+  if (!res.ok) throw new Error(`Failed to modify chips (${res.status})`);
 }
