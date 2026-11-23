@@ -34,6 +34,11 @@ export async function hasOpenReset(userId: string): Promise<boolean> {
   return (count ?? 0) > 0
 }
 
+export async function resolveResets(userId: string): Promise<void> {
+  const { error } = await getSupabase().from("support_ticket").update({ status: "resolved" }).eq("user_id", userId).eq("kind", "password_reset").eq("status", "open")
+  if (error) throw error
+}
+
 export async function resolveReport(id: number): Promise<void> {
   const { error } = await getSupabase().from("support_ticket").update({ status: "resolved" }).eq("id", id)
   if (error) throw error

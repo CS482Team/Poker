@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import ReportModal from "@/component/ReportModal"
-import { fetchReport } from "@/service/AdminService"
+import { fetchReport, resetPassword } from "@/service/AdminService"
+import { waitFor } from "@testing-library/react"
 
-jest.mock("@/service/AdminService", () => ({ fetchReport: jest.fn() }))
+jest.mock("@/service/AdminService", () => ({ fetchReport: jest.fn(), resetPassword: jest.fn() }))
 
-const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "m1", kind: "report" as const, status: "open" as const }
+const report = { id: 1, username: "Maya", body: "Bob is cheating", createdAt: "2026-11-14T10:00:00Z", tableId: "t1", tableName: "Ruby", userId: "u1", kind: "report" as const, status: "open" as const }
 const hand = {
   id: "m1",
   handNumber: 3,
@@ -44,5 +45,10 @@ describe("ReportModal", () => {
     jest.mocked(fetchReport).mockRejectedValue(new Error("Failed to load report (500)"))
     render(<ReportModal report={report} onClose={jest.fn()} />)
     expect(await screen.findByText("Failed to load report (500)")).toBeInTheDocument()
+  })
+
+  it("points password resets to Players", () => {
+    render(<ReportModal report={{ ...report, kind: "password_reset" as const, tableId: null, tableName: null }} onClose={jest.fn()} />)
+    expect(screen.getByText(/from Players/)).toBeInTheDocument()
   })
 })

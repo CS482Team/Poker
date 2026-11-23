@@ -1,4 +1,4 @@
-import { createAd, deleteAd, editAd, fetchAds, fetchHand, fetchPlayerHands, fetchPlayers, fetchReport, fetchReports, isAdmin, modifyChips, removePlayer, resetPassword, setAdActive, unbanPlayer } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, fetchPlayerHands, fetchHand, fetchPlayers, fetchReport, fetchReports, isAdmin, modifyChips, removePlayer, resetPassword, setAdActive, unbanPlayer } from "@/service/AdminService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
@@ -38,12 +38,6 @@ describe("adminService", () => {
     expect(jest.mocked(global.fetch).mock.calls[1]![0]).toContain("/admin/reports/2")
     await fetchHand("m1")
     expect(jest.mocked(global.fetch).mock.calls[2]![0]).toContain("/admin/hands/m1")
-  })
-
-  it("sets a new password for a reset request", async () => {
-    respond(true, { email: "maya@test.local" })
-    expect(await resetPassword(4, "secret12")).toBe("maya@test.local")
-    expect(jest.mocked(global.fetch).mock.calls[0]![0]).toContain("/admin/reports/4/password")
   })
 
   it("removes a player", async () => {
@@ -91,5 +85,18 @@ describe("adminService", () => {
     await expect(removePlayer("u1")).rejects.toThrow("500")
     await expect(unbanPlayer("u1")).rejects.toThrow("500")
     await expect(modifyChips("u1", 900)).rejects.toThrow("500")
+  })
+
+  it("sets a player's new password and returns their email", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ email: "maya@test.local" }) })
+    expect(await resetPassword("u7", "newpass1")).toEqual({ email: "maya@test.local" })
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toMatch(/\/admin\/players\/u7\/password$/)
+    expect(options?.method).toBe("POST")
+  })
+
+  it("passes on why a password reset was refused", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 400, json: async () => ({ error: "Passwords are at least 6 characters" }) })
+    await expect(resetPassword("u7", "x")).rejects.toThrow("Passwords are at least 6 characters")
   })
 })

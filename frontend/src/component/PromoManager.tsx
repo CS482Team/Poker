@@ -43,11 +43,12 @@ export default function PromoManager() {
 
       {event ? (
         <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold">
-              {event.name} · {event.multiplier}x chips
-            </p>
-            <small>Ends {new Date(event.expiresAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</small>
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-white/[.06] text-xl font-bold text-[#e0a65e]">{event.multiplier}X</span>
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold">{event.name}</p>
+              <p className="text-sm text-[#9e9393]">Ends {new Date(event.expiresAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
+            </div>
           </div>
           <button type="button" onClick={() => run(() => endEvent(event.id))} className="secondary-action small danger">
             End

@@ -6,7 +6,6 @@ import { supabase } from "@/app/supabaseClient";
 import AuthBrand from "@/app/components/AuthBrand";
 import ResetRequestModal from "@/component/ResetRequestModal";
 
-
 export default function HomePage() {
   const router = useRouter();
   const [username, setUsername] = useState("");

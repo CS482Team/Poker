@@ -66,17 +66,6 @@ export async function fetchReports(): Promise<Report[]> {
   return res.json();
 }
 
-export async function resetPassword(id: number, password: string): Promise<string> {
-  const res = await fetch(`${API_URL}/admin/reports/${id}/password`, {
-    method: "POST",
-    headers: await authHeaders(),
-    body: JSON.stringify({ password }),
-  });
-  if (!res.ok) throw new Error(`Failed to set password (${res.status})`);
-  const { email } = await res.json();
-  return email;
-}
-
 export async function fetchReport(id: number): Promise<ReportDetail> {
   const res = await fetch(`${API_URL}/admin/reports/${id}`, { headers: await authHeaders() });
   if (!res.ok) throw new Error(`Failed to load report (${res.status})`);
@@ -106,4 +95,14 @@ export async function modifyChips(id: string, balance: number): Promise<void> {
     body: JSON.stringify({ balance }),
   });
   if (!res.ok) throw new Error(`Failed to modify chips (${res.status})`);
+}
+
+export async function resetPassword(playerId: string, password: string): Promise<{ email: string | null }> {
+  const res = await fetch(`${API_URL}/admin/players/${playerId}/password`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `Failed to reset password (${res.status})`);
+  return res.json();
 }

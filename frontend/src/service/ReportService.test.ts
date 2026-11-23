@@ -25,4 +25,18 @@ describe("ReportService", () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 })
     await expect(sendReport("hi", "t1")).rejects.toThrow("Couldn't send your message (500)")
   })
+
+  it("asks for a password reset without needing to be signed in", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 202 })
+    await requestPasswordReset("maya@test.local")
+    const [url, options] = jest.mocked(global.fetch).mock.calls[0]!
+    expect(url).toMatch(/\/reports\/password-reset$/)
+    expect(options?.body).toBe(JSON.stringify({ email: "maya@test.local" }))
+  })
+
+  it("passes on the server's reason when a reset request is refused", async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({ error: "Too many requests. Try again in a few minutes" }) })
+    await expect(requestPasswordReset("a@b.com")).rejects.toThrow("Too many requests")
+  })
+
 })

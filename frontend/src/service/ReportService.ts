@@ -17,5 +17,5 @@ export async function requestPasswordReset(email: string): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error(`Couldn't send the request (${res.status})`);
+  if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `Couldn't send your request (${res.status})`);
 }

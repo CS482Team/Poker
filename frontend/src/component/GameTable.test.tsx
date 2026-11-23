@@ -33,6 +33,7 @@ jest.mock("@/service/SocketService", () => ({
 
 jest.mock("@/service/GameService", () => ({ act: jest.fn(), draw: jest.fn() }))
 jest.mock("@/service/EmoteService", () => ({ watchEmotes: jest.fn() }))
+jest.mock("@/service/ReportService", () => ({ sendReport: jest.fn() }))
 jest.mock("@/service/SoundService", () => ({ playEffect: jest.fn() }))
 jest.mock("@/hook/useMyLoadout", () => ({ useMyLoadout: jest.fn(() => ({})) }))
 

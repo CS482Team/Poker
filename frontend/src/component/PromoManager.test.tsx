@@ -15,7 +15,8 @@ describe("PromoManager", () => {
     fireEvent.change(await screen.findByLabelText("Name"), { target: { value: "Double Chips" } })
     fireEvent.click(screen.getByRole("button", { name: "More multiplier" }))
     fireEvent.click(screen.getByRole("button", { name: "Start" }))
-    expect(await screen.findByText("Double Chips · 2x chips")).toBeInTheDocument()
+    expect(await screen.findByText("Double Chips")).toBeInTheDocument()
+    expect(screen.getByText("2X")).toBeInTheDocument()
     expect(createEvent).toHaveBeenCalledWith("Double Chips", 2.1, 3)
   })
 
