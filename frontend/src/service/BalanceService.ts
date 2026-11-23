@@ -1,6 +1,7 @@
-/* reading a player's chips, and announcing when they change */
-export async function fetchBalance(userId: string): Promise<number> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/balance`)
+import { authHeaders } from "@/service/AuthService"
+
+export async function fetchBalance(): Promise<number> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/balance`, { headers: await authHeaders() })
   if (!res.ok) throw new Error("Could not load balance")
   const body = (await res.json()) as { balance: number }
   return body.balance

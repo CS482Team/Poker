@@ -3,6 +3,7 @@ import { Server } from "socket.io"
 import type { ChatMessage } from "../../../shared/Chat"
 import type { EmotePlayed } from "../../../shared/Cosmetics"
 import { getAllTables, getTable } from "../dao/TableDAO"
+import { getUserIdFromToken } from "../dao/UserDAO"
 import { getTableView } from "../services/GameService"
 import { chatRoom, registerChat } from "./chat"
 import { emoteRoom, registerEmotes } from "./emote"
@@ -15,16 +16,20 @@ let io: Server | undefined
 export function initSocket(server: HttpServer) {
   io = new Server(server, { cors: { origin: process.env.FRONTEND_URL } })
 
+  io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token
+    socket.data.userId = typeof token === "string" ? await getUserIdFromToken(token) : null
+    next()
+  })
+
   io.on("connection", (socket) => {
     socket.on("watch", async (tableId: string, ack?: () => void) => {
       await socket.join(tableId)
       ack?.()
     })
-    // TODO use the logged in user once auth exists
-    socket.on("watchHand", async (info: { tableId: string; userId: string }, ack?: () => void) => {
-      socket.data.userId = info.userId
-      await socket.join(handRoom(info.tableId))
-      const view = getTableView(info.tableId, info.userId)
+    socket.on("watchHand", async (tableId: string, ack?: () => void) => {
+      await socket.join(handRoom(tableId))
+      const view = getTableView(tableId, socket.data.userId)
       if (view) socket.emit("view", view)
       ack?.()
     })

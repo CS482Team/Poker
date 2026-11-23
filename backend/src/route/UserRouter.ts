@@ -1,11 +1,10 @@
 import { Router } from "express"
-import { getMyHandsHistory, getUserBalance, getUserUsername } from "../controller/UserController"
+import { claimDailyReward, getDailyRewardStatus, getMyBalance, getMyHandsHistory, getUserUsername } from "../controller/UserController"
 import { requireUser } from "../util/RequireUser"
-import { getDailyRewardStatus, claimDailyReward } from "../controller/UserController"
 
 export const userRouter = Router()
 userRouter.get("/me/hands", getMyHandsHistory)
-userRouter.get("/:id/balance", getUserBalance)
-userRouter.get("/:id/username", getUserUsername)
+userRouter.get("/me/balance", requireUser, getMyBalance)
 userRouter.get("/me/daily-reward", requireUser, getDailyRewardStatus)
 userRouter.post("/me/daily-reward", requireUser, claimDailyReward)
+userRouter.get("/:id/username", getUserUsername)

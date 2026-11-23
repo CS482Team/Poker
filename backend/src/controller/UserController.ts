@@ -1,16 +1,14 @@
 import { Request, Response } from "express"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance, getUsername, setBalance, recordDailyClaim, getDailyReward} from "../dao/UserDAO"
+import { getBalance, getDailyReward, getUsername, recordDailyClaim, setBalance } from "../dao/UserDAO"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { dailyRewardStatus } from "../services/DailyReward"
 import { DAILY_REWARDS } from "../../../shared/Rules"
 
 
-/* handles GET /users/:id/balance */
-export async function getUserBalance(req: Request<{ id: string }>, res: Response) {
-  const balance = await getBalance(req.params.id)
-  res.json({ balance })
+export async function getMyBalance(_req: Request, res: Response) {
+  res.json({ balance: await getBalance(res.locals.userId) })
 }
 
 /* handles GET /users/me/hands, the signed-in user's own history */
@@ -37,13 +35,12 @@ export async function getUserUsername(req: Request<{ id: string }>, res: Respons
   const username = await getUsername(req.params.id)
   res.json({ username })
 }
-/* handles GET /users/me/daily-reward */
+
 export async function getDailyRewardStatus(_req: Request, res: Response) {
   const { lastClaimAt, streak } = await getDailyReward(res.locals.userId)
   res.json(dailyRewardStatus(lastClaimAt ? new Date(lastClaimAt) : null, streak, new Date()))
 }
 
-/* handles POST /users/me/daily-reward */
 export async function claimDailyReward(_req: Request, res: Response) {
   const userId = res.locals.userId
   const now = new Date()
@@ -54,7 +51,8 @@ export async function claimDailyReward(_req: Request, res: Response) {
     return
   }
   const reward = DAILY_REWARDS[status.day - 1]!
-  await setBalance(userId, (await getBalance(userId)) + reward)
+  const balance = (await getBalance(userId)) + reward
+  await setBalance(userId, balance)
   await logBalanceChange(userId, reward, "daily_reward")
-  res.json({ day: status.day, reward })
+  res.json({ day: status.day, reward, balance })
 }

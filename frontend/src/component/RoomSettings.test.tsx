@@ -15,6 +15,6 @@ describe("RoomSettings", () => {
     fireEvent.click(screen.getByLabelText(/Chat/))
     fireEvent.click(screen.getByRole("button", { name: "Save" }))
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(updateTableSettings).toHaveBeenCalledWith("t1", "u1", { name: "Ruby", botCount: 2, chatEnabled: false, turnTimerEnabled: false })
+    expect(updateTableSettings).toHaveBeenCalledWith("t1", { name: "Ruby", botCount: 2, chatEnabled: false, turnTimerEnabled: false })
   })
 })

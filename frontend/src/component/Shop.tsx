@@ -31,7 +31,7 @@ export default function Shop() {
 
   useEffect(() => {
     if (!userId) return
-    fetchBalance(userId).then(setBalance).catch(console.error)
+    fetchBalance().then(setBalance).catch(console.error)
     fetchUsername(userId).then(setUsername).catch(console.error)
   }, [userId])
 

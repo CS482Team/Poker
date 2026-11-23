@@ -17,7 +17,6 @@ export interface Table {
 }
 
 export interface NewTable {
-  hostId: string
   name: string
   maxPlayers: number
   buyIn: number

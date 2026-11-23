@@ -2,30 +2,35 @@ import request from "supertest"
 import { app } from "../app"
 import { drawCards, isBotTurn, playBot, takeAction } from "../services/GameService"
 import { sendViews } from "../socket/io"
+import { getUserIdFromToken } from "../dao/UserDAO"
 
 jest.mock("../services/GameService")
 jest.mock("../socket/io")
+jest.mock("../dao/UserDAO", () => ({ getUserIdFromToken: jest.fn() }))
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.mocked(getUserIdFromToken).mockImplementation(async (token) => token)
+})
 
 describe("POST /game/:gameId/action", () => {
   it("applies the action and sends everyone their view", async () => {
     jest.mocked(takeAction).mockReturnValue({ ok: true, value: { tableId: "t1", players: [{ id: "a" }, { id: "b" }] } } as never)
-    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "bet", amount: 10 } })
+    const res = await request(app).post("/game/g1/action").set("Authorization", "Bearer b").send({ action: { type: "bet", amount: 10 } })
     expect(res.status).toBe(204)
     expect(takeAction).toHaveBeenCalledWith("g1", "b", { type: "bet", amount: 10 })
     expect(sendViews).toHaveBeenCalledWith("t1")
   })
 
   it("rejects a bad request", async () => {
-    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "all-in" } })
+    const res = await request(app).post("/game/g1/action").set("Authorization", "Bearer b").send({ action: { type: "all-in" } })
     expect(res.status).toBe(400)
     expect(takeAction).not.toHaveBeenCalled()
   })
 
   it("maps a refused action to its status", async () => {
     jest.mocked(takeAction).mockReturnValue({ ok: false, error: "not-your-turn" })
-    const res = await request(app).post("/game/g1/action").send({ playerId: "b", action: { type: "check" } })
+    const res = await request(app).post("/game/g1/action").set("Authorization", "Bearer b").send({ action: { type: "check" } })
     expect(res.status).toBe(409)
     expect(res.body).toEqual({ error: "not-your-turn" })
     expect(sendViews).not.toHaveBeenCalled()
@@ -35,25 +40,25 @@ describe("POST /game/:gameId/action", () => {
 describe("POST /game/:gameId/draw", () => {
   it("draws and sends everyone their view", async () => {
     jest.mocked(drawCards).mockReturnValue({ ok: true, value: { tableId: "t1", players: [{ id: "a" }] } } as never)
-    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 2] })
+    const res = await request(app).post("/game/g1/draw").set("Authorization", "Bearer a").send({ discard: [0, 2] })
     expect(res.status).toBe(204)
     expect(drawCards).toHaveBeenCalledWith("g1", "a", [0, 2])
     expect(sendViews).toHaveBeenCalledWith("t1")
   })
 
   it("rejects a bad discard list", async () => {
-    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [7] })
+    const res = await request(app).post("/game/g1/draw").set("Authorization", "Bearer a").send({ discard: [7] })
     expect(res.status).toBe(400)
   })
 
   it("rejects duplicate discards", async () => {
-    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [0, 0] })
+    const res = await request(app).post("/game/g1/draw").set("Authorization", "Bearer a").send({ discard: [0, 0] })
     expect(res.status).toBe(400)
   })
 
   it("maps a refused draw to its status", async () => {
     jest.mocked(drawCards).mockReturnValue({ ok: false, error: "wrong-phase" })
-    const res = await request(app).post("/game/g1/draw").send({ playerId: "a", discard: [] })
+    const res = await request(app).post("/game/g1/draw").set("Authorization", "Bearer a").send({ discard: [] })
     expect(res.status).toBe(409)
   })
 })
@@ -65,7 +70,7 @@ describe("bots", () => {
     jest.mocked(isBotTurn).mockReturnValueOnce(true)
     jest.mocked(playBot).mockReturnValue(game as never)
     jest.useFakeTimers()
-    await request(app).post("/game/g1/action").send({ playerId: "a", action: { type: "check" } })
+    await request(app).post("/game/g1/action").set("Authorization", "Bearer a").send({ action: { type: "check" } })
     jest.advanceTimersByTime(999)
     expect(playBot).not.toHaveBeenCalled()
     jest.advanceTimersByTime(9001)

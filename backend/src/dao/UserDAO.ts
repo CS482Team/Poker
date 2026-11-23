@@ -75,7 +75,6 @@ export async function getDailyReward(userId: string): Promise<{ lastClaimAt: str
   return { lastClaimAt: data.last_daily_reward_at, streak: data.current_streak }
 }
 
-/* saves a claim only if nobody claimed since `previous` was read; false if they did */
 export async function recordDailyClaim(userId: string, previous: string | null, now: Date, day: number): Promise<boolean> {
   let query = getSupabase().from("user").update({ last_daily_reward_at: now.toISOString(), current_streak: day }).eq("id", userId)
   query = previous ? query.eq("last_daily_reward_at", previous) : query.is("last_daily_reward_at", null)

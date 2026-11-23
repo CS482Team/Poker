@@ -19,9 +19,9 @@ export const SHIELD = "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4
 export const SEND = "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11zM21.854 2.147l-10.94 10.939"
 export const IMAGE ="M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M15.5 9.5h.01"
 
-export default function Icon({ d, size = 16, solid }: { d: string; size?: number; solid?: string }) {
+export default function Icon({ d, size = 16, solid, weight = 2 }: { d: string; size?: number; solid?: string; weight?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={weight} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={d} />
       {solid && <path d={solid} fill="currentColor" stroke="none" />}
     </svg>
