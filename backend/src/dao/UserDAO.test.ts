@@ -1,4 +1,4 @@
-import { getAllPlayers, getBalance, getProfile, getRole, getUserIdFromToken, getUsername, removeUser, setBalance, unbanUser, setUsername, setAvatarUrl } from "../dao/UserDAO"
+import { getAllPlayers, getBalance, getDailyReward, getProfile, getRole, getUserIdFromToken, getUsername, recordDailyClaim, removeUser, setAvatarUrl, setBalance, setUsername, unbanUser } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -93,6 +93,19 @@ describe("UserDAO", () => {
     expect(calls).toContainEqual(["update", [{ avatar_url: "https://example.com/me.png" }]])
     await setAvatarUrl("u1", null)
     expect(calls).toContainEqual(["update", [{ avatar_url: null }]])
+  })
+
+  it("reads the daily reward streak", async () => {
+    mockState.result = { data: { last_daily_reward_at: "2026-11-20", current_streak: 3 } }
+    expect(await getDailyReward("u1")).toEqual({ lastClaimAt: "2026-11-20", streak: 3 })
+  })
+
+  it("records a daily claim only once", async () => {
+    mockState.result = { data: [{ id: "u1" }] }
+    expect(await recordDailyClaim("u1", null, new Date("2026-11-20"), 1)).toBe(true)
+    expect(calls).toContainEqual(["is", ["last_daily_reward_at", null]])
+    mockState.result = { data: [] }
+    expect(await recordDailyClaim("u1", "2026-11-19", new Date("2026-11-20"), 2)).toBe(false)
   })
 
   it("throws when the database fails", async () => {

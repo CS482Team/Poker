@@ -39,7 +39,7 @@ export default function ProfileCard() {
           <Avatar username={profile.username} url={profile.avatarUrl} />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[22px] font-bold">{profile.username}</h2>
+          <h2 className="text-[26px] font-bold">{profile.username}</h2>
           <p className="text-[#b8aeae]">{profile.isGuest ? "Guest account" : profile.email}</p>
         </div>
         <button type="button" className="secondary-action" onClick={() => setEditing(true)}>

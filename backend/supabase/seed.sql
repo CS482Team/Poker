@@ -93,3 +93,19 @@ values ('THIS IS AN EXTERNAL AD', 500, true, '00000000-0000-0000-0000-0000000000
 
 insert into public.event (name, multiplier, expires_at, created_by)
 values ('Double Chips Weekend', 2, now() + interval '7 days', '00000000-0000-0000-0000-000000000006');
+
+with picks (user_id, item_name) as (
+  values
+    ('00000000-0000-0000-0000-000000000001'::uuid, 'Cat'),
+    ('00000000-0000-0000-0000-000000000002'::uuid, 'The Cowboy'),
+    ('00000000-0000-0000-0000-000000000003'::uuid, 'Bunny'),
+    ('00000000-0000-0000-0000-000000000004'::uuid, 'Penguin'),
+    ('00000000-0000-0000-0000-000000000005'::uuid, 'Sly Fox')
+)
+insert into public.user_inventory (user_id, item_id)
+select picks.user_id, shop_item.id from picks join public.shop_item on shop_item.name = picks.item_name;
+
+insert into public.user_loadout (user_id, slot, item_id)
+select user_inventory.user_id, 'avatar', user_inventory.item_id
+from public.user_inventory join public.shop_item on shop_item.id = user_inventory.item_id
+where shop_item.item_type = 'avatar' and user_inventory.user_id::text like '00000000-0000-0000-0000-00000000000_';

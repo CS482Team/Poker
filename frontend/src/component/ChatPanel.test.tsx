@@ -4,6 +4,7 @@ import { watchChat } from "@/service/ChatService"
 import type { ChatMessage } from "@shared/Chat"
 
 jest.mock("@/service/ChatService", () => ({ watchChat: jest.fn() }))
+jest.mock("@/service/ReportService", () => ({ sendReport: jest.fn() }))
 
 const props = { tableId: "t1", userId: "u1" }
 const hello: ChatMessage = {
@@ -21,7 +22,7 @@ let onMessage: (message: ChatMessage) => void
 
 beforeEach(() => {
   jest.clearAllMocks()
-  jest.mocked(watchChat).mockImplementation((_tableId, _userId, onHistory, handler) => {
+  jest.mocked(watchChat).mockImplementation((_tableId, onHistory, handler) => {
     onHistory([hello])
     onMessage = handler
     return { send, stop }
@@ -60,7 +61,7 @@ describe("ChatPanel", () => {
 
   it("shows the sender's avatar", () => {
     const { container } = render(<ChatPanel {...props} seated />)
-    act(() => onMessage({ ...hello, id: 2, avatarUrl: "https://img.test/bob.png" }))
+    act(() => onMessage({ ...hello, id: 2, userId: "u9", avatarUrl: "https://img.test/bob.png" }))
     expect(container.querySelector("img")).toHaveAttribute("src", "https://img.test/bob.png")
   })
 
@@ -76,16 +77,23 @@ describe("ChatPanel", () => {
     expect(screen.getByText("B")).toBeInTheDocument()
   })
 
+  it("shows the name once for back to back messages", () => {
+    render(<ChatPanel {...props} seated />)
+    act(() => onMessage({ ...hello, id: 2, userId: "u9", name: "Cara", body: "one" }))
+    act(() => onMessage({ ...hello, id: 3, userId: "u9", name: "Cara", body: "two" }))
+    expect(screen.getAllByText("Cara")).toHaveLength(1)
+  })
+
   it("falls back to the initial when the avatar fails to load", () => {
     const { container } = render(<ChatPanel {...props} seated />)
-    act(() => onMessage({ ...hello, id: 2, name: "Cara", avatarUrl: "https://img.test/broken.png" }))
+    act(() => onMessage({ ...hello, id: 2, userId: "u9", name: "Cara", avatarUrl: "https://img.test/broken.png" }))
     fireEvent.error(container.querySelector("img")!)
     expect(container.querySelector("img")).toBeNull()
     expect(screen.getByText("C")).toBeInTheDocument()
   })
 
   it("shows system messages", () => {
-    jest.mocked(watchChat).mockImplementation((_t, _u, onHistory) => {
+    jest.mocked(watchChat).mockImplementation((_t, onHistory) => {
       onHistory([{ ...hello, userId: null, name: null, body: "Bob joined the table" }])
       return { send, stop }
     })
@@ -108,7 +116,7 @@ describe("ChatPanel", () => {
     send.mockResolvedValue({ ok: true })
     render(<ChatPanel {...props} seated />)
     type("hi")
-    await act(async () => fireEvent.click(screen.getByText("Send")))
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Send" })))
     expect(send).toHaveBeenCalledWith("hi")
     expect(screen.getByPlaceholderText("Message")).toHaveValue("")
   })
@@ -124,14 +132,14 @@ describe("ChatPanel", () => {
     send.mockResolvedValue({ ok: false, error: "You're sending messages too fast" })
     render(<ChatPanel {...props} seated />)
     type("hi")
-    await act(async () => fireEvent.click(screen.getByText("Send")))
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Send" })))
     expect(screen.getByText("You're sending messages too fast")).toBeInTheDocument()
   })
 
   it("does not send an empty message", async () => {
     render(<ChatPanel {...props} seated />)
     type("   ")
-    await act(async () => fireEvent.click(screen.getByText("Send")))
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Send" })))
     expect(send).not.toHaveBeenCalled()
   })
 
@@ -147,8 +155,9 @@ describe("ChatPanel", () => {
     expect(stop).toHaveBeenCalled()
   })
 
-  it("shows a Contact Admin button that does nothing yet", () => {
+  it("opens the contact admin modal", () => {
     render(<ChatPanel {...props} seated />)
-    expect(screen.getByText("Contact Admin")).toBeDisabled()
+    fireEvent.click(screen.getByRole("button", { name: "Contact Admin" }))
+    expect(screen.getByRole("dialog", { name: "Contact Admin" })).toBeInTheDocument()
   })
 })

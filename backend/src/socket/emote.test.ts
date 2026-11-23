@@ -2,17 +2,15 @@ import { createServer, Server as HttpServer } from "http"
 import type { AddressInfo } from "net"
 import { Server } from "socket.io"
 import { io as connect, Socket } from "socket.io-client"
-import { getUserIdFromToken } from "../dao/UserDAO"
 import { EmoteError, playEmote } from "../services/EmoteService"
 import { emoteRoom, registerEmotes } from "./emote"
 import { RateLimiter } from "./RateLimiter"
 
-jest.mock("../dao/UserDAO", () => ({ getUserIdFromToken: jest.fn() }))
 jest.mock("../services/EmoteService", () => ({ ...jest.requireActual("../services/EmoteService"), playEmote: jest.fn() }))
 
 const laugh = { id: "e1", name: "Big Laugh", description: "", type: "emote" as const, rarity: "rare" as const, cost: 500, assetUrl: null, style: { text: "😂" } }
 const played = { tableId: "t1", userId: "u1", emote: laugh }
-const send = { tableId: "t1", slot: "emote_2", token: "token" }
+const send = { tableId: "t1", slot: "emote_2" }
 
 let http: HttpServer
 let io: Server
@@ -22,6 +20,10 @@ let limiter: RateLimiter
 beforeAll(async () => {
   http = createServer()
   io = new Server(http)
+  io.use((socket, next) => {
+    socket.data.userId = socket.handshake.auth.token ?? null
+    next()
+  })
   io.on("connection", (socket) => {
     registerEmotes(socket, (e) => io.to(emoteRoom(e.tableId)).emit("emote:played", e), limiter)
   })
@@ -31,16 +33,19 @@ beforeAll(async () => {
 beforeEach(async () => {
   jest.resetAllMocks()
   limiter = new RateLimiter(1, 3000) // fresh each test, so cooldowns don't leak between tests
-  jest.mocked(getUserIdFromToken).mockResolvedValue("u1")
   jest.mocked(playEmote).mockResolvedValue(played)
-  client = connect(`http://localhost:${(http.address() as AddressInfo).port}`)
-  await new Promise<void>((resolve) => client.once("connect", () => resolve()))
+  client = await join("u1")
 })
 
 afterEach(() => client.disconnect())
 afterAll(() => io.close())
 
-/* emits an event and waits for the server's reply */
+async function join(token?: string) {
+  const socket = connect(`http://localhost:${(http.address() as AddressInfo).port}`, { auth: token ? { token } : {} })
+  await new Promise<void>((resolve) => socket.once("connect", () => resolve()))
+  return socket
+}
+
 function ask(event: string, ...args: unknown[]) {
   return new Promise((resolve) => client.emit(event, ...args, resolve))
 }
@@ -58,15 +63,10 @@ describe("emote socket", () => {
     expect(playEmote).toHaveBeenCalledWith("t1", "u1", "emote_2")
   })
 
-  it("works out who is sending from their session token", async () => {
-    await ask("emote:send", send)
-    expect(getUserIdFromToken).toHaveBeenCalledWith("token")
-  })
-
-  it("refuses a missing or expired token", async () => {
-    jest.mocked(getUserIdFromToken).mockResolvedValue(null)
+  it("refuses a signed out player", async () => {
+    client.disconnect()
+    client = await join()
     expect(await ask("emote:send", send)).toEqual({ ok: false, error: "Sign in to use emotes" })
-    expect(await ask("emote:send", { tableId: "t1", slot: "emote_2" })).toEqual({ ok: false, error: "Sign in to use emotes" })
     expect(playEmote).not.toHaveBeenCalled()
   })
 

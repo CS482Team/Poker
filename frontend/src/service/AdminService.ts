@@ -1,6 +1,7 @@
 import { authHeaders } from "@/service/AuthService";
 import type { Ad, NewAd } from "@shared/Ad";
 import type { HandRecord, PlayerSummary } from "@shared/PlayerHistory";
+import type { Report, ReportDetail, ReportHand } from "@shared/Report";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -56,6 +57,24 @@ export async function fetchPlayers(): Promise<PlayerSummary[]> {
 export async function fetchPlayerHands(id: string): Promise<HandRecord[]> {
   const res = await fetch(`${API_URL}/admin/players/${id}/hands`, { headers: await authHeaders() });
   if (!res.ok) throw new Error(`Failed to load history (${res.status})`);
+  return res.json();
+}
+
+export async function fetchReports(): Promise<Report[]> {
+  const res = await fetch(`${API_URL}/admin/reports`, { headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to load reports (${res.status})`);
+  return res.json();
+}
+
+export async function fetchReport(id: number): Promise<ReportDetail> {
+  const res = await fetch(`${API_URL}/admin/reports/${id}`, { headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to load report (${res.status})`);
+  return res.json();
+}
+
+export async function fetchHand(id: string): Promise<ReportHand> {
+  const res = await fetch(`${API_URL}/admin/hands/${id}`, { headers: await authHeaders() });
+  if (!res.ok) throw new Error(`Failed to load hand (${res.status})`);
   return res.json();
 }
 

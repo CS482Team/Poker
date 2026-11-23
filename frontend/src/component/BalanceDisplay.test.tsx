@@ -2,6 +2,10 @@ import { act, render, screen } from "@testing-library/react"
 import BalanceDisplay from "@/component/BalanceDisplay"
 import { announceBalance, fetchBalance } from "@/service/BalanceService"
 
+jest.mock("@/app/supabaseClient", () => ({
+  supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
+}))
+
 jest.mock("next/navigation", () => ({ usePathname: () => "/shop" }))
 jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1" }))
 jest.mock("@/service/BalanceService", () => {

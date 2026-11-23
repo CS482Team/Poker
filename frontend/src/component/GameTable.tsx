@@ -82,7 +82,7 @@ export default function GameTable({ id }: { id: string }) {
         clearCurrentTableId()
         setError(err.message)
       })
-    return watchTable(id, getCurrentUserId(), setTable, setView)
+    return watchTable(id, setTable, setView)
   }, [id])
 
   function showEmote({ userId, emote }: EmotePlayed) {
@@ -118,7 +118,7 @@ export default function GameTable({ id }: { id: string }) {
 
   async function leave() {
     try {
-      await leaveTable(id, getCurrentUserId())
+      await leaveTable(id)
       clearCurrentTableId()
       router.push("/dashboard")
     } catch (err) {
@@ -131,7 +131,7 @@ export default function GameTable({ id }: { id: string }) {
     setBusy(true)
     setActionError(null)
     try {
-      await act(view.gameId, getCurrentUserId(), type, amount)
+      await act(view.gameId, type, amount)
     } catch (err) {
       setActionError((err as Error).message)
     } finally {
@@ -149,7 +149,7 @@ export default function GameTable({ id }: { id: string }) {
     setBusy(true)
     setActionError(null)
     try {
-      await draw(view.gameId, getCurrentUserId(), selected)
+      await draw(view.gameId, selected)
       setSelected([])
     } catch (err) {
       setActionError((err as Error).message)
@@ -194,7 +194,6 @@ export default function GameTable({ id }: { id: string }) {
       </div>
       <div className="relative isolate mx-auto w-full min-w-0 max-w-[780px] px-2 sm:px-0 md:mt-10">
         <div className="poker-table relative h-[436px] rounded-[44%/50%]">
-          <div className="table-line absolute inset-[26px] rounded-[44%/50%]" />
           {/* once the hand is paid out, the pot glides to the winner (each share to its winner in a split pot);
               the words stay for screen readers */}
           {view && Object.keys(view.winnings ?? {}).length > 0 ? (

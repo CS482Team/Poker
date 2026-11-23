@@ -1,7 +1,6 @@
 "use client"
 
 import { fetchBalance, onBalanceChange } from "@/service/BalanceService"
-import { getCurrentUserId } from "@/service/UserService"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -11,7 +10,7 @@ export default function BalanceDisplay() {
 
   // refetch on navigation so joining or leaving a table updates the number
   useEffect(() => {
-    fetchBalance(getCurrentUserId()).then(setBalance).catch(console.error)
+    fetchBalance().then(setBalance).catch(console.error)
   }, [pathname])
 
   useEffect(() => onBalanceChange(setBalance), [])

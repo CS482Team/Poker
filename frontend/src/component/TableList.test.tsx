@@ -20,6 +20,7 @@ jest.mock("@/service/SocketService", () => ({
   watchTables: jest.fn(() => jest.fn()),
 }))
 
+jest.mock("@/component/DailyRewards", () => () => null)
 jest.mock("@/service/CurrentTableService", () => ({
   getCurrentTableId: jest.fn(),
   setCurrentTableId: jest.fn(),

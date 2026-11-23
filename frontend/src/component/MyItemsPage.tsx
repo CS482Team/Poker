@@ -57,9 +57,9 @@ export default function MyItemsPage() {
   return (
     <div className="page-shell">
       <div className="page-header">
-        <h1 className="page-title">My items</h1>
+        <h1 className="page-title">My Items</h1>
         <Link href="/shop" className="secondary-action">
-          Back to the shop
+          Shop
         </Link>
       </div>
 

@@ -6,7 +6,6 @@ import RarityBadge from "@/component/cosmetic/RarityBadge"
 import { CARD_BACK_IMAGE } from "@/util/Card"
 import { COSMETIC_LABELS } from "@/util/Cosmetic"
 import { COSMETIC_TYPES, EMOTE_SLOT_COUNT, type EmoteSlot, type Loadout, type LoadoutSlot, type ShopItem } from "@shared/Cosmetics"
-import Link from "next/link"
 import type { CSSProperties } from "react"
 
 interface Props {
@@ -28,9 +27,6 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
     return (
       <section className="panel p-8 text-center">
         <p className="text-lg">You don&apos;t own any cosmetics yet.</p>
-        <Link href="/shop" className="primary-action mt-5">
-          Visit the shop
-        </Link>
       </section>
     )
   }
@@ -43,7 +39,7 @@ export default function MyItems({ username, items, loadout, onEquip, onUnequip }
 
       {groups.map(({ type, owned }) => (
         <section key={type} aria-labelledby={`my-${type}`}>
-          <h2 id={`my-${type}`} className="mb-4 text-[28px] font-bold">
+          <h2 id={`my-${type}`} className="mb-4 text-[34px] font-bold">
             {COSMETIC_LABELS[type]}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,12 +72,14 @@ function YourLook({ username, loadout, onUnequip }: Pick<Props, "username" | "lo
       </div>
 
       <div className="flex items-center gap-6 sm:ml-auto">
-        {loadout.card_back ? (
-          <ItemPreview item={loadout.card_back} username={username} />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={CARD_BACK_IMAGE} alt="Default card back" className="card-back-preview" />
-        )}
+        <div className="your-look-card">
+          {loadout.card_back ? (
+            <ItemPreview item={loadout.card_back} username={username} />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={CARD_BACK_IMAGE} alt="Default card back" className="card-back-preview" />
+          )}
+        </div>
 
         <div>
           <p className="eyebrow">Emote wheel</p>
@@ -115,8 +113,8 @@ function ItemTile({ item, username, loadout, onEquip, onUnequip }: Omit<Props, "
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-5">
         <RarityBadge rarity={item.rarity} />
-        <h3 className="text-[22px] font-semibold leading-tight">{item.name}</h3>
-        <div className="mt-auto pt-4">
+        <h3 className="text-[26px] font-semibold leading-tight">{item.name}</h3>
+        <div className={`mt-auto pt-4 ${item.type === "emote" ? "" : "flex justify-end"}`}>
           {/* for non-emotes, the slot has the same name as the type, e.g. "card_back" */}
           {item.type === "emote" ? <EmoteSlotPicker item={item} loadout={loadout} onEquip={onEquip} onUnequip={onUnequip} /> : <EquipButton item={item} slot={item.type} loadout={loadout} onEquip={onEquip} onUnequip={onUnequip} />}
         </div>

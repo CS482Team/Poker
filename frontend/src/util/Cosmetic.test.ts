@@ -56,12 +56,11 @@ describe("themeVariables", () => {
     expect(themeVariables(makeItem({ type: "theme", style: { pattern: "rings", accent: "#5aa9ff" } }))["--felt-pattern"]).toContain("repeating-radial-gradient")
   })
 
-  it("stitches the trim and inlays the rail in the accent colour, on a rail of its own colour", () => {
+  it("inlays the rail in the accent colour, on a rail of its own colour", () => {
     const vars = themeVariables(emerald)
-    expect(vars["--trim"]).toContain("#e9c46a")
-    expect(vars["--trim-style"]).toBe("dashed")
     expect(vars["--rail"]).toBe("#3a2414")
     expect(vars["--rail-inlay"]).toContain("#e9c46a")
+    expect(vars["--site"]).toContain(vars["--felt"]!)
   })
 
   it("uses a plain felt and the house colours for anything the theme leaves out", () => {

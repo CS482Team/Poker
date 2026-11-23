@@ -97,7 +97,7 @@ export default function ActionBar({ legalActions, busy, onAction }: ActionBarPro
           >
             −
           </button>
-          <label className="flex h-12 items-center rounded-md border border-panel-edge bg-panel-sunken pl-2 text-lg text-ink focus-within:outline-2 focus-within:outline-[#3fd94f] has-[:disabled]:opacity-50">
+          <label className="flex h-12 items-center rounded-md border border-panel-edge bg-panel-sunken pl-2 text-lg text-ink focus-within:outline-1 focus-within:outline-[#3fd94f] has-[:disabled]:opacity-50">
             <span aria-hidden className="text-ink-muted">$</span>
             <input
               type="number"

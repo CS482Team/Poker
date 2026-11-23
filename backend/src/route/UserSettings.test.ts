@@ -83,7 +83,7 @@ describe("PATCH /users/me/avatar", () => {
   })
 
   it("rejects a picture that's too big", async () => {
-    const huge = "data:image/png;base64,"  "A".repeat(1_500_000)
+    const huge = "data:image/png;base64," + "A".repeat(1_500_000)
     expect((await signedIn(request(app).patch("/users/me/avatar")).send({ avatarUrl: huge })).status).toBe(400)
   })
 })
@@ -123,7 +123,7 @@ describe("PATCH /users/me/email", () => {
   it("limits password guesses", async () => {
     jest.mocked(getEmail).mockResolvedValue("old@test.local")
     jest.mocked(checkPassword).mockResolvedValue(false)
-    for (let i = 0; i < 5; i) await signedIn(request(app).patch("/users/me/email")).send({ password: "guess", email: "new@test.local" })
+    for (let i = 0; i < 5; i++) await signedIn(request(app).patch("/users/me/email")).send({ password: "guess", email: "new@test.local" })
     const res = await signedIn(request(app).patch("/users/me/email")).send({ password: "guess", email: "new@test.local" })
     expect(res.status).toBe(429)
     expect(checkPassword).toHaveBeenCalledTimes(5)

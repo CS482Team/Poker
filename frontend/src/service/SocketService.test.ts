@@ -1,6 +1,10 @@
 import { io } from "socket.io-client"
 import { watchTable, watchTables } from "@/service/SocketService"
 
+jest.mock("@/app/supabaseClient", () => ({
+  supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
+}))
+
 jest.mock("socket.io-client", () => ({ io: jest.fn() }))
 
 const handlers: Record<string, (data?: unknown) => void> = {}
@@ -21,13 +25,13 @@ describe("socketService", () => {
   it("watches a table and its game on one socket", () => {
     const onTable = jest.fn()
     const onView = jest.fn()
-    const stop = watchTable("t1", "u1", onTable, onView)
+    const stop = watchTable("t1", onTable, onView)
     handlers.connect()
     handlers.table({ id: "t1" })
     handlers.view({ id: "g1" })
     expect(io).toHaveBeenCalledTimes(1)
     expect(socket.emit).toHaveBeenCalledWith("watch", "t1")
-    expect(socket.emit).toHaveBeenCalledWith("watchHand", { tableId: "t1", userId: "u1" })
+    expect(socket.emit).toHaveBeenCalledWith("watchHand", "t1")
     expect(onTable).toHaveBeenCalledWith({ id: "t1" })
     expect(onView).toHaveBeenCalledWith({ id: "g1" })
     stop()

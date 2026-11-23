@@ -1,4 +1,4 @@
-import { createAd, deleteAd, editAd, fetchAds, fetchPlayerHands, fetchPlayers, isAdmin, modifyChips, removePlayer, setAdActive, unbanPlayer } from "@/service/AdminService"
+import { createAd, deleteAd, editAd, fetchAds, fetchHand, fetchPlayerHands, fetchPlayers, fetchReport, fetchReports, isAdmin, modifyChips, removePlayer, setAdActive, unbanPlayer } from "@/service/AdminService"
 
 jest.mock("@/app/supabaseClient", () => ({
   supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "token" } } }) } },
@@ -28,6 +28,16 @@ describe("adminService", () => {
     expect(await fetchPlayers()).toEqual([{ id: "u1" }])
     await fetchPlayerHands("u1")
     expect(jest.mocked(global.fetch).mock.calls[1]![0]).toContain("/admin/players/u1/hands")
+  })
+
+  it("fetches reports", async () => {
+    respond(true, [{ id: 1 }])
+    expect(await fetchReports()).toEqual([{ id: 1 }])
+    expect(jest.mocked(global.fetch).mock.calls[0]![0]).toContain("/admin/reports")
+    await fetchReport(2)
+    expect(jest.mocked(global.fetch).mock.calls[1]![0]).toContain("/admin/reports/2")
+    await fetchHand("m1")
+    expect(jest.mocked(global.fetch).mock.calls[2]![0]).toContain("/admin/hands/m1")
   })
 
   it("removes a player", async () => {
@@ -71,6 +81,7 @@ describe("adminService", () => {
     await expect(deleteAd("a1")).rejects.toThrow("500")
     await expect(fetchPlayers()).rejects.toThrow("500")
     await expect(fetchPlayerHands("u1")).rejects.toThrow("500")
+    await expect(fetchReports()).rejects.toThrow("500")
     await expect(removePlayer("u1")).rejects.toThrow("500")
     await expect(unbanPlayer("u1")).rejects.toThrow("500")
     await expect(modifyChips("u1", 900)).rejects.toThrow("500")

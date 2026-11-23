@@ -1,10 +1,10 @@
 import { createGame, startHand } from "../game/Dealer"
-import type { Rng } from "../../../shared/Card"
+import type { Card, Rng } from "../../../shared/Card"
 import type { GameState, PlayerId, Result, SeatInput, StartError, TableConfig } from "../../../shared/GameState"
 import type { PlayerView } from "../../../shared/PlayerView"
 import type { Table } from "../../../shared/Table"
 import { getTable } from "../dao/TableDAO"
-import { finishMatch, insertMatch, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
+import { finishMatch, insertMatch, insertMatchAction, insertMatchPlayers, nextMatchNumber } from "../dao/MatchDAO"
 import { gameDAO } from "../dao/GameDAO"
 import { applyAction, getLegalActions } from "../game/Betting"
 import type { ActionError } from "../game/Betting"
@@ -19,7 +19,9 @@ import { botDiscard, botBet } from "../game/Bot"
 const botNames: string[] = ["NormalPete", "MrBigTime", "QueenOHearts", "UnsaidBot", "U", "JohnnyChristmas", "HowDoIPlay", "PokerFace", "Taks", "McBot"]
 
 
-const matches = new Map<string, { matchId: string; stacks: number[] }>()
+const HAND_NAMES = ["", "High Card", "Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"]
+
+const matches = new Map<string, { matchId: string; stacks: number[]; dealt: Card[][] }>()
 
 // Table settings from the database → the engine's config
 export function configForTable(table: Pick<Table, "ante" | "minimumBet">): TableConfig {
@@ -47,8 +49,9 @@ export async function startGame(table: Pick<Table, "id" | "name" | "ante" | "min
     seatNumber: seat,
     userId: p.botFlag ? null : p.id,
     botName: p.botFlag ? p.name : null,
+    dealt: p.hand,
   })))
-  matches.set(game.id, { matchId, stacks: game.players.map(p => p.stack + p.totalContributed) })
+  matches.set(game.id, { matchId, stacks: game.players.map(p => p.stack + p.totalContributed), dealt: game.players.map(p => p.hand) })
 
   return { ok: true, value: game }
 
@@ -126,7 +129,13 @@ async function saveResult(game: GameState) {
   const match = matches.get(game.id)
   if (!match) return
   matches.delete(game.id)
-  const results = game.players.map((p, seat) => ({ seatNumber: seat, netResult: p.stack - match.stacks[seat]! }))
+  const results = game.players.map((p, seat) => ({
+    seatNumber: seat,
+    netResult: p.stack - match.stacks[seat]!,
+    handRank: HAND_NAMES[p.winCond] || null,
+    dealt: match.dealt[seat]!,
+    final: p.hand,
+  }))
   const pot = game.players.reduce((sum, p) => sum + p.totalContributed, 0)
   const winner = game.players.find(p => p.id === game.winners[0])
   await finishMatch(match.matchId, winner && !winner.botFlag ? winner.id : null, pot, results)
@@ -138,10 +147,13 @@ export function leaveGame(tableId: string, playerId: PlayerId): GameState | null
 
   let game: GameState = found
   while (isPlayersTurn(game, playerId)) {
-    const result = game.phase === "draw" ? applyDraw(game, playerId, []) : applyAction(game, playerId, { type: "fold" })
+    const drawing = game.phase === "draw"
+    const result = drawing ? applyDraw(game, playerId, []) : applyAction(game, playerId, { type: "fold" })
     if (!result.ok) break
+    logMove(game, result.value, playerId, drawing ? "draw" : "fold", drawing ? 0 : null)
     game = result.value
   }
+  logMove(game, game, playerId, "left")
   const me = game.players.find(p => p.id === playerId)
   if (me && isInHand(me)) me.status = "folded"
   if (game.phase !== "showdown" && game.players.filter(isInHand).length <= 1) {
@@ -165,6 +177,7 @@ export function takeAction(gameId: string, playerId: PlayerId, action: PlayerAct
   if (!game) return { ok: false, error: "game-not-found" }
   const result = applyAction(game, playerId, action)
   if (!result.ok) return result
+  logMove(game, result.value, playerId, action.type)
   const next = finishIfShowdown(result.value)
   gameDAO.save(next)
   return { ok: true, value: next }
@@ -178,6 +191,7 @@ export function drawCards(gameId: string, playerId: PlayerId, discard: number[])
   if (!game) return { ok: false, error: "game-not-found" }
   const result = applyDraw(game, playerId, discard)
   if (!result.ok) return result
+  logMove(game, result.value, playerId, "draw", discard.length)
   const next = finishIfShowdown(result.value)
   gameDAO.save(next)
   return { ok: true, value: next }
@@ -204,12 +218,32 @@ export function playBot(tableId: string): GameState | null {
   const game = gameDAO.findByTable(tableId)
   if (!game || !isBotTurn(tableId)) return null
   const bot = game.players[game.toActIndex!]!
-  const result = game.phase === "draw"
-    ? applyDraw(game, bot.id, botDiscard(game, bot.id))
-    : applyAction(game, bot.id, botBet(game, bot.id))
-  const next = result.ok ? result : applyAction(game, bot.id, { type: "fold" })
-  if (!next.ok) return null
-  const finished = finishIfShowdown(next.value)
+  const discard = game.phase === "draw" ? botDiscard(game, bot.id) : []
+  const bet = game.phase === "draw" ? null : botBet(game, bot.id)
+  let result: Result<GameState, unknown> = bet ? applyAction(game, bot.id, bet) : applyDraw(game, bot.id, discard)
+  let type = bet ? bet.type : "draw"
+  if (!result.ok) {
+    result = applyAction(game, bot.id, { type: "fold" })
+    type = "fold"
+  }
+  if (!result.ok) return null
+  logMove(game, result.value, bot.id, type, type === "draw" ? discard.length : null)
+  const finished = finishIfShowdown(result.value)
   gameDAO.save(finished)
   return finished
+}
+
+function logMove(before: GameState, after: GameState, playerId: PlayerId, type: string, cardsDiscarded: number | null = null) {
+  const match = matches.get(before.id)
+  const seat = before.players.findIndex(p => p.id === playerId)
+  if (!match || seat < 0) return
+  const player = before.players[seat]!
+  insertMatchAction({
+    matchId: match.matchId,
+    seatNumber: seat,
+    userId: player.botFlag ? null : player.id,
+    type,
+    amount: after.players[seat]!.totalContributed - player.totalContributed,
+    cardsDiscarded,
+  }).catch(console.error)
 }
