@@ -9,40 +9,44 @@ import { fetchActiveEvent } from "@/service/EventService"
 import { useEffect, useState } from "react"
 
 export default function AdBanner() {
-  const [ad, setAd] = useState<Ad | null>(null)
+  const [sideAds, setSideAds] = useState<Ad[]>([])
   const [event, setEvent] = useState<PromoEvent | null>(null)
-  const [watching, setWatching] = useState(false)
+  const [watching, setWatching] = useState<Ad | null>(null)
   const [showingEvent, setShowingEvent] = useState(false)
 
   useEffect(() => {
     fetchActiveAds()
-      .then((ads) => setAd(ads[Math.floor(Math.random() * ads.length)] ?? null))
-      .catch(() => setAd(null))
+      .then((ads) => {
+        if (ads.length === 0) return
+        const first = Math.floor(Math.random() * ads.length)
+        setSideAds([ads[first]!, ads[(first + 1) % ads.length]!])
+      })
+      .catch(() => setSideAds([]))
     fetchActiveEvent()
       .then(setEvent)
       .catch(() => setEvent(null))
   }, [])
 
-  if (!ad && !event) return null
-
   return (
-    <div className="banner-row">
+    <>
       {event && (
-        <button type="button" onClick={() => setShowingEvent(true)} className="ad-banner promo-banner cursor-pointer transition hover:brightness-125">
-          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#bf8a52]">Special Event</p>
-          <p className="text-sm font-semibold tracking-[.12em] text-white">
-            {event.multiplier}X Chip Multiplier
-          </p>
-        </button>
+        <div className="banner-row">
+          <button type="button" onClick={() => setShowingEvent(true)} className="ad-banner promo-banner cursor-pointer transition hover:brightness-125">
+            <p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#dcecfb]">{event.name}</p>
+            <p className="text-sm font-semibold tracking-[.12em] text-white">{event.multiplier}X Chip Multiplier</p>
+          </button>
+        </div>
       )}
       {showingEvent && event && <PromoModal event={event} onClose={() => setShowingEvent(false)} />}
-      {ad && (
-        <button type="button" onClick={() => setWatching(true)} className="ad-banner cursor-pointer transition hover:brightness-125">
+      {sideAds.map((ad, i) => (
+        <button key={i} type="button" onClick={() => setWatching(ad)} className={`ad-banner ad-rail ${i === 0 ? "left" : "right"} cursor-pointer transition hover:brightness-125`}>
           <p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#8d6d6d]">Advertisement</p>
-          <p className="text-sm font-semibold tracking-[.12em] text-white">{ad.title}</p>
+          {ad.imageUrl && <img src={ad.imageUrl} alt="" className="w-full rounded-md" />}
+          <b className="text-base font-semibold leading-snug tracking-[.12em] text-white">{ad.title}</b>
+          <p className="w-full rounded-md border border-white/10 py-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#cdbcbb]">Watch +{ad.rewardAmount} chips</p>
         </button>
-      )}
-      {watching && ad && <AdWatchModal ad={ad} onClose={() => setWatching(false)} />}
-    </div>
+      ))}
+      {watching && <AdWatchModal ad={watching} onClose={() => setWatching(null)} />}
+    </>
   )
 }
