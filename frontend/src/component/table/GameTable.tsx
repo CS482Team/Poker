@@ -3,6 +3,7 @@
 import ActionBar from "@/component/table/ActionBar"
 import CardFan from "@/component/table/CardFan"
 import Avatar from "@/component/cosmetic/Avatar"
+import { AvatarBadge } from "@/component/badge/BadgeIcon"
 import { NameTagTitle } from "@/component/cosmetic/NameTag"
 import ChatPanel from "@/component/table/ChatPanel"
 import Dots from "@/component/table/Dots"
@@ -303,6 +304,7 @@ export default function GameTable({ id }: { id: string }) {
                     style={portraitStyle}
                   >
                     {bot ? <span className="text-xl font-bold text-[#72bbea]">BOT</span> : <Avatar username={name} url={seat.cosmetics?.avatar?.assetUrl ?? seat.avatarUrl} />}
+                    {!bot && <AvatarBadge badge={seat.badge} size={26} />}
                     {dealer && (
                       <span className="dealer-chip" aria-label="Dealer">
                         D

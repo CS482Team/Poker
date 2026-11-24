@@ -7,6 +7,7 @@ import { act, waitFor } from "@testing-library/react"
 import { supabase } from "@/app/supabaseClient"
 import { fetchFriends } from "@/service/FriendService"
 import { isGuest } from "@/service/UserService"
+import { fetchMyProfile } from "@/service/ProfileService"
 
 const mockPush = jest.fn()
 

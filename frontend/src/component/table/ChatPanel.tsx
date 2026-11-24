@@ -1,3 +1,4 @@
+import Avatar from "@/component/Avatar"
 import ContactAdminModal from "@/component/table/ContactAdminModal"
 import Icon, { FLAG, SEND } from "@/component/common/Icon"
 import { type ChatConnection, watchChat } from "@/service/ChatService"
@@ -137,22 +138,6 @@ export default function ChatPanel({ tableId, userId, seated }: Props) {
         </form>
       </div>
     </aside>
-  )
-}
-
-/* A sender's profile picture, or their initial if they have none or it fails to load */
-function Avatar({ name, url }: { name: string | null; url: string | null }) {
-  const [broken, setBroken] = useState(false)
-  const shape = "size-7 shrink-0 rounded-full border border-panel-edge"
-  if (url && !broken) {
-    // plain <img>: avatars can come from any host, which next/image would need configuring for
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" onError={() => setBroken(true)} className={`${shape} object-cover`} />
-  }
-  return (
-    <span aria-hidden className={`${shape} flex items-center justify-center bg-panel-raised text-xs font-semibold`}>
-      {(name ?? "?")[0].toUpperCase()}
-    </span>
   )
 }
 

@@ -11,6 +11,7 @@ import { endGame, leaveGame, startIfReady } from "../services/GameService"
 import { broadcastChange, broadcastChat, sendViews } from "../socket/io"
 import { playBotLater, recountVote, sendGame } from "./GameController"
 import { withCosmetics } from "../services/ShopService"
+import { withBadges } from "../services/BadgeService"
 
 /* handles GET /tables */
 export async function listTables(_req: Request, res: Response) {
@@ -25,7 +26,7 @@ export async function getTableById(req: Request<{ id: string }>, res: Response) 
     res.status(404).json({ error: "Table not found" })
     return
   }
-  res.json(await withCosmetics(table))
+  res.json(await withBadges(await withCosmetics(table)))
 }
 
 /* handles POST /tables and tells the lobby */

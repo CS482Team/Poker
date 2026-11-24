@@ -8,6 +8,7 @@ import { isAdmin } from "@/service/AdminService"
 import { fetchFriends } from "@/service/FriendService"
 import { fetchMyProfile } from "@/service/ProfileService"
 import { isGuest } from "@/service/UserService"
+import { type Badge, featuredBadge } from "@shared/Badges"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
@@ -18,6 +19,7 @@ export default function ProfileMenu() {
   const [open, setOpen] = useState(false)
   const [picture, setPicture] = useState<string | null>(null)
   const [requests, setRequests] = useState(0) // friend requests waiting on you
+  const [badge, setBadge] = useState<Badge | null>(null)
   const loadout = useMyLoadout()
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -29,7 +31,10 @@ export default function ProfileMenu() {
 
   useEffect(() => {
     fetchMyProfile()
-      .then((profile) => setPicture(profile.avatarUrl))
+      .then((profile) => {
+        setPicture(profile.avatarUrl)
+        setBadge(featuredBadge(profile.badges ?? []))
+      })
       .catch(() => setPicture(null))
   }, [])
 
@@ -73,6 +78,7 @@ export default function ProfileMenu() {
           </svg>
         )}
         {requests > 0 && <span aria-hidden className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-[#1e1a1a] bg-red-500" />}
+        <AvatarBadge badge={badge} size={18} />
       </button>
       {open && (
         <div className="profile-menu">

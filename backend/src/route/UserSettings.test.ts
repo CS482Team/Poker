@@ -3,6 +3,7 @@ import { app } from "../app"
 import { emailAttempts } from "../controller/UserController"
 import { checkPassword, getEmail, setEmail } from "../dao/AuthDAO"
 import { getProfile, getUserIdFromToken, setAvatarUrl, setUsername } from "../dao/UserDAO"
+import { getMyBadges } from "../services/BadgeService"
  
 jest.mock("../dao/UserDAO", () => ({
   getUserIdFromToken: jest.fn(),
@@ -12,6 +13,7 @@ jest.mock("../dao/UserDAO", () => ({
  }))
 
 jest.mock("../dao/AuthDAO", () => ({ getEmail: jest.fn(), setEmail: jest.fn(), checkPassword: jest.fn() }))
+jest.mock("../services/BadgeService", () => ({ getMyBadges: jest.fn(), awardClosedPeriods: jest.fn() }))
 
 const PNG = "data:image/png;base64,iVBORw0KGgo="
 
@@ -36,6 +38,15 @@ describe("GET /users/me", () => {
     jest.mocked(getEmail).mockResolvedValue("maya@test.local")
     const res = await signedIn(request(app).get("/users/me"))
     expect(res.body).toMatchObject({ username: "Maya", email: "maya@test.local" })
+  })
+
+  it("includes the player's leaderboard badges", async () => {
+    const badge = { timeframe: "week", place: 1, periodStart: "2026-11-16T00:00:00.000Z", title: "Weekly Champion", period: "Week of Nov 16, 2026" } as const
+    jest.mocked(getProfile).mockResolvedValue({ id: "u1", username: "Maya", avatarUrl: null, email: "", isGuest: false })
+    jest.mocked(getMyBadges).mockResolvedValue([badge])
+    const res = await signedIn(request(app).get("/users/me"))
+    expect(res.body.badges).toEqual([badge])
+    expect(getMyBadges).toHaveBeenCalledWith("u1")
   })
 })
 

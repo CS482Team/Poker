@@ -3,6 +3,8 @@ import { app } from "../app"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
 import { getBalance, getDailyReward, getUserIdFromToken, getUsername, recordDailyClaim, setBalance } from "../dao/UserDAO"
+import { getLeaderboard } from "../services/LeaderboardService"
+import { awardClosedPeriods } from "../services/BadgeService"
 
 jest.mock("../config/Supabase")
 jest.mock("../dao/MatchDAO", () => ({ getPlayerHands: jest.fn() }))
@@ -16,12 +18,15 @@ jest.mock("../dao/UserDAO", () => ({
   recordDailyClaim: jest.fn(),
 }))
 jest.mock("../dao/BalanceLogDAO", () => ({ logBalanceChange: jest.fn() }))
+jest.mock("../services/LeaderboardService", () => ({ getLeaderboard: jest.fn() }))
+jest.mock("../services/BadgeService", () => ({ awardClosedPeriods: jest.fn(), getMyBadges: jest.fn() }))
 
 const getUser = jest.fn()
 
 beforeEach(() => {
   jest.resetAllMocks()
   jest.mocked(getSupabase).mockReturnValue({ auth: { getUser } } as unknown as ReturnType<typeof getSupabase>)
+  jest.mocked(awardClosedPeriods).mockResolvedValue()
 })
 
 describe("users", () => {
@@ -86,5 +91,56 @@ describe("users", () => {
     jest.mocked(getUsername).mockResolvedValue("Maya")
     const res = await request(app).get("/users/u1/username")
     expect(res.body).toEqual({ username: "Maya" })
+  })
+
+  describe("leaderboard", () => {
+    const board = { timeframe: "week", top: [], me: null } as unknown as Awaited<ReturnType<typeof getLeaderboard>>
+
+    it("shows this week's leaderboard to anyone, without a standing of their own", async () => {
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      const res = await request(app).get("/users/leaderboard")
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual(board)
+      expect(getLeaderboard).toHaveBeenCalledWith("week", null)
+      expect(getUserIdFromToken).not.toHaveBeenCalled()
+    })
+
+    it("uses the timeframe asked for and the signed-in player", async () => {
+      jest.mocked(getUserIdFromToken).mockResolvedValue("u2")
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      const res = await request(app).get("/users/leaderboard?timeframe=season").set("Authorization", "Bearer good")
+      expect(res.status).toBe(200)
+      expect(getUserIdFromToken).toHaveBeenCalledWith("good")
+      expect(getLeaderboard).toHaveBeenCalledWith("season", "u2")
+    })
+
+    it("awards badges for closed periods before showing the board", async () => {
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      await request(app).get("/users/leaderboard")
+      expect(awardClosedPeriods).toHaveBeenCalled()
+    })
+
+    it("still shows the board if awarding badges fails", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {})
+      jest.mocked(awardClosedPeriods).mockRejectedValue(new Error("db down"))
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      const res = await request(app).get("/users/leaderboard")
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual(board)
+    })
+
+    it("rejects an unknown timeframe", async () => {
+      const res = await request(app).get("/users/leaderboard?timeframe=decade")
+      expect(res.status).toBe(400)
+      expect(getLeaderboard).not.toHaveBeenCalled()
+    })
+
+    it("returns 500 when the leaderboard can't be loaded", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {})
+      jest.mocked(getLeaderboard).mockRejectedValue(new Error("db down"))
+      const res = await request(app).get("/users/leaderboard")
+      expect(res.status).toBe(500)
+      expect(res.body).toEqual({ error: "Could not load leaderboard" })
+    })
   })
 })

@@ -50,7 +50,7 @@ export async function removeUser(userId: string): Promise<void> {
   if (dbError) throw dbError
 }
 
-export async function getProfile(userId: string): Promise<MyProfile> {
+export async function getProfile(userId: string): Promise<Omit<MyProfile, "badges">> {
   const { data, error } = await getSupabase().from("user").select("id, username, avatar_url, is_guest").eq("id", userId).single()
 
   if (error) throw error
@@ -114,4 +114,11 @@ export async function unbanUser(userId: string): Promise<void> {
   if (error) throw error
   const { error: dbError } = await getSupabase().from("user").update({ banned: false }).eq("id", userId)
   if (dbError) throw dbError
+}
+
+/* a leaderboard player's chips, or null if they can't be ranked (a guest, an admin, or no such user) */
+export async function getRankableBalance(userId: string): Promise<number | null> {
+  const { data, error } = await getSupabase().from("user").select("chip_balance, is_guest, role").eq("id", userId).maybeSingle()
+  if (error) throw error
+  return data && !data.is_guest && data.role === 0 ? data.chip_balance : null
 }

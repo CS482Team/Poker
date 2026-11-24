@@ -1,12 +1,15 @@
 import { Request, Response } from "express"
 import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
-import { getBalance, getDailyReward, getProfile, getUsername, recordDailyClaim, setAvatarUrl, setBalance, setUsername } from "../dao/UserDAO"
+import { getBalance, getDailyReward, getProfile, getUserIdFromToken, getUsername, recordDailyClaim, setAvatarUrl, setBalance, setUsername } from "../dao/UserDAO"
 import { getEmail, setEmail, checkPassword } from "../dao/AuthDAO"
 import { logBalanceChange } from "../dao/BalanceLogDAO"
 import { RateLimiter } from "../socket/RateLimiter"
 import { dailyRewardStatus } from "../services/DailyReward"
-import { DAILY_REWARDS } from "../../../shared/Rules"
+import { DAILY_REWARDS, LEADERBOARD_TIMEFRAMES } from "../../../shared/Rules"
+import { getLeaderboard } from "../services/LeaderboardService"
+import { awardClosedPeriods, getMyBadges } from "../services/BadgeService"
+import type { Timeframe } from "../../../shared/Leaderboard"
 
 
 // password guesses on the email change: 5 per 15 minutes per player (requirement 6)
@@ -45,8 +48,8 @@ export async function getUserUsername(req: Request<{ id: string }>, res: Respons
 /* handles GET /users/me */
 export async function getMe(_req: Request, res: Response) {
   const userId = res.locals.userId
-  const [profile, email] = await Promise.all([getProfile(userId), getEmail(userId)])
-  res.json({ userId, ...profile, email })
+  const [profile, email, badges] = await Promise.all([getProfile(userId), getEmail(userId), getMyBadges(userId)])
+  res.json({ userId, ...profile, email, badges })
 }
 
 /* handles PATCH /users/me/username */
@@ -135,4 +138,27 @@ export async function claimDailyReward(_req: Request, res: Response) {
   await setBalance(userId, balance)
   await logBalanceChange(userId, reward, "daily_reward")
   res.json({ day: status.day, reward, balance })
+}
+
+/* handles GET /users/leaderboard?timeframe=week|month|season|all (week if left out);
+   anyone can see it, and a signed-in player also gets their own standing */
+export async function getLeaderboardController(req: Request, res: Response) {
+  const timeframe = req.query.timeframe ?? "week"
+  if (!isTimeframe(timeframe)) {
+    res.status(400).json({ error: "Invalid timeframe" })
+    return
+  }
+  const token = req.headers.authorization?.replace("Bearer ", "")
+  try {
+    const userId = token ? await getUserIdFromToken(token) : null
+    await awardClosedPeriods().catch((err) => console.error("awardClosedPeriods failed:", err))
+    res.json(await getLeaderboard(timeframe, userId))
+  } catch (err) {
+    console.error("getLeaderboard failed:", err)
+    res.status(500).json({ error: "Could not load leaderboard" })
+  }
+}
+
+function isTimeframe(value: unknown): value is Timeframe {
+  return LEADERBOARD_TIMEFRAMES.includes(value as Timeframe)
 }
