@@ -5,21 +5,28 @@ import { announceLoadout, fetchLoadout } from "@/service/ShopService"
 import { makeItem } from "@/component/cosmetic/makeItem"
 import { act, waitFor } from "@testing-library/react"
 import { supabase } from "@/app/supabaseClient"
+import { fetchFriends } from "@/service/FriendService"
+import { isGuest } from "@/service/UserService"
 import { fetchMyProfile } from "@/service/ProfileService"
 
 const mockPush = jest.fn()
 
 jest.mock("@/service/AdminService", () => ({ isAdmin: jest.fn() }))
 jest.mock("@/service/ProfileService", () => ({ fetchMyProfile: jest.fn().mockRejectedValue(new Error("Sign in")) }))
+jest.mock("@/service/FriendService", () => ({ fetchFriends: jest.fn() }))
 jest.mock("next/navigation", () => ({ usePathname: () => "/dashboard", useRouter: () => ({ push: mockPush }) }))
-jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1" }))
+jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1", isGuest: jest.fn(() => false) }))
 jest.mock("@/service/ShopService", () => {
   const actual = jest.requireActual("@/service/ShopService")
   return { ...actual, fetchLoadout: jest.fn() }
 })
 jest.mock("@/app/supabaseClient", () => ({ supabase: { auth: { getSession: jest.fn(), signOut: jest.fn() } } }))
 
-beforeEach(() => jest.mocked(fetchLoadout).mockRejectedValue(new Error("Sign in to see your items")))
+beforeEach(() => {
+  jest.mocked(fetchLoadout).mockRejectedValue(new Error("Sign in to see your items"))
+  // most tests don't care about friends: leave the lookup pending so it never updates the menu mid-test
+  jest.mocked(fetchFriends).mockClear().mockReturnValue(new Promise(() => {}))
+})
 
 describe("ProfileMenu", () => {
   it("links admins to the admin page", async () => {
@@ -104,6 +111,35 @@ describe("ProfileMenu avatar", () => {
     await waitFor(() => expect(button.querySelector("img")).toHaveAttribute("src", "/cosmetic/avatar/sly-fox.svg"))
     act(() => announceLoadout({ avatar: panda }))
     expect(screen.getByRole("button", { name: "Profile menu" }).querySelector("img")).toHaveAttribute("src", "/cosmetic/avatar/panda.svg")
+  })
+})
+
+describe("ProfileMenu friends", () => {
+  const request = { userId: "u2", username: "Theo", avatarUrl: null, sentAt: "2026-11-24T00:00:00Z" }
+
+  it("links to your friends", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    jest.mocked(fetchFriends).mockResolvedValue({ friends: [], incoming: [], outgoing: [] })
+    render(<ProfileMenu />)
+    fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
+    expect(await screen.findByRole("link", { name: "Friends" })).toHaveAttribute("href", "/friends")
+  })
+
+  it("shows how many friend requests are waiting", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    jest.mocked(fetchFriends).mockResolvedValue({ friends: [], incoming: [request, { ...request, userId: "u3" }], outgoing: [] })
+    render(<ProfileMenu />)
+    const button = await screen.findByRole("button", { name: "Profile menu, 2 friend requests" })
+    fireEvent.click(button)
+    expect(screen.getByRole("link", { name: /Friends/ })).toContainElement(screen.getByLabelText("2 friend requests"))
+  })
+
+  it("doesn't look up friends for guests", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    jest.mocked(isGuest).mockReturnValueOnce(true)
+    render(<ProfileMenu />)
+    await waitFor(() => expect(isAdmin).toHaveBeenCalled())
+    expect(fetchFriends).not.toHaveBeenCalled()
   })
 })
 
