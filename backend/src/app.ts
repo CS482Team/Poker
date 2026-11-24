@@ -4,7 +4,6 @@ import cors from "cors"
 import { adRouter } from "./route/AdRouter"
 import { adminRouter } from "./route/AdminRouter"
 import { eventRouter } from "./route/EventRouter"
-import { friendRouter } from "./route/FriendRouter"
 import { gameRouter } from "./route/GameRouter"
 import { reportRouter } from "./route/ReportRouter"
 import { shopRouter } from "./route/ShopRouter"
@@ -20,7 +19,6 @@ app.use("/admin", adminRouter)
 app.use("/ads", adRouter)
 app.use("/reports", reportRouter)
 app.use("/events", eventRouter)
-app.use("/friends", friendRouter)
 app.use("/shop", shopRouter)
 app.use("/tables", tableRouter)
 app.use(gameRouter)
