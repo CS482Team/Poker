@@ -8,6 +8,7 @@ import { RateLimiter } from "../socket/RateLimiter"
 import { dailyRewardStatus } from "../services/DailyReward"
 import { DAILY_REWARDS, LEADERBOARD_TIMEFRAMES } from "../../../shared/Rules"
 import { getLeaderboard } from "../services/LeaderboardService"
+import { awardClosedPeriods, getMyBadges } from "../services/BadgeService"
 import type { Timeframe } from "../../../shared/Leaderboard"
 
 
@@ -47,8 +48,8 @@ export async function getUserUsername(req: Request<{ id: string }>, res: Respons
 /* handles GET /users/me */
 export async function getMe(_req: Request, res: Response) {
   const userId = res.locals.userId
-  const [profile, email] = await Promise.all([getProfile(userId), getEmail(userId)])
-  res.json({ userId, ...profile, email })
+  const [profile, email, badges] = await Promise.all([getProfile(userId), getEmail(userId), getMyBadges(userId)])
+  res.json({ userId, ...profile, email, badges })
 }
 
 /* handles PATCH /users/me/username */
@@ -150,6 +151,7 @@ export async function getLeaderboardController(req: Request, res: Response) {
   const token = req.headers.authorization?.replace("Bearer ", "")
   try {
     const userId = token ? await getUserIdFromToken(token) : null
+    await awardClosedPeriods().catch((err) => console.error("awardClosedPeriods failed:", err))
     res.json(await getLeaderboard(timeframe, userId))
   } catch (err) {
     console.error("getLeaderboard failed:", err)

@@ -247,8 +247,9 @@ function places(n: number) {
   return n === 1 ? "1 place" : `${n} places`
 }
 
+/* net winnings as money: +$1,250, −$300, $0 */
 function signed(n: number) {
-  return n > 0 ? `+${n.toLocaleString()}` : n < 0 ? `−${(-n).toLocaleString()}` : "0"
+  return n > 0 ? `+$${n.toLocaleString()}` : n < 0 ? `−$${(-n).toLocaleString()}` : "$0"
 }
 
 function netColor(n: number) {

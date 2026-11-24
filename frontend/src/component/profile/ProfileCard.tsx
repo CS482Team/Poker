@@ -1,6 +1,7 @@
 "use client"
 
 import Avatar from "@/component/cosmetic/Avatar"
+import BadgeList from "@/component/profile/BadgeList"
 import Icon, { PENCIL } from "@/component/common/Icon"
 import ProfileForm from "@/component/profile/ProfileForm"
 import { fetchMyProfile } from "@/service/ProfileService"
@@ -44,6 +45,7 @@ export default function ProfileCard() {
           <p className="text-[#b8aeae]">{profile.isGuest ? "Guest account" : profile.email}</p>
         </div>
       </section>
+      {!profile.isGuest && <BadgeList badges={profile.badges ?? []} />}
       {editing && (
         <ProfileForm
           profile={profile}

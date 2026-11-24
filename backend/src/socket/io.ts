@@ -8,6 +8,7 @@ import { getTableView } from "../services/GameService"
 import { chatRoom, registerChat } from "./chat"
 import { emoteRoom, registerEmotes } from "./emote"
 import { withCosmetics } from "../services/ShopService"
+import { withBadges } from "../services/BadgeService"
 
 const LOBBY = "lobby"
 let io: Server | undefined
@@ -48,7 +49,7 @@ export function initSocket(server: HttpServer) {
 export async function broadcastChange(tableId: string) {
   if (!io) return
   const table = await getTable(tableId)
-  if (table) io.to(tableId).emit("table", await withCosmetics(table))
+  if (table) io.to(tableId).emit("table", await withBadges(await withCosmetics(table)))
   io.to(LOBBY).emit("tables", await getAllTables())
 }
 

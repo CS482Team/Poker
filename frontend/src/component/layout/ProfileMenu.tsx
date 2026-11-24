@@ -2,10 +2,12 @@
 
 import { supabase } from "@/app/supabaseClient"
 import Avatar from "@/component/cosmetic/Avatar"
+import { AvatarBadge } from "@/component/badge/BadgeIcon"
 import Icon, { ITEMS, LEAVE, SHIELD, USER } from "@/component/common/Icon"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import { isAdmin } from "@/service/AdminService"
 import { fetchMyProfile } from "@/service/ProfileService"
+import { type Badge, featuredBadge } from "@shared/Badges"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type CSSProperties } from "react"
@@ -15,6 +17,7 @@ export default function ProfileMenu() {
   const [admin, setAdmin] = useState(false)
   const [open, setOpen] = useState(false)
   const [picture, setPicture] = useState<string | null>(null)
+  const [badge, setBadge] = useState<Badge | null>(null)
   const loadout = useMyLoadout()
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -26,7 +29,10 @@ export default function ProfileMenu() {
 
   useEffect(() => {
     fetchMyProfile()
-      .then((profile) => setPicture(profile.avatarUrl))
+      .then((profile) => {
+        setPicture(profile.avatarUrl)
+        setBadge(featuredBadge(profile.badges ?? []))
+      })
       .catch(() => setPicture(null))
   }, [])
 
@@ -61,6 +67,7 @@ export default function ProfileMenu() {
             <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" />
           </svg>
         )}
+        <AvatarBadge badge={badge} size={18} />
       </button>
       {open && (
         <div className="profile-menu">

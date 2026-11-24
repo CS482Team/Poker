@@ -5,7 +5,7 @@ import type { MyProfile } from "@shared/User"
 
 jest.mock("@/service/ProfileService", () => ({ changeUsername: jest.fn(), changeAvatar: jest.fn(), changeEmail: jest.fn() }))
 
-const maya: MyProfile = { id: "u1", username: "Maya", avatarUrl: null, email: "maya@test.local", isGuest: false }
+const maya: MyProfile = { id: "u1", username: "Maya", avatarUrl: null, email: "maya@test.local", isGuest: false, badges: [] }
 
 function setup(profile: MyProfile = maya) {
   const onSaved = jest.fn()
