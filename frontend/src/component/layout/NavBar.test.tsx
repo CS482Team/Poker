@@ -69,4 +69,12 @@ describe("Nav", () => {
     act(() => jest.mocked(watchTable).mock.lastCall![2]({ toActSeat: 1, you: { seat: 1 } } as never))
     expect(screen.getByRole("img", { name: "Your turn" })).toBeInTheDocument()
   })
+
+  it("links to the leaderboard and marks it active there", () => {
+    jest.mocked(usePathname).mockReturnValue("/leaderboard")
+    render(<Nav />)
+    const link = screen.getByRole("link", { name: "Leaderboard" })
+    expect(link).toHaveAttribute("href", "/leaderboard")
+    expect(link).toHaveClass("active")
+  })
 })

@@ -48,6 +48,9 @@ export default function Nav() {
           <Link href="/dashboard" className={pathname === "/dashboard" ? "nav-tab active" : "nav-tab"}>
             Lobby
           </Link>
+          <Link href="/leaderboard" className={pathname === "/leaderboard" ? "nav-tab active" : "nav-tab"}>
+            Leaderboard
+          </Link>
           {tableId && (
             <Link href={`/table/${tableId}`} className={pathname.startsWith("/table") ? "nav-tab active" : "nav-tab"}>
               Table

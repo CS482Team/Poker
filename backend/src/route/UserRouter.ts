@@ -1,8 +1,9 @@
 import { Router } from "express"
-import { changeAvatar, changeEmail, changeUsername, claimDailyReward, getDailyRewardStatus, getMe, getMyBalance, getMyHandsHistory, getUserUsername } from "../controller/UserController"
+import { changeAvatar, changeEmail, changeUsername, claimDailyReward, getDailyRewardStatus, getLeaderboardController, getMe, getMyBalance, getMyHandsHistory, getUserUsername } from "../controller/UserController"
 import { requireUser } from "../util/RequireUser"
 
 export const userRouter = Router()
+userRouter.get("/leaderboard", getLeaderboardController)
 userRouter.get("/me", requireUser, getMe)
 userRouter.patch("/me/username", requireUser, changeUsername)
 userRouter.patch("/me/avatar", requireUser, changeAvatar)
