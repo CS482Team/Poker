@@ -14,6 +14,7 @@ jest.mock("../services/GameService", () => ({ getTableView: jest.fn() }))
 jest.mock("../dao/UserDAO", () => ({ getUserIdFromToken: async (token: string) => token }))
 // cosmetics are tested in ShopService.test.ts; here the table passes straight through
 jest.mock("../services/ShopService", () => ({ withCosmetics: async (table: unknown) => table }))
+jest.mock("../services/BadgeService", () => ({ withBadges: async (table: unknown) => table }))
 jest.mock("../services/ChatService", () => ({ getHistory: jest.fn().mockResolvedValue([]) }))
 
 const detail = { id: "t1", name: "Table", maxPlayers: 2, buyIn: 100, status: 1, variant: "five-card-draw", minimumBet: 5, ante: 1, seats: [] }

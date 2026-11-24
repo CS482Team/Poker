@@ -225,6 +225,16 @@ describe("GameTable", () => {
     expect(screen.getByRole("img", { name: "You have 5 cards" }).querySelector("[data-pattern]")).toBeNull()
   })
 
+  it("pins a player's best leaderboard badge to their avatar", async () => {
+    const badge = { timeframe: "season" as const, place: 2 as const, periodStart: "2026-07-01T00:00:00.000Z", title: "Season Runner-up", period: "Season 3, 2026" }
+    jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, badge }] })
+    render(<GameTable id="t1" />)
+    await screen.findByText("Maya")
+    expect(within(seatOf("Maya")).getByRole("img", { name: "Season Runner-up, Season 3, 2026" })).toHaveClass("avatar-badge")
+    // players without a badge show none
+    expect(seatOf("Me").querySelector(".avatar-badge")).toBeNull()
+  })
+
   it("shows a player's name tag title under their name", async () => {
     const spender = makeItem({ id: "t1", name: "Big Spender", type: "name_tag", rarity: "legendary", style: { text: "Big Spender", animation: "shimmer" } })
     jest.mocked(fetchTable).mockResolvedValue({ ...table, seats: [table.seats[0]!, { ...table.seats[1]!, cosmetics: { name_tag: spender } }] })

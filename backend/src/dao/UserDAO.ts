@@ -50,7 +50,7 @@ export async function removeUser(userId: string): Promise<void> {
   if (dbError) throw dbError
 }
 
-export async function getProfile(userId: string): Promise<MyProfile> {
+export async function getProfile(userId: string): Promise<Omit<MyProfile, "badges">> {
   const { data, error } = await getSupabase().from("user").select("id, username, avatar_url, is_guest").eq("id", userId).single()
 
   if (error) throw error

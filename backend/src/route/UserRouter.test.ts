@@ -4,6 +4,7 @@ import { getSupabase } from "../config/Supabase"
 import { getPlayerHands } from "../dao/MatchDAO"
 import { getBalance, getDailyReward, getUserIdFromToken, getUsername, recordDailyClaim, setBalance } from "../dao/UserDAO"
 import { getLeaderboard } from "../services/LeaderboardService"
+import { awardClosedPeriods } from "../services/BadgeService"
 
 jest.mock("../config/Supabase")
 jest.mock("../dao/MatchDAO", () => ({ getPlayerHands: jest.fn() }))
@@ -18,12 +19,14 @@ jest.mock("../dao/UserDAO", () => ({
 }))
 jest.mock("../dao/BalanceLogDAO", () => ({ logBalanceChange: jest.fn() }))
 jest.mock("../services/LeaderboardService", () => ({ getLeaderboard: jest.fn() }))
+jest.mock("../services/BadgeService", () => ({ awardClosedPeriods: jest.fn(), getMyBadges: jest.fn() }))
 
 const getUser = jest.fn()
 
 beforeEach(() => {
   jest.resetAllMocks()
   jest.mocked(getSupabase).mockReturnValue({ auth: { getUser } } as unknown as ReturnType<typeof getSupabase>)
+  jest.mocked(awardClosedPeriods).mockResolvedValue()
 })
 
 describe("users", () => {
@@ -109,6 +112,21 @@ describe("users", () => {
       expect(res.status).toBe(200)
       expect(getUserIdFromToken).toHaveBeenCalledWith("good")
       expect(getLeaderboard).toHaveBeenCalledWith("season", "u2")
+    })
+
+    it("awards badges for closed periods before showing the board", async () => {
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      await request(app).get("/users/leaderboard")
+      expect(awardClosedPeriods).toHaveBeenCalled()
+    })
+
+    it("still shows the board if awarding badges fails", async () => {
+      jest.spyOn(console, "error").mockImplementation(() => {})
+      jest.mocked(awardClosedPeriods).mockRejectedValue(new Error("db down"))
+      jest.mocked(getLeaderboard).mockResolvedValue(board)
+      const res = await request(app).get("/users/leaderboard")
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual(board)
     })
 
     it("rejects an unknown timeframe", async () => {

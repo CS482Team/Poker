@@ -1,3 +1,4 @@
+import type { Badge } from "./Badges"
 import type { PublicCosmetics } from "./Cosmetics"
 
 export interface Table {
@@ -33,6 +34,8 @@ export interface Seat {
   stack: number
   // added by ShopService.withCosmetics when a table is sent to the browser
   cosmetics?: PublicCosmetics
+  // the player's best leaderboard badge, added by BadgeService.withBadges; null if they have none
+  badge?: Badge | null
 }
 
 /* what the host can change after a table is made */
