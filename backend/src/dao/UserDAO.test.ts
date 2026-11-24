@@ -1,4 +1,4 @@
-import { getAllPlayers, getBalance, getDailyReward, getRole, getUserIdFromToken, getUsername, recordDailyClaim, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
+import { getAllPlayers, getBalance, getDailyReward, getRankableBalance, getRole, getUserIdFromToken, getUsername, recordDailyClaim, removeUser, setBalance, unbanUser } from "../dao/UserDAO"
 import { calls, failure, mockState, resetMock } from "./mockSupabase"
 
 jest.mock("@supabase/supabase-js", () => require("./mockSupabase").supabaseMock)
@@ -92,5 +92,27 @@ describe("UserDAO", () => {
     await expect(getAllPlayers()).rejects.toThrow("db down")
     await expect(getUsername("u1")).rejects.toThrow("db down")
     await expect(removeUser("u1")).rejects.toThrow("db down")
+  })
+
+  describe("getRankableBalance", () => {
+    it("reads a signed-up player's balance", async () => {
+      mockState.result = { data: { chip_balance: 1800, is_guest: false, role: 0 } }
+      expect(await getRankableBalance("u1")).toBe(1800)
+      expect(calls).toContainEqual(["eq", ["id", "u1"]])
+    })
+
+    it("doesn't rank guests, admins or missing users", async () => {
+      mockState.result = { data: { chip_balance: 900, is_guest: true, role: 0 } }
+      expect(await getRankableBalance("g1")).toBeNull()
+      mockState.result = { data: { chip_balance: 900, is_guest: false, role: 1 } }
+      expect(await getRankableBalance("a1")).toBeNull()
+      mockState.result = { data: null }
+      expect(await getRankableBalance("nobody")).toBeNull()
+    })
+
+    it("throws when the database fails", async () => {
+      mockState.result = failure
+      await expect(getRankableBalance("u1")).rejects.toThrow("db down")
+    })
   })
 })
