@@ -2,6 +2,7 @@
 
 import { supabase } from "@/app/supabaseClient"
 import Avatar from "@/component/cosmetic/Avatar"
+import { AvatarBadge } from "@/component/badge/BadgeIcon"
 import Icon, { FRIENDS, ITEMS, LEAVE, SHIELD, USER } from "@/component/common/Icon"
 import { useMyLoadout } from "@/hook/useMyLoadout"
 import { isAdmin } from "@/service/AdminService"

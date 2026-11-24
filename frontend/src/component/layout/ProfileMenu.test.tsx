@@ -142,3 +142,26 @@ describe("ProfileMenu friends", () => {
     expect(fetchFriends).not.toHaveBeenCalled()
   })
 })
+
+describe("ProfileMenu badge", () => {
+  const badge = (timeframe: "week" | "month" | "season" | "all", place: 1 | 2 | 3, title: string) => ({ timeframe, place, periodStart: timeframe === "all" ? null : "2026-11-16T00:00:00.000Z", title, period: "p" })
+
+  it("shows your best badge on your avatar", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    jest.mocked(fetchMyProfile).mockResolvedValueOnce({
+      id: "u1", username: "Maya", avatarUrl: null, email: null, isGuest: false,
+      badges: [badge("week", 3, "Weekly Third Place"), badge("all", 1, "All-time Champion"), badge("month", 1, "Monthly Champion")],
+    })
+    render(<ProfileMenu />)
+    const button = screen.getByRole("button", { name: "Profile menu" })
+    await waitFor(() => expect(button.querySelector(".avatar-badge")).not.toBeNull())
+    expect(button.querySelector(".avatar-badge")).toHaveAccessibleName("All-time Champion, p")
+  })
+
+  it("shows none when you have no badges", async () => {
+    jest.mocked(isAdmin).mockResolvedValue(false)
+    render(<ProfileMenu />)
+    await waitFor(() => expect(isAdmin).toHaveBeenCalled())
+    expect(screen.getByRole("button", { name: "Profile menu" }).querySelector(".avatar-badge")).toBeNull()
+  })
+})
