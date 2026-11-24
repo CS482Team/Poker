@@ -5,28 +5,21 @@ import { announceLoadout, fetchLoadout } from "@/service/ShopService"
 import { makeItem } from "@/component/cosmetic/makeItem"
 import { act, waitFor } from "@testing-library/react"
 import { supabase } from "@/app/supabaseClient"
-import { fetchFriends } from "@/service/FriendService"
-import { isGuest } from "@/service/UserService"
 import { fetchMyProfile } from "@/service/ProfileService"
 
 const mockPush = jest.fn()
 
 jest.mock("@/service/AdminService", () => ({ isAdmin: jest.fn() }))
 jest.mock("@/service/ProfileService", () => ({ fetchMyProfile: jest.fn().mockRejectedValue(new Error("Sign in")) }))
-jest.mock("@/service/FriendService", () => ({ fetchFriends: jest.fn() }))
 jest.mock("next/navigation", () => ({ usePathname: () => "/dashboard", useRouter: () => ({ push: mockPush }) }))
-jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1", isGuest: jest.fn(() => false) }))
+jest.mock("@/service/UserService", () => ({ getCurrentUserId: () => "u1" }))
 jest.mock("@/service/ShopService", () => {
   const actual = jest.requireActual("@/service/ShopService")
   return { ...actual, fetchLoadout: jest.fn() }
 })
 jest.mock("@/app/supabaseClient", () => ({ supabase: { auth: { getSession: jest.fn(), signOut: jest.fn() } } }))
 
-beforeEach(() => {
-  jest.mocked(fetchLoadout).mockRejectedValue(new Error("Sign in to see your items"))
-  // most tests don't care about friends: leave the lookup pending so it never updates the menu mid-test
-  jest.mocked(fetchFriends).mockClear().mockReturnValue(new Promise(() => {}))
-})
+beforeEach(() => jest.mocked(fetchLoadout).mockRejectedValue(new Error("Sign in to see your items")))
 
 describe("ProfileMenu", () => {
   it("links admins to the admin page", async () => {
@@ -114,31 +107,25 @@ describe("ProfileMenu avatar", () => {
   })
 })
 
-describe("ProfileMenu friends", () => {
-  const request = { userId: "u2", username: "Theo", avatarUrl: null, sentAt: "2026-11-24T00:00:00Z" }
+describe("ProfileMenu badge", () => {
+  const badge = (timeframe: "week" | "month" | "season" | "all", place: 1 | 2 | 3, title: string) => ({ timeframe, place, periodStart: timeframe === "all" ? null : "2026-11-16T00:00:00.000Z", title, period: "p" })
 
-  it("links to your friends", async () => {
+  it("shows your best badge on your avatar", async () => {
     jest.mocked(isAdmin).mockResolvedValue(false)
-    jest.mocked(fetchFriends).mockResolvedValue({ friends: [], incoming: [], outgoing: [] })
+    jest.mocked(fetchMyProfile).mockResolvedValueOnce({
+      id: "u1", username: "Maya", avatarUrl: null, email: null, isGuest: false,
+      badges: [badge("week", 3, "Weekly Third Place"), badge("all", 1, "All-time Champion"), badge("month", 1, "Monthly Champion")],
+    })
     render(<ProfileMenu />)
-    fireEvent.click(screen.getByRole("button", { name: "Profile menu" }))
-    expect(await screen.findByRole("link", { name: "Friends" })).toHaveAttribute("href", "/friends")
+    const button = screen.getByRole("button", { name: "Profile menu" })
+    await waitFor(() => expect(button.querySelector(".avatar-badge")).not.toBeNull())
+    expect(button.querySelector(".avatar-badge")).toHaveAccessibleName("All-time Champion, p")
   })
 
-  it("shows how many friend requests are waiting", async () => {
+  it("shows none when you have no badges", async () => {
     jest.mocked(isAdmin).mockResolvedValue(false)
-    jest.mocked(fetchFriends).mockResolvedValue({ friends: [], incoming: [request, { ...request, userId: "u3" }], outgoing: [] })
-    render(<ProfileMenu />)
-    const button = await screen.findByRole("button", { name: "Profile menu, 2 friend requests" })
-    fireEvent.click(button)
-    expect(screen.getByRole("link", { name: /Friends/ })).toContainElement(screen.getByLabelText("2 friend requests"))
-  })
-
-  it("doesn't look up friends for guests", async () => {
-    jest.mocked(isAdmin).mockResolvedValue(false)
-    jest.mocked(isGuest).mockReturnValueOnce(true)
     render(<ProfileMenu />)
     await waitFor(() => expect(isAdmin).toHaveBeenCalled())
-    expect(fetchFriends).not.toHaveBeenCalled()
+    expect(screen.getByRole("button", { name: "Profile menu" }).querySelector(".avatar-badge")).toBeNull()
   })
 })
